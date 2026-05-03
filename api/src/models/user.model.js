@@ -27,3 +27,5 @@ const customerSchema = new mongoose.Schema({
 const Customer = mongoose.model("customers", customerSchema);
 
 export default Customer;
+
+// more attributes to be added
