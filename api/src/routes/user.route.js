@@ -1,20 +1,10 @@
-const express = require('express');
+import express from "express";
+import { getAllUsers, getUserById, forgotPassword } from "../controllers/user.controller.js";
+
 const router = express.Router();
-const userController = require('../controllers/user.controller');
-const { protect } = require('../middleware/auth.middleware');
 
+router.get("/all", getAllUsers);           // GET /api/users/all
+router.get("/:id", getUserById);           // GET /api/users/some_id_here
+router.post("/forgot-password", forgotPassword); // POST /api/users/forgot-password
 
-// Public need not be authenticated
-router.post('/register', userController.registerUser);
-router.post('/login', userController.loginUser);
-router.post('/forgot-password', userController.forgotPassword);
-router.put('/reset-password/:resetToken', userController.resetPassword);
-
-// Middleware to protect routes below
-router.use(protect);
-
-// Protected routes
-router.get('/profile', userController.getUserProfile);
-router.get('/all', userController.getAllUsers); 
-
-module.exports = router;
+export default router;

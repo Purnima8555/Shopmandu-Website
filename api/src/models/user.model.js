@@ -21,7 +21,13 @@ const customerSchema = new mongoose.Schema({
     image: {
         type: String,
         default: null
-    }
+    },
+password: {
+    type: String,
+    required: true,
+},
+resetPasswordToken: String,
+resetPasswordExpires: Date
 });
 
 const Customer = mongoose.model("customers", customerSchema);

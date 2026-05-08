@@ -1,21 +1,18 @@
 import express from "express";
 import dotenv from "dotenv";
-import connectDB from "./config/db.js";
+import connectDB from "./config/db.js"; // This looks inside the current 'src' folder;
+import userRoutes from "./routes/user.route.js";
 
-dotenv.config();
+dotenv.config(); // Load variables from .env
+connectDB();    // Connect to Database
 
 const app = express();
 
-connectDB();
-
+// Middleware to read JSON (very important for CRUD!)
 app.use(express.json());
 
-app.get("/", (req, res) => {
-    res.send("API is running...");
-});
+// Link your user routes
+app.use("/api/users", userRoutes);
 
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

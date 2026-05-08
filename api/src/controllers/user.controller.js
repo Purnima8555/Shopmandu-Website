@@ -1,68 +1,44 @@
-const userService = require('../services/user.service');
+import * as userService from "../services/user.service.js";
 
-exports.getUserProfile = async (req, res) => {
+// GET ALL USERS
+export const getAllUsers = async (req, res) => {
     try {
-        const user = await userService.findUserById(req.user._id);
-        res.status(200).json({ success: true, data: user });
-    } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
-    }
-};
-
-exports.updateUserProfile = async (req, res) => {
-    try {
-        const updatedUser = await userService.updateUser(req.user._id, req.body);
-        res.status(200).json({ success: true, data: updatedUser });
-    } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
-    }
-};
-
-exports.updatePassword = async (req, res) => {
-    try {
-        const { currentPassword, newPassword } = req.body;
-        await userService.changePassword(req.user._id, currentPassword, newPassword);
-        res.status(200).json({ success: true, message: "Password updated successfully" });
-    } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
-    }
-};
-
-exports.deleteUserAccount = async (req, res) => {
-    try {
-        await userService.deleteUser(req.user._id);
-        res.status(200).json({ success: true, message: "Account deleted" });
-    } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
-    }
-};
-// extract from req.body and sends it to service
-
-exports.registerUser = async (req, res) => {
-    try {
-        const user = await userService.createUser(req.body);
-        // Usually, you'd generate a JWT token here as well
-        res.status(201).json({ success: true, data: user });
-    } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
-    }
-};
-
-exports.loginUser = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        const { user, token } = await userService.authenticateUser(email, password);
-        res.status(200).json({ success: true, token, data: user });
-    } catch (error) {
-        res.status(401).json({ success: false, message: error.message });
-    }
-};
-
-exports.getAllUsers = async (req, res) => {
-    try {
-        const users = await userService.fetchAllUsers();
+        const users = await userService.getAllUsersService();
         res.status(200).json({ success: true, data: users });
     } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// GET USER BY ID
+export const getUserById = async (req, res) => {
+    try {
+        const user = await userService.getUserByIdService(req.params.id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+        
+        res.status(200).json({ success: true, data: user });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Invalid ID format or Server Error" });
+    }
+};
+
+// FORGOT PASSWORD 
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const user = await userService.getUserByEmailService(email);
+
+        if (!user) {
+            return res.status(404).json({ message: "User with this email does not exist." });
+        }
+
+
+        res.status(200).json({ 
+            success: true, 
+            message: "User found! You can now proceed with sending a reset email." 
+        });
+
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 };
