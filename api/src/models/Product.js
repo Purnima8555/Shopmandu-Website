@@ -16,14 +16,14 @@ const productSchema = new mongoose.Schema({
         min: [0.01, "Price must be greater than 0.01"],
         max: [1000000, "Price must be less than 1000000."]
     },
-    category: {
+    category: [{
         type: String,
         required: [true, "Category is required."]
-    },
+    }],
     stock: {
         type: Number,
         min: 0,
-        default: 1
+        default: 0
     },
     rating: {
         type: Number,
@@ -34,10 +34,6 @@ const productSchema = new mongoose.Schema({
         type: String,
         maxLength: 1000
     },
-    createdAt: {
-        type: Date,
-        default: Date.now()
-    }
-})
+}, {timestamps:true})
 
 export default mongoose.model("Product", productSchema);
