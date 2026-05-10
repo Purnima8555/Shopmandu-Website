@@ -1,31 +1,43 @@
 import mongoose from "mongoose";
 
-const customerSchema = new mongoose.Schema({
-    username: {
-        type: String,
-        required: true
-    },
+const userSchema = new mongoose.Schema({
     full_name: {
         type: String,
-        required: true
+        required: true,
+        trim: true
     },
+
     email: {
         type: String,
-        required: true
+        required: true,
+        unique: true,
+        lowercase: true
     },
+
+    password: {
+        type: String,
+        required: function () { return !this.googleId; },
+        select: false
+    },
+
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
+
+    contact_no: {
+        type: String
+    },
+
     role: {
         type: String,
-        default: "User",
-        required: true
-    },
-    image: {
-        type: String,
-        default: null
+        enum: ['customer', 'vendor', 'admin'],
+        default: 'customer'
     }
-});
 
-const Customer = mongoose.model("customers", customerSchema);
+}, { timestamps: true });
 
-export default Customer;
+const User = mongoose.model("User", userSchema);
 
-// more attributes to be added
+export default User;
