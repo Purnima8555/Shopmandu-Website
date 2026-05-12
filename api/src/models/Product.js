@@ -34,6 +34,9 @@ const productSchema = new mongoose.Schema({
         type: String,
         maxLength: 1000
     },
-}, {timestamps:true})
+    imageUrls: {
+        type: [String]
+    },
+}, { timestamps: true })
 
 export default mongoose.model("Product", productSchema);

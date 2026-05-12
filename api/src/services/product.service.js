@@ -1,4 +1,5 @@
 import Product from "../models/Product.js"
+import uploadFile from "../utils/fileUploader.js"
 
 const getAllProducts = async () => {
     const products = await Product.find();
@@ -10,8 +11,9 @@ const getProductById = async (id) => {
     return product;
 };
 
-const createProduct = async (data) => {
-    return await Product.create(data);
+const createProduct = async (data, files) => {
+    const uploadedFiles = await uploadFile(files);
+    return await Product.create({ ...data, imageUrls: uploadedFiles.map((files) => files.url) });
 };
 
 const updateProduct = async (id, input) => {
