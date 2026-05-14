@@ -1,0 +1,30 @@
+{
+  "name": "shopmandu_multivendor",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon src/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "arctic": "^3.7.0",
+    "bcrypt": "^6.0.0",
+    "body-parse": "^0.1.0",
+    "cloudinary": "^2.10.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-validator": "^7.3.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.6.1",
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.7",
+    "qs": "^6.15.1",
+    "zod": "^4.4.3"
+  }
+}
