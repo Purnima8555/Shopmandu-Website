@@ -2,7 +2,11 @@ import * as userService from "../services/user.service.js";
 import {
     registerSchema,
     loginSchema,
-    googleLoginSchema
+    googleLoginSchema,
+    updateUserSchema,
+    forgotPasswordSchema,
+    verifyOtpSchema,
+    resetPasswordSchema,
 } from "../libs/schemas/user.schema.js";
 import validate from "../middlewares/validator.js";
 
@@ -84,23 +88,98 @@ export const getUserById = async (req, res) => {
     }
 };
 
-// FORGOT PASSWORD
-export const forgotPassword = async (req, res) => {
+// ─── Update ───────────────────────────────────────────────────────────────────
+ 
+/**
+ * PUT /users/:id
+ * Requires authentication. Users can only update their own profile;
+ * admins can update any profile.
+ */
+export const updateUser = [
+    validate(updateUserSchema),
+    async (req, res) => {
+        try {
+            const updated = await userService.updateUserService(
+                req.user.id,        // from auth middleware
+                req.params.id,      // target user
+                req.body,
+            );
+            res.status(200).json({ success: true, message: "Profile updated successfully", data: updated });
+        } catch (error) {
+            res.status(error.status || 500).json({ success: false, message: error.message });
+        }
+    },
+];
+ 
+// ─── Delete ───────────────────────────────────────────────────────────────────
+ 
+/**
+ * DELETE /users/:id
+ * Requires authentication. Users can only delete their own account;
+ * admins can delete any account.
+ */
+export const deleteUser = async (req, res) => {
     try {
-        const { email } = req.body;
-        const user = await userService.getUserByEmailService(email);
-
-        if (!user) {
-        return res
-            .status(404)
-            .json({ message: "User with this email does not exist." });
-    }
-
-    res.status(200).json({
-        success: true,
-        message: "User found! You can now proceed with sending a reset email.",
-        });
+        const result = await userService.deleteUserService(
+            req.user.id,    // from auth middleware
+            req.params.id,  // target user
+        );
+        res.status(200).json({ success: true, ...result });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(error.status || 500).json({ success: false, message: error.message });
     }
 };
+ 
+// ─── Forgot Password (OTP flow) ───────────────────────────────────────────────
+ 
+/**
+ * POST /users/forgot-password
+ * Step 1 – Request an OTP. Always returns 200 to prevent email enumeration.
+ */
+export const forgotPassword = [
+    validate(forgotPasswordSchema),
+    async (req, res) => {
+        try {
+            await userService.sendForgotPasswordOtpService(req.body.email);
+            res.status(200).json({
+                success: true,
+                message: "If that email is registered, an OTP has been sent.",
+            });
+        } catch (error) {
+            res.status(error.status || 500).json({ success: false, message: error.message });
+        }
+    },
+];
+ 
+/**
+ * POST /users/verify-otp
+ * Step 2 – Verify the OTP.
+ */
+export const verifyOtp = [
+    validate(verifyOtpSchema),
+    async (req, res) => {
+        try {
+            await userService.verifyOtpService(req.body.email, req.body.otp);
+            res.status(200).json({ success: true, message: "OTP verified. You may now reset your password." });
+        } catch (error) {
+            res.status(error.status || 400).json({ success: false, message: error.message });
+        }
+    },
+];
+ 
+/**
+ * POST /users/reset-password
+ * Step 3 – Set a new password after OTP verification.
+ */
+export const resetPassword = [
+    validate(resetPasswordSchema),
+    async (req, res) => {
+        try {
+            const { email, otp, newPassword } = req.body;
+            await userService.resetPasswordService(email, otp, newPassword);
+            res.status(200).json({ success: true, message: "Password reset successfully. You can now log in." });
+        } catch (error) {
+            res.status(error.status || 400).json({ success: false, message: error.message });
+        }
+    },
+];
