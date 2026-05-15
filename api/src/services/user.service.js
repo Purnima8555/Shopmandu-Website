@@ -41,7 +41,7 @@ export const registerUser = async (data) => {
     image: image || null,
   });
 
-  // 5. send welcome email
+  // send welcome email
   sendWelcomeEmail(customer).catch(() => {});
 
   return {
