@@ -1,0 +1,12 @@
+
+
+const ShopStatus = Object.freeze({
+  ACTIVE_STATUS: "ACTIVE",
+  PENDING_STATUS: "PENDING",
+  SUSPENDED_STATUS: "SUSPENDED",
+  DEACTIVATED_STATUS: "DEACTIVATED",
+  BANNED_STATUS: "BANNED",
+  CLOSED_STATUS: "CLOSED",
+});
+
+export default ShopStatus;
