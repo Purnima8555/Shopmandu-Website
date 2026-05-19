@@ -8,6 +8,6 @@ export const productSchema = z.object({
     // stock: z.number().default(1),
 
     //For using in form data:
-    price: z.String().min(1).max(1000000),
+    price: z.String().min(1),
     stock: z.String().default(1),
 })
