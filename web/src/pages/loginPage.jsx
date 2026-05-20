@@ -1,45 +1,39 @@
-import { GoogleLogin } from "@react-oauth/google";
-import axios from "axios";
-
 const LoginPage = () => {
-    const handleGoogleSuccess = async (credentialResponse) => {
-        try {
-        const res = await axios.post(
-            "http://localhost:3000/api/users/google-login",
-            {
-            idToken: credentialResponse.credential,
-            },
-        );
+  const handleGoogleLogin = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:3000/api/auth/register",
+        {
+          method: "GET",
+        },
+      );
 
-        console.log("BACKEND RESPONSE:", res.data);
+      const data = await response.json();
 
-        // Store JWT token
-        localStorage.setItem("token", res.data.token);
-        alert("Google Login Successful!");
-        } catch (error) {
-        console.log(error);
-        alert("Google Login Failed");
-        }
-    };
+      if (data.success && data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error("Failed to get Google login URL");
+      }
+    } catch (error) {
+      console.error("Google login error:", error);
+    }
+  };
 
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="bg-white p-10 rounded-2xl shadow-lg w-[400px]">
-            <h1 className="text-3xl font-bold text-center mb-2">
-            Welcome to ShopMandu
-            </h1>
-            <p className="text-gray-500 text-center mb-8">Continue with Google</p>
-            <div className="flex justify-center">
-            <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={() => {
-                alert("Google Login Failed");
-                }}
-            />
-            </div>
-        </div>
-        </div>
-    );
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <button
+        onClick={handleGoogleLogin}
+        className="flex items-center gap-3 px-6 py-3 bg-white shadow-md rounded-lg hover:shadow-lg"
+      >
+        <img
+          src="https://www.svgrepo.com/show/475656/google-color.svg"
+          className="w-5 h-5"
+        />
+        Sign in with Google
+      </button>
+    </div>
+  );
 };
 
 export default LoginPage;

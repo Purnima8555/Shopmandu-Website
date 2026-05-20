@@ -1,19 +1,67 @@
 import mongoose from "mongoose";
+import Roles from "../constants/userRoles.js";
+import authProvider from "../constants/authProvider.js";
 
-const customerSchema = new mongoose.Schema(
-    {
-        _id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Credential",
-        },
+const userSchema = new mongoose.Schema({
 
-        full_name: String,
-        email: String,
-        contact_no: String,
-        role: String,
-        image: String,
+    userName: {
+        type: String,
+        required: [true, "User name required"],
+        minlength: [3, "User name must be at least 3 characters."],
+        maxlength: [50, "User name must be a maximum of 50 characters."]
     },
-    { timestamps: true },
-);
+    email: {
+        type: String,
+        unique: true,
+        required: [true, "Email is required."],
+        validate: {
+            validator: function (value) {
+                const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                return regex.test(value);
+            },
+            message: "Invalid email address."
+        }
+    },
+    mobile: {
+        type: Number,
+        minlength: 8,
+        maxlength: 15
+    },
+    password: {
+        type: String,
+        required: function () {
+            return !this.googleId;
+        },
+        select: false,
+        },
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true,
+        },
+    avatar: {
+        type: String,
+    },
+    authProvider: [{
+        type: String,
+        enum: [authProvider.LOCAL, authProvider.GOOGLE],
+        default: authProvider.LOCAL,
+        required: [true, "Auth Provider is required"]
+    }],
+    roles: [{
+        type: String,
+        enum: [Roles.USER_ROLE, Roles.VENDOR_ROLE, Roles.ADMIN_ROLE],
+        required: [true, "Role is required."],
+        default: Roles.USER_ROLE
+    }],
+    isVerify: {
+        type: Boolean,
+        default: false
+    },
 
-export default mongoose.model("Customer", customerSchema, "customers");
+
+}, { timestamps: true })
+
+const UserModel = mongoose.models.User || mongoose.model("User", userSchema);
+
+export default UserModel;

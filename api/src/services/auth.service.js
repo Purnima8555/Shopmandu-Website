@@ -2,7 +2,7 @@ import UserModel from "../models/User.model.js";
 import bcrypt from "bcrypt";
 import passworehashUtils from "../utils/passworehash.utils.js";
 import Roles from "../constants/userRoles.js";
-import UserProfileModel from "../models/UserProfile.model.js";
+// import UserProfileModel from "../models/UserProfile.model.js";
 import VendorProfileModel from "../models/VendorProfile.model.js";
 import {
     AppError,

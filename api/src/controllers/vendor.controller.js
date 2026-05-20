@@ -2,10 +2,10 @@
 
 import { assign } from "nodemailer/lib/shared/index.js";
 import Roles from "../constants/userRoles.js";
+import AccountStatus from "../constants/accountStatus.js";
 import vendorService from "../services/vendor.service.js"
 import { BadRequestError } from "../utils/AppError.js"
 import CloudinaryUpload from "../utils/CloudinaryUpload.js";
-import AccountStatus from "../constants/accountStatus.js";
 
 
 

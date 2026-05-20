@@ -22,9 +22,9 @@ const config = {
 
 
     /// cloudinary credentials
-    cloud_name: process.env.CLOUD_NAME,
-    cloudinaryAPI_KEY: process.env.API_KEY,
-    cloudinaryAPI_SECRET: process.env.API_SECRET
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    cloudinaryAPI_KEY: process.env.CLOUDINARY_API_KEY,
+    cloudinaryAPI_SECRET: process.env.CLOUDINARY_API_SECRET,
 
 
 }
