@@ -65,7 +65,7 @@ export const registerUser = async (data, file) => {
     token,
 
     user: {
-      id: user._id,
+      _id: user._id,
       userName: user.userName,
       email: user.email,
       mobile: user.mobile,
@@ -167,7 +167,7 @@ export const loginUser = async (email, password) => {
     token,
 
     user: {
-      id: user._id,
+      _id: user._id,
       userName: user.userName,
       email: user.email,
       mobile: user.mobile,

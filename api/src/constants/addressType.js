@@ -7,4 +7,5 @@ const addressType = Object.freeze({
     BILLING:"BILLING",
     OTHER: "OTHER"
 })
- export default addressType;
+
+export default addressType;

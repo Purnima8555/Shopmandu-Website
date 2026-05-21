@@ -8,6 +8,7 @@ import connectDB from "./config/db.js";
 import userRoutes from "./routes/user.route.js";
 import vendorRouters from "./routes/vendor.routes.js";
 import authRoutes from "./routes/auth.route.js"
+import addressRoutes from "./routes/address.route.js";
 
 import { upload } from "./middleware/multer.middleware.js";
 import { NotFoundError } from "./utils/AppError.js";
@@ -28,6 +29,9 @@ app.use("/api/users", userRoutes);
 
 /// Vendor Routes
 app.use("/api/vendors", vendorRouters);
+
+/// Address Routes
+app.use("/api/address", addressRoutes);
 
 /// File Upload Route (optional testing route)
 app.use(
