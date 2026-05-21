@@ -24,16 +24,16 @@ const createProduct = async (req, res) => {
     }
 };
 
-const updateProduct = async (req, res) => {
-    const id = req.params.id;
-    const input = req.body;
-    try {
-        const product = await productService.updateProduct(id, input);
-        res.json(product);
-    } catch (error) {
-        res.status(400).send(error.message);
-    }
-};
+// const updateProduct = async (req, res) => {
+//     const id = req.params.id;
+//     const input = req.body;
+//     try {
+//         const product = await productService.updateProduct(id, input);
+//         res.json(product);
+//     } catch (error) {
+//         res.status(400).send(error.message);
+//     }
+// };
 
 const deleteProduct = async (req, res) => {
     const id = req.params.id;
