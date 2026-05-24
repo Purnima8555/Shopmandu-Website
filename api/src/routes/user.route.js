@@ -1,36 +1,26 @@
-import express from "express";
+import { Router } from "express";
+import auth from "../middleware/auth.middleware.js";
+import roleBasedAuth from "../middleware/roleBase.middleware.js";
+import Roles from "../constants/userRoles.js";
 import {
   deleteUser,
-  forgotPassword,
   getAllUsers,
   getUserById,
-  // googleLogin,
-  login,
-  register,
-  resetPassword,
   updateUser,
-  verifyOtp,
 } from "../controllers/user.controller.js";
-import authMiddleware from "../middleware/auth.middleware.js";
 
-const router = express.Router();
+const router = Router();
 
-// Google Auth route
-// router.post("/google-login", googleLogin);
+// GET ALL USERS
+router.get("/users/all", auth, roleBasedAuth(Roles.ADMIN_ROLE, Roles.SUPER_ADMIN_ROLE), getAllUsers);
 
-// routes
-router.post("/register", register);
-router.post("/login", login);
+// GET USER BY ID
+router.get("/users/:id", auth, getUserById);
 
-// ─── Forgot Password (OTP flow) — no auth required ───────────────────────────
-router.post("/forgot-password", forgotPassword);
-router.post("/verify-otp", verifyOtp);
-router.post("/reset-password", resetPassword);
+// UPDATE USER
+router.put("/users/:id", auth, updateUser);
 
-// ─── User CRUD — auth required ────────────────────────────────────────────────
-router.get("/all", authMiddleware, getAllUsers);
-router.get("/:id", authMiddleware, getUserById);
-router.put("/:id", authMiddleware, updateUser);
-router.delete("/:id", authMiddleware, deleteUser);
+// DELETE USER
+router.delete("/users/:id", auth, deleteUser);
 
 export default router;

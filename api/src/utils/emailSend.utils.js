@@ -1,6 +1,5 @@
 import nodemailer from "nodemailer";
 import config from "../config/config.js";
-// const nodemailer = require("nodemailer");
 
 // Create a transporter using SMTP
 const transporter = nodemailer.createTransport({

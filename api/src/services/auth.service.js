@@ -2,7 +2,6 @@ import UserModel from "../models/User.model.js";
 import bcrypt from "bcrypt";
 import passworehashUtils from "../utils/passworehash.utils.js";
 import Roles from "../constants/userRoles.js";
-// import UserProfileModel from "../models/UserProfile.model.js";
 import VendorProfileModel from "../models/VendorProfile.model.js";
 import {
     AppError,
@@ -113,40 +112,36 @@ class authService {
         );
         let createUser;
 
-        /// upload avatar 
-        const userAvatar = await CloudinaryUpload.uploadSingleImage(avatar, "upload")
-        userData.avatar = userAvatar.secure_url
+        /// upload avatar
+        const userAvatar = await CloudinaryUpload.uploadSingleImage(avatar, "upload");
+        const avatarUrl = userAvatar.secure_url;
 
-        // Update existing unverified user
-        if (userIsRegister && !userIsRegister?.isVerify) {
-            createUser = await UserModel.findOneAndUpdate({ email },
-                {
+            if (userIsRegister && !userIsRegister?.isVerify) {
+                createUser = await UserModel.findOneAndUpdate(
+                    { email },
+                    {
                     userName,
                     mobile,
                     roles,
-                    avatar,
+                    avatar: avatarUrl,
                     authProvider: userAuthProvider,
                     password: hashPassword,
                     isVerify: false,
-                },
-                {
-                    returnDocument: "after",
-                }
-            )
-        } else {
-            /// user Table
-            createUser = await UserModel.create({
-                email,
-                userName,
-                mobile,
-                roles,
-                avatar,
-                authProvider: userAuthProvider,
-                password: hashPassword,
-                isVerify: false,
-            });
-
-        }
+                    },
+                    { returnDocument: "after" },
+                );
+                } else {
+                createUser = await UserModel.create({
+                    email,
+                    userName,
+                    mobile,
+                    roles,
+                    avatar: avatarUrl,
+                    authProvider: userAuthProvider,
+                    password: hashPassword,
+                    isVerify: false,
+                });
+            }
 
         /// send otp for email verifaction
         const body = (otp) => {

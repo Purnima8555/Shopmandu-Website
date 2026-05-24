@@ -1,19 +1,16 @@
 import cors from "cors";
-import dotenv from "dotenv";
 import express from "express";
 
 import cloudinaryConnect from "./config/cloudinary.config.js";
 import connectDB from "./config/db.js";
 
-import userRoutes from "./routes/user.route.js";
+import userRouters from "./routes/user.route.js";
 import vendorRouters from "./routes/vendor.routes.js";
-import authRoutes from "./routes/auth.route.js"
-import addressRoutes from "./routes/address.route.js";
+import authRouters from "./routes/auth.route.js";
+import addressRouters from "./routes/address.route.js";
 
 import { upload } from "./middleware/multer.middleware.js";
 import { NotFoundError } from "./utils/AppError.js";
-
-dotenv.config();
 
 const app = express();
 
@@ -21,17 +18,17 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-/// Auth Routes
-app.use("/api/auth", authRoutes);
-
 /// User Routes
-app.use("/api/users", userRoutes);
+app.use("/api", userRouters);
 
-/// Vendor Routes
-app.use("/api/vendors", vendorRouters);
+//// routes
+app.use("/api/auth", authRouters);
+
+/// vendor routes
+app.use("/api", vendorRouters);
 
 /// Address Routes
-app.use("/api/address", addressRoutes);
+app.use("/api/address", addressRouters);
 
 /// File Upload Route (optional testing route)
 app.use(
