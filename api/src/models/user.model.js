@@ -50,7 +50,7 @@ const userSchema = new mongoose.Schema({
     }],
     roles: [{
         type: String,
-        enum: [Roles.USER_ROLE, Roles.VENDOR_ROLE, Roles.ADMIN_ROLE],
+        enum: [Roles.USER_ROLE, Roles.VENDOR_ROLE, Roles.ADMIN_ROLE, Roles.SUPER_ADMIN_ROLE],
         required: [true, "Role is required."],
         default: Roles.USER_ROLE
     }],
