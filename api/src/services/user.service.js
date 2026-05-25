@@ -58,12 +58,7 @@ export const getUserByIdService = async (requesterId, targetId) => {
 // UPDATE USER
 // ONLY SELF UPDATE (NO ADMIN EDITS)
 //
-export const updateUserService = async (
-  requesterId,
-  targetId,
-  updateData,
-  file,
-) => {
+export const updateUserService = async ( requesterId, targetId, updateData, file) => {
   const requester = await UserModel.findById(requesterId);
 
   if (!requester) {
