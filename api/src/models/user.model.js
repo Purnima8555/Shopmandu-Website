@@ -1,3 +1,6 @@
+
+
+
 import mongoose from "mongoose";
 import Roles from "../constants/userRoles.js";
 import authProvider from "../constants/authProvider.js";
@@ -45,7 +48,7 @@ const userSchema = new mongoose.Schema({
     }],
     roles: [{
         type: String,
-        enum: [Roles.USER_ROLE, Roles.VENDOR_ROLE, Roles.ADMIN_ROLE, Roles.SUPER_ADMIN_ROLE],
+        enum: [Roles.USER_ROLE, Roles.VENDOR_ROLE, Roles.ADMIN_ROLE],
         required: [true, "Role is required."],
         default: Roles.USER_ROLE
     }],
@@ -54,9 +57,11 @@ const userSchema = new mongoose.Schema({
         default: false
     },
 
-
 }, { timestamps: true })
 
-const UserModel = mongoose.models.User || mongoose.model("User", userSchema);
+const UserModel = mongoose.model("User", userSchema);
 
 export default UserModel;
+
+
+

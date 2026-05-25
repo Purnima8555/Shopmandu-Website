@@ -15,7 +15,7 @@ class CloudinaryFileUpload {
     // }
 
     /**
-     * ## for image upload create 4 different function to upload it.
+     * ## for image upload create 2 different function to upload it.
      * 1. uploadeSingleImage() =>
      * 2. uploadSingleImage() =>    
      */
@@ -85,7 +85,6 @@ class CloudinaryFileUpload {
 
 
     //// video upload
-
     async videoUpload(video, type = "upload") {
         if (video.size > 1024 * 1024 * 18) {
             throw new BadRequestError("File size must be less then 18MB.")

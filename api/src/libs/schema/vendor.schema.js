@@ -16,11 +16,9 @@ const vendorSchema = z.object({
   }),
   bankDetails: z.object({
     accountNumber: z.string().trim().min(3, "Account number is required."),
-
     accountHolderName: z.string().trim()
       .min(3, "Account holder name must be at least 3 characters.")
       .max(50, "Account holder name must not exceed 50 characters."),
-
     bankName: z.string().trim()
       .min(3, "Bank name must be at least 3 characters.")
       .max(80, "Bank name must not exceed 80 characters."),

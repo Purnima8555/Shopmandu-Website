@@ -94,7 +94,6 @@ const vendorSchema = new mongoose.Schema(
             enum: [
                 AccountStatus.ACTIVE_STATUS,
                 AccountStatus.PENDING_STATUS,
-                AccountStatus.REJECT_STATUS,
                 AccountStatus.SUSPENDED_STATUS,
                 AccountStatus.DEACTIVATED_STATUS,
                 AccountStatus.BANNED_STATUS,

@@ -3,7 +3,6 @@ dist
 .env
 .DS_Store
 temp.js
-user.json
 logs
 *.log
 coverage

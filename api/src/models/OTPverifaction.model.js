@@ -25,7 +25,7 @@ const otpVerificationSchema = new mongoose.Schema({
         default: () => Date.now() + 300 * 1000,
         /// Date.now() provides current time, adding 300 second * 1000 millisecond  = 5 minutes. 300 
         expires: 300, /// it means auto delete after 5 minutes
-        immutable: true
+        // immutable: true
     }
 
 });

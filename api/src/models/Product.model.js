@@ -34,6 +34,7 @@ const productSchema = new mongoose.Schema(
       unique: true,
       required: [true, "Slug is required"],
       lowercase: true,
+      index: true,
     },
 
     description: {

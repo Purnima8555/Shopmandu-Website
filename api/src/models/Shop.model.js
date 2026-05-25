@@ -1,6 +1,15 @@
 import mongoose from "mongoose";
+import ShopStatus from "../constants/ShopStatus.js";
+
 
 const shopSchema = new mongoose.Schema({
+
+    user_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+        unique: true,
+    },
 
     shopName: {
         type: String,
@@ -23,18 +32,19 @@ const shopSchema = new mongoose.Schema({
         type: String,
     },
 
-    accountStatus: {
+    ShopStatus: {
         type: String,
         enum: [
-            AccountStatus.ACTIVE_STATUS,
-            AccountStatus.PENDING_STATUS,
-            AccountStatus.REJECT_STATUS,
-            AccountStatus.SUSPENDED_STATUS,
-            AccountStatus.DEACTIVATED_STATUS,
-            AccountStatus.BANNED_STATUS,
-            AccountStatus.CLOSED,
+            ShopStatus.ACTIVE_STATUS,
+            ShopStatus.DEACTIVATED_STATUS,
+            ShopStatus.CLOSED_STATUS,
+
+            ShopStatus.PENDING_STATUS,
+
+            ShopStatus.SUSPENDED_STATUS,
+            ShopStatus.BANNED_STATUS,
         ],
-        default: AccountStatus.PENDING_STATUS,
+        default: ShopStatus.PENDING_STATUS,
     },
 
     shopAddress: {
@@ -64,8 +74,14 @@ const shopSchema = new mongoose.Schema({
         }
     },
 
-    /// system generate information 
+    slugs: {
+        type: String,
+        unique: true,
+        index: true,
+        required: true
+    },
 
+    /// system generate information 
     shopRating: {
         type: Number,
         min: [0, ""],
@@ -74,7 +90,6 @@ const shopSchema = new mongoose.Schema({
 
     logo: {
         type: String,
-
     },
     discription: {
         type: String,
@@ -82,9 +97,20 @@ const shopSchema = new mongoose.Schema({
     banner: {
         type: String
     },
-    openingHour:{
-        type: String,
+    openingHour: {
+        open: {
+            type: String,
+            trim: true
+        },
+        close: {
+            type: String,
+            trim: true
+        }
     }
 
 }, { timestamps: true })
+
+
+const ShopModel = mongoose.model("Shop", shopSchema);
+export default ShopModel;
 

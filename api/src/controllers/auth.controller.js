@@ -204,7 +204,7 @@ const forgetPasswordRequest = async (req, res, next) => {
 
         const { email } = req.body
 
-        if(!email){
+        if (!email) {
             throw new BadRequestError("email fields is required.")
         }
 
@@ -277,4 +277,13 @@ const resetPasswordRequest = async (req, res, next) => {
 
 
 
-export default { logIn, register, verifyEmail, resendOtp, continueWithGoogle, googleLoginLink, forgetPasswordRequest, resetPasswordRequest };
+export default {
+    logIn,
+    register,
+    verifyEmail,
+    resendOtp,
+    continueWithGoogle,
+    googleLoginLink,
+    forgetPasswordRequest,
+    resetPasswordRequest
+};

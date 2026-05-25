@@ -1,47 +1,46 @@
 import { z } from "zod";
-import { OrderStatus, PaymentStatus } from "../../constants/orderStatus.js";
+import paymentMethod from "../../constants/paymentMethod.js";
 
+//
+// ORDER ITEM SCHEMA
+//
 const orderItemValidationSchema = z.object({
-    productId: z
-        .string()
-        .regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid Product ObjectId" }),
-    quantity: z.number().int().min(1, { message: "Quantity must be at least 1" }),
+    productId: z.string().regex(/^[0-9a-fA-F]{24}$/, {
+        message: "Invalid Product ObjectId",
+    }),
+
+    quantity: z.number().int().gte(1, {
+        message: "Quantity must be at least 1",
+    }),
+
     selectedColor: z.string().optional(),
     selectedSize: z.string().optional(),
 });
 
+//
+// CREATE ORDER SCHEMA
+//
 export const createOrderSchema = z.object({
-  // Items payload
-    items: z
-        .array(orderItemValidationSchema)
-        .min(1, { message: "Order must contain at least one item." }),
+    // order items
+    items: z.array(orderItemValidationSchema).min(1, {
+        message: "At least one item is required",
+    }),
 
-    // The selected Address ID from the user's saved addresses list
-    addressId: z
-        .string()
-        .regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid Address ObjectId" }),
+    // shipping address
+    shippingAddressId: z.string().regex(/^[0-9a-fA-F]{24}$/, {
+        message: "Invalid Address ObjectId",
+    }),
 
-    // Payment option configuration
-    paymentMethod: z.enum(["COD", "STRIPE", "ESEWA", "KHALTI"]).default("COD"),
-});
+    // optional coupon
+    couponCode: z.string().optional(),
 
-// update the status via an API patch request route
-export const updateOrderStatusSchema = z.object({
-    orderStatus: z
+    // payment method
+    paymentMethod: z
         .enum([
-        OrderStatus.PENDING,
-        OrderStatus.PROCESSING,
-        OrderStatus.SHIPPED,
-        OrderStatus.DELIVERED,
-        OrderStatus.CANCELLED,
+        paymentMethod.CASH_ON_DELIVERY,
+        paymentMethod.ESEWA,
+        paymentMethod.KHALTI,
+        paymentMethod.STRIPE,
         ])
-        .optional(),
-    paymentStatus: z
-        .enum([
-        PaymentStatus.UNPAID,
-        PaymentStatus.PAID,
-        PaymentStatus.FAILED,
-        PaymentStatus.REFUNDED,
-        ])
-    .optional(),
+        .default(paymentMethod.CASH_ON_DELIVERY),
 });

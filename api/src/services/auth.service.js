@@ -2,7 +2,7 @@ import UserModel from "../models/User.model.js";
 import bcrypt from "bcrypt";
 import passworehashUtils from "../utils/passworehash.utils.js";
 import Roles from "../constants/userRoles.js";
-import VendorProfileModel from "../models/VendorProfile.model.js";
+import UserProfileModel from "../models/UserProfile.model.js";
 import {
     AppError,
     BadRequestError,
@@ -123,25 +123,29 @@ class authService {
                     userName,
                     mobile,
                     roles,
-                    avatar: avatarUrl,
+                    avatar: userData.avatar,
                     authProvider: userAuthProvider,
                     password: hashPassword,
                     isVerify: false,
-                    },
-                    { returnDocument: "after" },
-                );
-                } else {
-                createUser = await UserModel.create({
-                    email,
-                    userName,
-                    mobile,
-                    roles,
-                    avatar: avatarUrl,
-                    authProvider: userAuthProvider,
-                    password: hashPassword,
-                    isVerify: false,
-                });
-            }
+                },
+                {
+                    returnDocument: "after",
+                }
+            )
+        } else {
+            /// user Table
+            createUser = await UserModel.create({
+                email,
+                userName,
+                mobile,
+                roles,
+                avatar: userData.avatar,
+                authProvider: userAuthProvider,
+                password: hashPassword,
+                isVerify: false,
+            });
+
+        }
 
         /// send otp for email verifaction
         const body = (otp) => {
@@ -298,6 +302,8 @@ class authService {
             String(otp),
             String(record.otp),
         );
+
+        // console.log(record.expiresAt.getTime() < Date.now())
 
         if (!isValidOtp) {
             throw new BadRequestError("Invalid OTP!");

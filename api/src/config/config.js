@@ -26,6 +26,8 @@ const config = {
     cloudinaryAPI_KEY: process.env.API_KEY,
     cloudinaryAPI_SECRET: process.env.API_SECRET,
 
+    /// khalti credentials
+    khalti_api: process.env.KHALTI_API
 
 }
 
