@@ -1,13 +1,11 @@
-import * as userService from "../services/user.service.js";
+import userService from "../services/user.service.js";
 
 //
 // GET ALL USERS
 //
 export const getAllUsers = async (req, res, next) => {
   try {
-    const users = await userService.getAllUsersService(
-      req.user._id,
-    );
+    const users = await userService.getAllUsers();
 
     res.status(200).json({
       success: true,
@@ -23,10 +21,7 @@ export const getAllUsers = async (req, res, next) => {
 //
 export const getUserById = async (req, res, next) => {
   try {
-    const user = await userService.getUserByIdService(
-      req.user._id,
-      req.params.id,
-    );
+    const user = await userService.getUserById(req.params.id);
 
     res.status(200).json({
       success: true,
@@ -38,11 +33,12 @@ export const getUserById = async (req, res, next) => {
 };
 
 //
-// UPDATE USER (SELF ONLY)
+// UPDATE USER
 //
 export const updateUser = async (req, res, next) => {
   try {
-    const updatedUser = await userService.updateUserService(
+    // console.log("FILE RECEIVED:", req.file);
+    const updatedUser = await userService.updateUser(
       req.user._id,
       req.params.id,
       req.body,
@@ -60,14 +56,11 @@ export const updateUser = async (req, res, next) => {
 };
 
 //
-// DELETE USER
+// DELETE USER (SELF OR ADMIN CHECK INSIDE SERVICE)
 //
 export const deleteUser = async (req, res, next) => {
   try {
-    const result = await userService.deleteUserService(
-      req.user._id,
-      req.params.id,
-    );
+    const result = await userService.deleteUser(req.user._id, req.params.id);
 
     res.status(200).json({
       success: true,

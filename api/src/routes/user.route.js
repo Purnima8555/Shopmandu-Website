@@ -2,12 +2,8 @@ import { Router } from "express";
 import auth from "../middleware/auth.middleware.js";
 import roleBasedAuth from "../middleware/roleBase.middleware.js";
 import Roles from "../constants/userRoles.js";
-import {
-  deleteUser,
-  getAllUsers,
-  getUserById,
-  updateUser,
-} from "../controllers/user.controller.js";
+import { upload } from "../middleware/multer.middleware.js"
+import { deleteUser, getAllUsers, getUserById, updateUser } from "../controllers/user.controller.js";
 
 const router = Router();
 
@@ -18,7 +14,7 @@ router.get("/users/all", auth, roleBasedAuth(Roles.ADMIN_ROLE, Roles.SUPER_ADMIN
 router.get("/users/:id", auth, getUserById);
 
 // UPDATE USER
-router.put("/users/:id", auth, updateUser);
+router.put("/users/:id", auth, upload.single("avatar"), updateUser);
 
 // DELETE USER
 router.delete("/users/:id", auth, deleteUser);

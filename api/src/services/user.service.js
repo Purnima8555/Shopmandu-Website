@@ -1,131 +1,73 @@
 import UserModel from "../models/User.model.js";
-import Roles from "../constants/userRoles.js";
 import { ForbiddenError, NotFoundError } from "../utils/AppError.js";
 import CloudinaryUpload from "../utils/CloudinaryUpload.js";
-import { v2 as cloudinary } from "cloudinary";
 
-//
-// GET ALL USERS
-// ONLY ADMIN / SUPER_ADMIN
-//
-export const getAllUsersService = async (requesterId) => {
-  const requester = await UserModel.findById(requesterId);
-
-  if (!requester) {
-    throw new NotFoundError("Requester not found");
-  }
-
-  const allowedRoles = [Roles.ADMIN_ROLE, Roles.SUPER_ADMIN_ROLE];
-  const hasAccess = requester.roles.some((role) => allowedRoles.includes(role));
-
-  if (!hasAccess) {
-    throw new ForbiddenError("You are not allowed to view all users");
-  }
-
-  return await UserModel.find({});
-};
-
-//
-// GET USER BY ID
-// OWNER OR ADMIN ONLY
-//
-export const getUserByIdService = async (requesterId, targetId) => {
-  const requester = await UserModel.findById(requesterId);
-
-  if (!requester) {
-    throw new NotFoundError("Requester not found");
-  }
-
-  const isOwner = requesterId === targetId;
-  const isAdmin = requester.roles.some((role) =>
-    [Roles.ADMIN_ROLE, Roles.SUPER_ADMIN_ROLE].includes(role),
-  );
-
-  if (!isOwner && !isAdmin) {
-    throw new ForbiddenError("You are not allowed to view this profile");
-  }
-
-  const user = await UserModel.findById(targetId);
-
-  if (!user) {
-    throw new NotFoundError("User not found");
-  }
-
-  return user;
-};
-
-//
-// UPDATE USER
-// ONLY SELF UPDATE (NO ADMIN EDITS)
-//
-export const updateUserService = async ( requesterId, targetId, updateData, file) => {
-  const requester = await UserModel.findById(requesterId);
-
-  if (!requester) {
-    throw new NotFoundError("Requester not found");
-  }
-
-  if (requesterId !== targetId) {
-    throw new ForbiddenError("You can only update your own profile");
-  }
-
-  const user = await UserModel.findById(targetId);
-
-  if (!user) {
-    throw new NotFoundError("User not found");
-  }
-
-  // update object
-  const updatePayload = { ...updateData };
-
-  if (file) {
-    const uploaded = await CloudinaryUpload.uploadSingleImage(file, "upload");
-
-    if (uploaded?.secure_url) {
-      updatePayload.avatar = uploaded.secure_url;
+class userService {
+  //
+  // GET ALL USERS
+  //
+    async getAllUsers() {
+        return await UserModel.find({});
     }
-  }
 
-  // update user
-  const updatedUser = await UserModel.findByIdAndUpdate(
-    targetId,
-    { $set: updatePayload },
-    { new: true },
-  );
+    //
+    // GET USER BY ID
+    //
+    async getUserById(userId) {
+        const user = await UserModel.findById(userId);
 
-  return updatedUser;
-};
+        if (!user) {
+        throw new NotFoundError("User not found");
+        }
+        return user;
+    }
 
-//
-// DELETE USER
-// ADMIN + SUPER_ADMIN CAN DELETE ANY USER
-// USER CAN DELETE SELF
-//
-export const deleteUserService = async (requesterId, targetId) => {
-  const requester = await UserModel.findById(requesterId);
+    //
+    // UPDATE USER
+    //
+    async updateUser(userIdFromToken, userId, updateData, file) {
+    const user = await UserModel.findById(userId);
 
-  if (!requester) {
-    throw new NotFoundError("Requester not found");
-  }
+    if (!user) {
+        throw new NotFoundError("User not found");
+    }
+    if (userIdFromToken !== userId) {
+        throw new ForbiddenError("You can only update your own profile");
+    }
 
-  const isOwner = requesterId === targetId;
-  const isAdmin = requester.roles.some((role) =>
-    [Roles.ADMIN_ROLE, Roles.SUPER_ADMIN_ROLE].includes(role),
-  );
+    const updatePayload = { ...updateData };
+    if (file) {
+        const uploaded = await CloudinaryUpload.uploadSingleImage(file, "upload");
 
-  if (!isOwner && !isAdmin) {
-    throw new ForbiddenError("You are not allowed to delete this account");
-  }
+        if (uploaded?.secure_url) {
+        updatePayload.avatar = uploaded.secure_url;
+        }
+    }
 
-  const user = await UserModel.findById(targetId);
+    return await UserModel.findByIdAndUpdate(
+        userId,
+        { $set: updatePayload },
+        { new: true });
+    }
 
-  if (!user) {
-    throw new NotFoundError("User not found");
-  }
+    //
+    // DELETE USER
+    //
+    async deleteUser(userIdFromToken, userId) {
+    const user = await UserModel.findById(userId);
 
-  await UserModel.findByIdAndDelete(targetId);
+    if (!user) {
+        throw new NotFoundError("User not found");
+    }
 
-  return {
-    message: "Account deleted successfully",
-  };
-};
+    if (userIdFromToken !== userId) {
+        throw new ForbiddenError("You can only delete your own account");
+    }
+        await UserModel.findByIdAndDelete(userId);
+        return {
+        message: "Account deleted successfully",
+        };
+    }
+}
+
+export default new userService();
