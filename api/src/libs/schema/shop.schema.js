@@ -55,7 +55,7 @@ const shopSchema = z.object({
             .regex(timeregix,"Closing time must be in HH:mm format."),
     }).optional()
 
-}) 
+}).strict();
 
 
 export default shopSchema;

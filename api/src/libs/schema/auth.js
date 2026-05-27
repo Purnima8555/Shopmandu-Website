@@ -9,7 +9,7 @@ export const loginSchema = z
       .string({ error: "Email is required." })
       .regex(emailRegex, { error: "Invalid email address." }),
     password: z.string(),
-  });
+  }).strict();
   // .refine((data) => data.email || data.phone, {
   //   message: "Either email or phone is required.",
   //   path: ["email", "phone"],

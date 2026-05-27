@@ -2,6 +2,7 @@
 
 
 import mongoose from "mongoose";
+import productStatus from "../constants/productStatus.js";
 
 const productSchema = new mongoose.Schema(
   {
@@ -17,11 +18,11 @@ const productSchema = new mongoose.Schema(
       required: [true, "Shop Id is required"],
     },
 
-    categoryId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
-      required: [true, "Product category is required"],
-    },
+    // categoryId: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "Category",
+    //   required: [true, "Product category is required"],
+    // },
 
     name: {
       type: String,
@@ -38,6 +39,13 @@ const productSchema = new mongoose.Schema(
       required: [true, "Slug is required"],
       lowercase: true,
       index: true,
+    },
+
+    productStatus: {
+      type: String,
+      enum: [productStatus.ACTIVE, productStatus.INACTIVE, productStatus.OUT_OF_STOCK],
+      default: productStatus.INACTIVE,
+      required: [true, "product status is required."]
     },
 
     description: {
@@ -61,18 +69,18 @@ const productSchema = new mongoose.Schema(
     discountPrice: {
       type: Number,
       min: [0, "Discount price cannot be negative"],
+      default: 0,
+      // validate: {
+      //   validator: function (value) {
+      //     // allow empty discount price
+      //     if (value === null) return true;
+      //     return value < this.price;
+      //   },
 
-      validate: {
-        validator: function (value) {
-          // allow empty discount price
-          if (value === null) return true;
-          return value < this.price;
-        },
-
-        message: function (props) {
-          return `Discount price (${props.value}) must be lower than original price (${this.price})`;
-        },
-      },
+      //   message: function (props) {
+      //     return `Discount price (${props.value}) must be lower than original price (${this.price})`;
+      //   },
+      // },
     },
 
     discountPercent: {
@@ -90,6 +98,11 @@ const productSchema = new mongoose.Schema(
     },
 
     images: {
+      type: [String],
+      default: [],
+    },
+
+    videos:{
       type: [String],
       default: [],
     },
@@ -122,6 +135,16 @@ const productSchema = new mongoose.Schema(
       default: 0,
     },
 
+    inReserve:{
+      type: Number,
+      min: 0
+    },
+
+    releseStock:{
+      type: Number,
+      min: 0
+    },
+
     totalSold: {
       type: Number,
       min: 0,
@@ -134,12 +157,9 @@ const productSchema = new mongoose.Schema(
 );
 
 /// indexes
-productSchema.index({ slug: 1 });
+// productSchema.index({ slug: 1 });
 
 /// create model
-const ProductModel = mongoose.model(
-  "Product",
-  productSchema
-);
+const ProductModel = mongoose.model("Product", productSchema);
 
 export default ProductModel;

@@ -27,8 +27,11 @@ const config = {
     cloudinaryAPI_SECRET: process.env.API_SECRET,
 
     /// khalti credentials
-    khalti_api: process.env.KHALTI_API
-
+    khalti_api: process.env.KHALTI_API,
+    khalti_request_uri: process.env.REQUEST_URI,
+    khalti_redirect_uri: process.env.PAYMENT_REDIRECT_URI,
+    web_uri: process.env.WEB_URI,
+    khalti_lookup_uri: process.env.KHALTI_PAYMENT_LOOKUP_URI
 }
 
 export default config

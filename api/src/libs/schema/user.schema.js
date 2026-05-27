@@ -57,4 +57,4 @@ export const userSchema = z
       message: "Invalid authentication credentials.",
       path: ["password"],
     }
-  );
+  ).strip();

@@ -10,7 +10,7 @@ const categoryschema = z.object({
     description: z.string().trim().optional(),
     isActive: z.coerce.boolean().default(true).optional(),
 
-})
+}).strict();
 
 
 export default categoryschema;

@@ -18,7 +18,7 @@ const addressSchema = new mongoose.Schema(
       default: addressType.HOME,
       required: [true, "address type is required."]
     },
-    
+
     location: {
       type: String,
       required: [true, "locality is required."]
@@ -45,15 +45,19 @@ const addressSchema = new mongoose.Schema(
 
     landmark: {
       type: String,
-  
+
     },
-  
+    isDefault: {
+      type: Boolean,
+      default: false,
+    },
+
   },
   {
     timestamps: true
   }
 );
 
-const Address= mongoose.model("Address", addressSchema);
+const Address = mongoose.model("Address", addressSchema);
 
 export default Address;

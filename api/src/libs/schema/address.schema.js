@@ -2,8 +2,10 @@
 
 
 import z from "zod"
+import addressType from "../../constants/addressType.js";
 
 const addressSchema = z.object({
+    addressType: z.enum([addressType.BILLING, addressType.HOME, addressType.OFFICE, addressType.PICKUP, addressType.SHOP, addressType.OTHER]),
     location: z.string().trim().min(3, "location must be at least 3 characters.")
         .max(80, "location cannot exceed 80 characters."),
     city: z.string().trim().min(3, "city name must be at least 3 characters.")
@@ -18,6 +20,6 @@ const addressSchema = z.object({
     landmark: z.string().trim().min(3, "landmark must be at least 3 characters.")
         .max(80, "landmark cannot exceed 80 characters.")
         .optional()
-})
+}).strip()
 
 export default addressSchema;
