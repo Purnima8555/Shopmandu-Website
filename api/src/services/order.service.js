@@ -1,207 +1,210 @@
-import mongoose from "mongoose";
-import {
-    ORDER_STATUS_CANCELLED,
-    ORDER_STATUS_CONFIRMED,
-    } from "../constants/orderStatus.js";
-    import {
-    PAYMENT_METHOD_CASH,
-    PAYMENT_METHOD_ONLINE,
-    PAYMENT_STATUS_FAILED,
-    PAYMENT_STATUS_SUCCESS,
-} from "../constants/payment.js";
-import Order from "../models/Order.js";
-import Payment from "../models/Payment.js";
-import { payViaKhalti } from "../utils/payment.js";
-import userService from "./user.service.js";
+import OrderModel from "../models/order.model.js";
+import AddressModel from "../models/address.model.js";
 
-// for admin
-const getOrders = async () => {
-    return await Order.find()
-        .sort({ createdAt: -1 })
-        .populate("user", "name email phone")
-        .populate("orderItems.product", "name brand category price imageUrls");
-    };
+import { NotFoundError, ForbiddenError } from "../utils/AppError.js";
 
-    const getOrderById = async (id) => {
-    const order = await Order.findById(id)
-        .populate("user", "name email phone")
-        .populate("orderItems.product", "name brand category price imageUrls")
-        .populate("payment", "transactionId amount method status");
+class orderServices {
+    //
+    // PLACE NEW ORDER
+    //
+    async placeNewOrder(userId, cartData) {
+        const { items, shippingAddressId, paymentMethod } = cartData;
+        const address = await AddressModel.findById(shippingAddressId);
 
-    if (!order)
-        throw {
-        status: 404,
-        message: "Order not found.",
-        };
+        if (!address) {
+        throw new NotFoundError("Address not found");
+    }
+
+    //
+    // CALCULATE TOTAL
+    //
+    let subtotal = 0;
+
+    for (const item of items) {
+      subtotal += item.price * item.quantity;
+    }
+
+    const deliveryFee = 100;
+    const totalAmount = subtotal + deliveryFee;
+
+    //
+    // CREATE ORDER
+    //
+    const order = await OrderModel.create({
+        userId,
+
+        items,
+
+        subtotal,
+        deliveryFee,
+        totalAmount,
+
+        deliveryAddress: {
+            addressId: address._id,
+            location: address.location,
+            city: address.city,
+            state: address.state,
+            pincode: address.pincode,
+            landmark: address.landmark,
+            mobile: address.mobile,
+        },
+
+        paymentGateway: {
+            provider: paymentMethod,
+        },
+    });
 
     return order;
-};
-
-const createOrder = async (data, authUser) => {
-    const user = await userService.getById(authUser._id, authUser);
-
-    if (!data.shippingAddress) {
-        data.shippingAddress = user.address;
     }
 
-    data.orderNumber = crypto.randomUUID();
-    data.user = authUser._id;
+    //
+    // CUSTOMER ORDER HISTORY
+    //
+    async customerOrderHistory(userId) {
+        return await OrderModel.find({userId,}).sort({createdAt: -1,});
+    }
 
-    return await Order.create(data);
-};
+    //
+    // ORDER DETAIL
+    //
+    async orderDetail(userId, orderId) {
+        const order = await OrderModel.findById(orderId);
 
-const updateOrderStatus = async (id, status) => {
-    return await Order.findByIdAndUpdate(
-        id,
-        { status },
-        { returnDocument: "after" },
+        if (!order) {
+        throw new NotFoundError("Order not found");
+    }
+
+    //
+    // CHECK OWNER
+    //
+    if (order.userId.toString() !== userId.toString()) {
+        throw new ForbiddenError("You can only view your own orders");
+    }
+
+    return order;
+    }
+
+    //
+    // ORDER CANCEL
+    //
+    async orderCancel(userId, orderId) {
+        const order = await OrderModel.findById(orderId);
+
+        if (!order) {
+        throw new NotFoundError("Order not found");
+    }
+
+    //
+    // CHECK OWNER
+    //
+    if (order.userId.toString() !== userId.toString()) {
+        throw new ForbiddenError("You can only cancel your own orders");
+    }
+
+    //
+    // ONLY CANCEL IF PENDING
+    //
+    if (order.orderStatus !== "PENDING") {
+        throw new ForbiddenError("Order cannot be cancelled anymore");
+    }
+
+    order.orderStatus = "CANCELLED";
+    await order.save();
+    return order;
+    }
+
+    //
+    // GET ALL ORDERS BY VENDOR ID
+    //
+    async getAllOrderByVendorId(vendorId) {
+        return await OrderModel.find({"items.shopId": vendorId,}).sort({createdAt: -1});
+    }
+
+    //
+    // UPDATE ORDER ITEM STATUS
+    //
+    async updateOrderItemStatus(vendorId, orderId, orderStatus) {
+        const order = await OrderModel.findById(orderId);
+
+        if (!order) {
+        throw new NotFoundError("Order not found");
+    }
+
+    //
+    // CHECK VENDOR ACCESS
+    //
+    const hasVendorItem = order.items.some(
+        (item) => item.shopId.toString() === vendorId.toString(),
     );
-};
 
-const cancelOrder = async (id) => {
-    return await Order.findByIdAndUpdate(
-        id,
-        { status: ORDER_STATUS_CANCELLED },
-        { returnDocument: "after" },
-    );
-};
+    if (!hasVendorItem) {
+        throw new ForbiddenError("You cannot update this order");
+    }
 
-const deleteOrder = async (id) => {
-    await Order.findByIdAndDelete(id);
-    };
+    order.orderStatus = orderStatus;
+    await order.save();
+    return order;
+    }
 
-const confirmOrder = async (id, status) => {
-    const order = await getOrderById(id);
-
-    if (status?.toUpperCase() != PAYMENT_STATUS_SUCCESS) {
-        await Payment.findByIdAndUpdate(order.payment, {
-        status: PAYMENT_STATUS_FAILED,
-        });
-
-        throw {
-        status: 400,
-        message: "Payment failed.",
+    //
+    // CREATE COUPON CODE
+    //
+    async createCouponCode(vendorId, couponCode) {
+        return {
+        message: "Coupon feature will be implemented later",
         };
     }
 
-    await Payment.findByIdAndUpdate(order.payment, {
-        status: PAYMENT_STATUS_SUCCESS,
-    });
+    //
+    // ADMIN GET ALL ORDERS
+    //
+    async getAllOrder() {
+        return await OrderModel.find({}).sort({createdAt: -1});
+    }
 
-    return await Order.findByIdAndUpdate(
-        id,
-        { status: ORDER_STATUS_CONFIRMED },
-        { returnDocument: "after" },
-    );
-};
+    //
+    // ADMIN GET ORDER STATS
+    //
+    async getOrdersByStatus(status) {
+        const validStatuses = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"];
 
-const getOrdersByUser = async (userId) => {
-    return await Order.find({ user: userId })
-        .sort({ createdAt: -1 })
-        .populate("user", "name email phone")
-        .populate("orderItems.product", "name brand category price imageUrls");
-};
+        if (!status || !validStatuses.includes(status.toUpperCase())) {
+            throw new Error("Invalid order status");
+        }
 
-const getOrdersByMerchant = async (merchantId) => {
-    return await Order.aggregate([
-        {
-        $lookup: {
-            from: "users",
-            localField: "user",
-            foreignField: "_id",
-            as: "orderUser",
-        },
-        },
-        {
-        $unwind: "$orderUser",
-        },
-        {
-        $lookup: {
-            from: "products",
-            localField: "orderItems.product",
-            foreignField: "_id",
-            as: "orderedProducts",
-        },
-    },
-    {
-        $match: {
-            "orderedProducts.createdBy": new mongoose.Types.ObjectId(merchantId),
-        },
-        },
-        {
-        $project: {
-            orderNumber: 1,
-            payment: 1,
-            shippingAddress: 1,
-            status: 1,
-            totalPrice: 1,
-            "orderUser._id": 1,
-            "orderUser.name": 1,
-            "orderUser.email": 1,
-            "orderUser.phone": 1,
-            "orderedProducts._id": 1,
-            "orderedProducts.name": 1,
-            "orderedProducts.price": 1,
-            "orderedProducts.brand": 1,
-            "orderedProducts.category": 1,
-            "orderedProducts.imageUrls": 1,
-        },
-        },
-    ]);
-};
+        return await Order.find({ orderStatus: status.toUpperCase() })
+            .sort({ createdAt: -1 })
+            .populate("userId", "name email")
+            .populate("items.productId", "name price image");
+    }
 
-const orderPaymentViaCash = async (id) => {
-    const order = await getOrderById(id);
+    //
+    // ADMIN GET ORDER BY ID
+    //
+    async getOrderById(orderId) {
+        const order = await OrderModel.findById(orderId);
 
-    const orderPayment = await Payment.create({
-        method: PAYMENT_METHOD_CASH,
-        amount: order.totalPrice,
-    });
+        if (!order) {
+        throw new NotFoundError("Order not found");
+        }
 
-    return await Order.findByIdAndUpdate(
-        id,
-        {
-        status: ORDER_STATUS_CONFIRMED,
-        payment: orderPayment.id,
-        },
-        { returnDocument: "after" },
-    );
-};
+        return order;
+    }
 
-const orderPaymentViaKhalti = async (id) => {
-    const order = await getOrderById(id);
+    //
+    // ADMIN UPDATE ORDER STATUS
+    //
+    async adminUpdateOrderStatus(orderId, orderStatus) {
+        const order = await OrderModel.findById(orderId);
 
-    const orderPayment = await Payment.create({
-        method: PAYMENT_METHOD_ONLINE,
-        amount: order.totalPrice,
-    });
+        if (!order) {
+        throw new NotFoundError("Order not found");
+        }
 
-    await Order.findByIdAndUpdate(id, {
-        payment: orderPayment.id,
-    });
+        order.orderStatus = orderStatus;
+        await order.save();
+        return order;
+    }
+}
 
-    return await payViaKhalti({
-        amount: order.totalPrice,
-        purchaseOrderId: order.orderNumber,
-        purchaseOrderName: order.orderItems[0].product.name,
-        customerInfo: {
-        name: order.user.name,
-        email: order.user.email,
-        phone: order.user.phone,
-        },
-    });
-};
-
-export default {
-    getOrders,
-    getOrderById,
-    getOrdersByMerchant,
-    getOrdersByUser,
-    createOrder,
-    updateOrderStatus,
-    deleteOrder,
-    cancelOrder,
-    confirmOrder,
-    orderPaymentViaCash,
-    orderPaymentViaKhalti,
-};
+export default new orderServices();

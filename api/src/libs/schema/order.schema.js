@@ -13,26 +13,30 @@ const orderItemValidationSchema = z.object({
         message: "Quantity must be at least 1",
     }),
 
-    selectedColor: z.string().optional(),
-    selectedSize: z.string().optional(),
-});
+    selectedColor: z.string().trim().optional(),
+
+    selectedSize: z.string().trim().optional(),
+    });
 
 //
 // CREATE ORDER SCHEMA
 //
 export const createOrderSchema = z.object({
-    // order items
+  // order items
     items: z.array(orderItemValidationSchema).min(1, {
         message: "At least one item is required",
     }),
 
-    // shipping address
-    shippingAddressId: z.string().regex(/^[0-9a-fA-F]{24}$/, {
+    // selected address
+    addressId: z.string().regex(/^[0-9a-fA-F]{24}$/, {
         message: "Invalid Address ObjectId",
     }),
 
     // optional coupon
-    couponCode: z.string().optional(),
+    couponCode: z.string().trim().toUpperCase().optional(),
+
+    // optional delivery note
+    notes: z.string().trim().max(300).optional(),
 
     // payment method
     paymentMethod: z
@@ -42,5 +46,5 @@ export const createOrderSchema = z.object({
         paymentMethod.KHALTI,
         paymentMethod.STRIPE,
         ])
-        .default(paymentMethod.CASH_ON_DELIVERY),
+    .default(paymentMethod.CASH_ON_DELIVERY),
 });

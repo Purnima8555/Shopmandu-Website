@@ -8,15 +8,15 @@ import { deleteUser, getAllUsers, getUserById, updateUser } from "../controllers
 const router = Router();
 
 // GET ALL USERS
-router.get("/users/all", auth, roleBasedAuth(Roles.ADMIN_ROLE, Roles.SUPER_ADMIN_ROLE), getAllUsers);
+router.get("/users/all", auth, roleBasedAuth(Roles.ADMIN_ROLE), getAllUsers);
 
 // GET USER BY ID
 router.get("/users/:id", auth, getUserById);
 
 // UPDATE USER
-router.put("/users/:id", auth, upload.single("avatar"), updateUser);
+router.put("/users/", auth, upload.single("avatar"), updateUser);
 
 // DELETE USER
-router.delete("/users/:id", auth, deleteUser);
+router.delete("/users/", auth, deleteUser);
 
 export default router;

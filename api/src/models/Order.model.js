@@ -1,120 +1,141 @@
-import mongoose from "mongoose";
-import { OrderStatus, PaymentStatus } from "../constants/orderStatus.js";
 
-const orderSchema = new mongoose.Schema(
-    {
-        userId: {
+
+
+import mongoose, { mongo } from "mongoose";
+import orderStatus from "../constants/orderStatus.js";
+import paymentStatus from "../constants/paymentStatus.js";
+import paymentMethod from "../constants/paymentMethod.js";
+
+
+const orderSchema = new mongoose.Schema({
+
+    customerId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: [true, "User ID is required."],
-        },
-        items: [
+        required: [true, "Customer Id is required."],
+    },
+    orderNumber: {
+        type: String,
+        required: [true, "Order Number is required."],
+        unique: [true, "order number should be unique."]
+    },
+    couponId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Coupon"
+    },
+    shippingAddress: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Address",
+        required: [true, "Shipping Address Id is required."]
+    },
+
+
+    couponCode: {
+        type: String,
+    },
+    items: [
         {
             productId: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "Product",
-                required: [true, "Product ID is required."],
-            },
-            vendorId: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "VendorProfile",
-                required: [true, "Vendor ID is required."],
-            },
-            shopId: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Shop",
-                required: [true, "Shop ID is required."],
-            },
-            name: {
-                type: String,
-                required: [true, "Product name is required."],
-            },
-            price: {
-                type: Number,
-                required: [true, "Price snapshot is required."],
+                required: [true, "product id is required."]
             },
             quantity: {
                 type: Number,
-                required: [true, "Quantity is required."],
-                min: [1, "Quantity must be at least 1."],
+                min: [1, "quantity must be 1."],
+                default: 1,
+                required: [true, "product quantity is required"]
             },
-            image: {
-                type: String,
-                required: [true, "Product image snapshot is required."],
-            },
-            selectedColor: { type: String },
-            selectedSize: { type: String },
-        },
-        ],
-        subtotal: {
-            type: Number,
-            required: [true, "Subtotal is required."],
-            min: [0, "Subtotal cannot be negative."],
-        },
-        deliveryFee: {
-            type: Number,
-            required: [true, "fee is required."],
-            default: 0,
-        },
-        totalAmount: {
-            type: Number,
-            required: [true, "Total amount is required."],
-            min: [0, "Total amount cannot be negative."],
-        },
-        deliveryAddress: {
-        addressId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Address",
-            required: [true, "Origin address ID reference is required."],
-        },
-        location: { type: String, required: [true, "Locality is required."] },
-        city: { type: String, required: [true, "City is required."] },
-        state: { type: String, required: [true, "State is required."] },
-        pincode: { type: String },
-        landmark: { type: String },
-        mobile: {
-            type: String,
-            required: [true, "Contact mobile number is required."],
-        },
-        },
-        orderStatus: {
-            type: String,
-            enum: [
-                OrderStatus.PENDING,
-                OrderStatus.PROCESSING,
-                OrderStatus.SHIPPED,
-                OrderStatus.DELIVERED,
-                OrderStatus.CANCELLED,
-            ],
-            default: OrderStatus.PENDING,
-        },
-        paymentStatus: {
-            type: String,
-            enum: [
-                PaymentStatus.UNPAID,
-                PaymentStatus.PAID,
-                PaymentStatus.FAILED,
-                PaymentStatus.REFUNDED,
-            ],
-            default: PaymentStatus.UNPAID,
-        },
-        paymentGateway: {
-            provider: {
-                type: String,
-                default: "COD",
-        },
-        transactionId: {
-            type: String,
-            sparse: true,
-        },
-        },
+            price: {
+                type: Number,
+                min: 0,
+                required: [true, "Product Price is required."]
+            }
+        }
+    ],
+
+    orderStatus: {
+        type: String,
+        enum: [orderStatus.CANCELLED, orderStatus.CONFIRMED, orderStatus.DELIVERED, orderStatus.FAILED, orderStatus.OUT_FOR_DELIVERY, orderStatus.PARTIALLY_SHIPPED, orderStatus.PENDING, orderStatus.PROCESSING, orderStatus.RETURNED, orderStatus.RETURN_REQUESTED],
+        default: orderStatus.PENDING,
+        required: [true, "order Status is required."]
     },
-    { timestamps: true },
-);
+    subTotal: {
+        type: Number,
+        min: 0,
+        required: [true, "subTotal is required."]
+    },
+    discountAmount: {
+        type: Number,
+        min: 0,
+        default: 0,
+    },
+    shippingCharge: {
+        type: Number,
+        min: 0,
+        default: 0
+    },
+    taxAmount: {
+        type: Number,
+        min: 0,
+        default: 0
+    },
+    totalAmount: {
+        type: Number,
+        min: 0,
+        required: [true, "Total Ammount is required."],
+    },
+    paymentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Payment"
+    },
+    paymentStatus: {
+        type: String,
+        enum: [paymentStatus.FAILED, paymentStatus.PAID, paymentStatus.REFUNDED, paymentStatus.PENDING, paymentStatus.UNPAID],
+        default: paymentStatus.PENDING,
+        required: [true, "payment Status is required."]
+    },
 
-orderSchema.index({ userId: 1 });
-orderSchema.index({ "items.vendorId": 1 });
+    paymentMethod: {
+        type: String,
+        enum: [paymentMethod.CASH_ON_DELIVERY, paymentMethod.ESEWA, paymentMethod.STRIPE, paymentMethod.KHALTI],
+        required: [true, "payment method is required."]
+    },
+    cancelledAt:{
+        type: Date,
+        immutable: true
+    },
+    cancelReason: {
+        type: String,
+    },
 
-const OrderModel = mongoose.models.Order || mongoose.model("Order", orderSchema);
+
+    confirmedAt: {
+        type: Date,
+        immutable: true
+    },
+    paidAt: {
+        type: Date,
+        immutable: true,
+    },
+    shippedAt: {
+        type: Date,
+        immutable: true,
+    },
+    deliveredAt: {
+        type: Date,
+        immutable: true,
+    }
+
+
+}, { timestamps: true })
+
+orderSchema.index({ customerId: 1 })
+orderSchema.index({ orderNumber: 1 })
+orderSchema.index({ createdAt: -1 })
+
+
+
+const OrderModel = mongoose.model("Order", orderSchema)
 
 export default OrderModel;

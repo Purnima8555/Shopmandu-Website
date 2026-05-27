@@ -23,46 +23,45 @@ class userService {
     }
 
     //
-    // UPDATE USER
+    // UPDATE USER PROFILE
     //
-    async updateUser(userIdFromToken, userId, updateData, file) {
-    const user = await UserModel.findById(userId);
+    async updateUser(userId, updateData, file) {
 
-    if (!user) {
+        const user = await UserModel.findById(userId);
+
+        if (!user) {
         throw new NotFoundError("User not found");
-    }
-    if (userIdFromToken !== userId) {
-        throw new ForbiddenError("You can only update your own profile");
-    }
+        }
 
-    const updatePayload = { ...updateData };
-    if (file) {
-        const uploaded = await CloudinaryUpload.uploadSingleImage(file, "upload");
+        const updatePayload = { ...updateData };
+        // Upload avatar
+        if (file) {
+            const uploaded = await CloudinaryUpload.uploadSingleImage(file, "upload");
 
         if (uploaded?.secure_url) {
-        updatePayload.avatar = uploaded.secure_url;
-        }
-    }
+            updatePayload.avatar = uploaded.secure_url;
+        }}
 
-    return await UserModel.findByIdAndUpdate(
+        const updatedUser = await UserModel.findByIdAndUpdate(
         userId,
         { $set: updatePayload },
-        { new: true });
+        { new: true }
+        );
+
+        return updatedUser;
     }
 
     //
-    // DELETE USER
+    // DELETE USER PROFILE
     //
-    async deleteUser(userIdFromToken, userId) {
-    const user = await UserModel.findById(userId);
+    async deleteUser(userId) {
 
-    if (!user) {
+        const user = await UserModel.findById(userId);
+
+        if (!user) {
         throw new NotFoundError("User not found");
-    }
+        }
 
-    if (userIdFromToken !== userId) {
-        throw new ForbiddenError("You can only delete your own account");
-    }
         await UserModel.findByIdAndDelete(userId);
         return {
         message: "Account deleted successfully",
