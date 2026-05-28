@@ -11,11 +11,12 @@
   },
 
   "keywords": [],
-  "author": "",
+  "author": "Prabin Hamal",
   "license": "ISC",
 
   "dependencies": {
     "arctic": "^3.7.0",
+    "axios": "^1.16.1",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.10.0",

@@ -21,7 +21,7 @@ const vendorkycSchema = z.object({
     nidNumber: z.string({ required_error: "National Identification Number is required.", }).trim(),
     panNumber: z.string({ required_error: "PAN number is required." }).trim()
 
-})
+}).strict()
 
 export default vendorkycSchema;
 

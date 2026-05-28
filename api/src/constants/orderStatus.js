@@ -1,17 +1,17 @@
+const orderStatus = Object.freeze({
+    PENDING: "PENDING",
+    CONFIRMED: "CONFIRMED",
+    PROCESSING: "PROCESSING",
 
-const OrderStatus = {
-    PENDING: "pending",
-    PROCESSING: "processing",
-    SHIPPED: "shipped",
-    DELIVERED: "delivered",
-    CANCELLED: "cancelled",
-};
+    PARTIALLY_SHIPPED: "PARTIALLY_SHIPPED",
+    OUT_FOR_DELIVERY: "OUT_FOR_DELIVERY",
+    DELIVERED: "DELIVERED",
+    CANCELLED: "CANCELLED",
+    RETURN_REQUESTED: "RETURN_REQUESTED",
+    RETURNED: "RETURNED",
 
-const PaymentStatus = {
-    UNPAID: "unpaid",
-    PAID: "paid",
-    FAILED: "failed",
-    REFUNDED: "refunded",
-};
+    FAILED: "FAILED",   
+});
 
-export { OrderStatus, PaymentStatus };
+
+export default orderStatus;

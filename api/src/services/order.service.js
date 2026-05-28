@@ -1,207 +1,259 @@
+import crypto from "crypto";
 import OrderModel from "../models/order.model.js";
-import AddressModel from "../models/address.model.js";
-
+import OrderItemModel from "../models/orderItem.model.js";
 import { NotFoundError, ForbiddenError } from "../utils/AppError.js";
 
 class orderServices {
+
     //
     // PLACE NEW ORDER
     //
-    async placeNewOrder(userId, cartData) {
-        const { items, shippingAddressId, paymentMethod } = cartData;
-        const address = await AddressModel.findById(shippingAddressId);
+    async placeNewOrder(userId, orderData) {
 
-        if (!address) {
-        throw new NotFoundError("Address not found");
-    }
+        const {
+            items,
+            shippingAddress,
+            paymentMethod,
+            subTotal,
+            totalAmount,
+            shippingCharge = 0,
+            taxAmount = 0,
+            discountAmount = 0,
+            couponCode,
+        } = orderData;
 
-    //
-    // CALCULATE TOTAL
-    //
-    let subtotal = 0;
+        //
+        // CREATE MAIN ORDER
+        //
+        const order = await OrderModel.create({
+            customerId: userId,
+            orderNumber: crypto.randomUUID(),
 
-    for (const item of items) {
-      subtotal += item.price * item.quantity;
-    }
+            shippingAddress,
+            couponCode,
 
-    const deliveryFee = 100;
-    const totalAmount = subtotal + deliveryFee;
+            items: items.map((item) => ({
+                productId: item.productId,
+                quantity: item.quantity,
+                price: item.price,
+            })),
 
-    //
-    // CREATE ORDER
-    //
-    const order = await OrderModel.create({
-        userId,
+            subTotal,
+            totalAmount,
+            shippingCharge,
+            taxAmount,
+            discountAmount,
 
-        items,
+            paymentMethod,
+        });
 
-        subtotal,
-        deliveryFee,
-        totalAmount,
+        //
+        // GROUP ITEMS BY VENDOR
+        //
+        const vendorMap = {};
 
-        deliveryAddress: {
-            addressId: address._id,
-            location: address.location,
-            city: address.city,
-            state: address.state,
-            pincode: address.pincode,
-            landmark: address.landmark,
-            mobile: address.mobile,
-        },
+        for (const item of items) {
 
-        paymentGateway: {
-            provider: paymentMethod,
-        },
-    });
+            if (!vendorMap[item.vendorId]) {
+                vendorMap[item.vendorId] = [];
+            }
 
-    return order;
+            vendorMap[item.vendorId].push({
+                productId: item.productId,
+                productName: item.productName,
+                price: item.price,
+                quantity: item.quantity,
+                total: item.price * item.quantity,
+                productImage: item.productImage,
+
+                variant: {
+                    color: item.color,
+                    size: item.size,
+                },
+            });
+        }
+
+        //
+        // CREATE ORDER ITEMS
+        //
+        for (const vendorId in vendorMap) {
+
+            const products = vendorMap[vendorId];
+            const totalPrice = products.reduce(
+                (acc, item) => acc + item.total,
+                0,
+            );
+
+            await OrderItemModel.create({
+                orderId: order._id,
+                vendorId,
+                products,
+                totalPrice,
+            });
+        }
+        return order;
     }
 
     //
     // CUSTOMER ORDER HISTORY
     //
     async customerOrderHistory(userId) {
-        return await OrderModel.find({userId,}).sort({createdAt: -1,});
+
+        return await OrderModel.find({
+            customerId: userId,
+        }).sort({ createdAt: -1 });
+
     }
 
     //
-    // ORDER DETAIL
+    // CUSTOMER ORDER DETAIL
     //
     async orderDetail(userId, orderId) {
+
         const order = await OrderModel.findById(orderId);
 
         if (!order) {
-        throw new NotFoundError("Order not found");
+            throw new NotFoundError("Order not found");
+        }
+
+        if (order.customerId.toString() !== userId.toString()) {
+            throw new ForbiddenError("Unauthorized access");
+        }
+
+        const orderItems = await OrderItemModel.find({
+            orderId: order._id,
+        });
+
+        return {
+            order,
+            orderItems,
+        };
     }
 
     //
-    // CHECK OWNER
-    //
-    if (order.userId.toString() !== userId.toString()) {
-        throw new ForbiddenError("You can only view your own orders");
-    }
-
-    return order;
-    }
-
-    //
-    // ORDER CANCEL
+    // CUSTOMER CANCEL ORDER
     //
     async orderCancel(userId, orderId) {
+
         const order = await OrderModel.findById(orderId);
-
         if (!order) {
-        throw new NotFoundError("Order not found");
+            throw new NotFoundError("Order not found");
+        }
+
+        if (order.customerId.toString() !== userId.toString()) {
+            throw new ForbiddenError("Unauthorized access");
+        }
+
+        order.orderStatus = "CANCELLED";
+        order.cancelledAt = new Date();
+
+        await order.save();
+
+        await OrderItemModel.updateMany(
+            { orderId: order._id },
+            {
+                orderItemsStatus: "CANCELLED",
+                cancelledAt: new Date(),
+            },
+        );
+
+        return order;
     }
 
     //
-    // CHECK OWNER
-    //
-    if (order.userId.toString() !== userId.toString()) {
-        throw new ForbiddenError("You can only cancel your own orders");
-    }
-
-    //
-    // ONLY CANCEL IF PENDING
-    //
-    if (order.orderStatus !== "PENDING") {
-        throw new ForbiddenError("Order cannot be cancelled anymore");
-    }
-
-    order.orderStatus = "CANCELLED";
-    await order.save();
-    return order;
-    }
-
-    //
-    // GET ALL ORDERS BY VENDOR ID
+    // VENDOR GET ORDERS
     //
     async getAllOrderByVendorId(vendorId) {
-        return await OrderModel.find({"items.shopId": vendorId,}).sort({createdAt: -1});
+
+        return await OrderItemModel.find({
+            vendorId,
+        })
+        .populate("orderId")
+        .sort({ createdAt: -1 });
     }
 
     //
-    // UPDATE ORDER ITEM STATUS
+    // VENDOR UPDATE ORDER ITEM STATUS
     //
-    async updateOrderItemStatus(vendorId, orderId, orderStatus) {
-        const order = await OrderModel.findById(orderId);
+    async updateOrderItemStatus(vendorId, orderItemId, orderItemsStatus) {
 
-        if (!order) {
-        throw new NotFoundError("Order not found");
-    }
+        const orderItem = await OrderItemModel.findById(orderItemId);
+        if (!orderItem) {
+            throw new NotFoundError("Order item not found");
+        }
 
-    //
-    // CHECK VENDOR ACCESS
-    //
-    const hasVendorItem = order.items.some(
-        (item) => item.shopId.toString() === vendorId.toString(),
-    );
+        if (orderItem.vendorId.toString() !== vendorId.toString()) {
+            throw new ForbiddenError("Unauthorized access");
+        }
 
-    if (!hasVendorItem) {
-        throw new ForbiddenError("You cannot update this order");
-    }
+        orderItem.orderItemsStatus = orderItemsStatus;
 
-    order.orderStatus = orderStatus;
-    await order.save();
-    return order;
-    }
+        if (orderItemsStatus === "DELIVERED") {
+            orderItem.deliveredAt = new Date();
+        }
 
-    //
-    // CREATE COUPON CODE
-    //
-    async createCouponCode(vendorId, couponCode) {
-        return {
-        message: "Coupon feature will be implemented later",
-        };
+        if (orderItemsStatus === "OUT_FOR_DELIVERY") {
+            orderItem.shippedAt = new Date();
+        }
+
+        await orderItem.save();
+        return orderItem;
     }
 
     //
     // ADMIN GET ALL ORDERS
     //
     async getAllOrder() {
-        return await OrderModel.find({}).sort({createdAt: -1});
+        return await OrderModel.find({})
+            .sort({ createdAt: -1 });
+
     }
 
     //
-    // ADMIN GET ORDER STATS
+    // ADMIN GET ORDERS BY STATUS
     //
     async getOrdersByStatus(status) {
-        const validStatuses = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"];
-
-        if (!status || !validStatuses.includes(status.toUpperCase())) {
-            throw new Error("Invalid order status");
-        }
-
-        return await Order.find({ orderStatus: status.toUpperCase() })
-            .sort({ createdAt: -1 })
-            .populate("userId", "name email")
-            .populate("items.productId", "name price image");
+        return await OrderModel.find({ orderStatus: status, })
+            .sort({ createdAt: -1 });
     }
 
     //
     // ADMIN GET ORDER BY ID
     //
     async getOrderById(orderId) {
-        const order = await OrderModel.findById(orderId);
 
+        const order = await OrderModel.findById(orderId);
         if (!order) {
-        throw new NotFoundError("Order not found");
+            throw new NotFoundError("Order not found");
         }
 
-        return order;
+        const orderItems = await OrderItemModel.find({
+            orderId,
+        });
+
+        return {
+            order,
+            orderItems,
+        };
     }
 
     //
     // ADMIN UPDATE ORDER STATUS
     //
     async adminUpdateOrderStatus(orderId, orderStatus) {
+
         const order = await OrderModel.findById(orderId);
 
         if (!order) {
-        throw new NotFoundError("Order not found");
+            throw new NotFoundError("Order not found");
         }
-
         order.orderStatus = orderStatus;
+        if (orderStatus === "DELIVERED") {
+            order.deliveredAt = new Date();
+        }
+        if (orderStatus === "CONFIRMED") {
+            order.confirmedAt = new Date();
+        }
         await order.save();
         return order;
     }

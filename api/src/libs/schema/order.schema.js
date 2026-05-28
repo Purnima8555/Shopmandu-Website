@@ -1,5 +1,12 @@
+<<<<<<< HEAD
 import { z } from "zod";
 import paymentMethod from "../../constants/paymentMethod.js";
+=======
+
+
+import z from "zod"
+import paymentMethod from "../../constants/paymentMethod.js"
+>>>>>>> 5ca6db8adc0e72c9aa5f9fa35772e1d749e1f498
 
 //
 // ORDER ITEM SCHEMA

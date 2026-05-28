@@ -29,7 +29,7 @@ class CloudinaryFileUpload {
         const result = new Promise((resolve, reject) => {
             const stream = cloudinary.uploader.upload_stream({
                 folder: "my_Images",
-                allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+                allowed_formats: ['jpg', 'jpeg', 'png', 'webp', "avif"],
                 type: type,
                 // access_mode: "authenticated"
                 resource_type: "auto"
@@ -67,7 +67,7 @@ class CloudinaryFileUpload {
                 const stream = cloudinary.uploader.upload_stream(
                     {
                         folder: "my_Images",
-                        allowed_formats: ["jpg", "jpeg", "png", "webp"],
+                        allowed_formats: ["jpg", "jpeg", "png", "webp", "avif"],
                         type: type
                     },
                     (error, data) => {
@@ -86,8 +86,8 @@ class CloudinaryFileUpload {
 
     //// video upload
     async videoUpload(video, type = "upload") {
-        if (video.size > 1024 * 1024 * 18) {
-            throw new BadRequestError("File size must be less then 18MB.")
+        if (video.size > 1024 * 1024 * 23) {
+            throw new BadRequestError("File size must be less then 23MB.")
         }
 
             const result = new Promise((resolve, reject) => {

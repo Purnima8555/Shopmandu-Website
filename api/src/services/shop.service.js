@@ -5,7 +5,7 @@ import ShopModel from "../models/Shop.model.js";
 import vendorKycModel from "../models/VendorKYC.model.js";
 import { AppError, BadRequestError, ForbiddenError, NotFoundError } from "../utils/AppError.js"
 import CloudinaryUpload from "../utils/CloudinaryUpload.js";
-import generateUniqueShopSlug from "../utils/slug.utils.js";
+import {generateUniqueShopSlug} from "../utils/slug.utils.js";
 
 
 
@@ -48,7 +48,7 @@ class shopServices {
 
     //// public get shop data
     async getShopBySlug(slug) {
-        const shop = await ShopModel.findOne({ slug: slug },{user_id: 0, _id: 0});
+        const shop = await ShopModel.findOne({ slugs: slug },{user_id: 0, _id: 0});
         if (!shop) {
             throw new NotFoundError("Shop not found. Invalid slug.");
         }

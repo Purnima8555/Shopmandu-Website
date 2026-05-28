@@ -11,6 +11,6 @@ const resetPasswordSchema = z.object({
             message:
                 "Password must contain uppercase, lowercase, number and special characters.",
         })
-})
+}).strict();
 
 export default resetPasswordSchema;

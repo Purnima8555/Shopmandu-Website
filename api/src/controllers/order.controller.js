@@ -93,17 +93,19 @@ export const getAllOrderByVendorId = async (req, res, next) => {
 //
 export const updateOrderItemStatus = async (req, res, next) => {
     try {
+
         const order = await orderService.updateOrderItemStatus(
-        req.user._id,
-        req.params.orderId,
-        req.body.orderStatus,
+            req.user._id,
+            req.params.orderItemId,
+            req.body.orderItemsStatus,
         );
 
         res.status(200).json({
-        success: true,
-        message: "Order status updated successfully",
-        data: order,
+            success: true,
+            message: "Order item status updated successfully",
+            data: order,
         });
+
     } catch (error) {
         next(error);
     }

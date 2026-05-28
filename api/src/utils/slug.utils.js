@@ -1,8 +1,9 @@
 
 import crypto from "crypto"
 import slugify from "slugify"
-// import ShopModel from "../models/Shop.model.js";
-// import ProductModel from "../models/Product.model.js";
+import ShopModel from "../models/Shop.model.js";
+import ProductModel from "../models/Product.model.js";
+
 
 
 //// slugs random string generates
@@ -43,15 +44,19 @@ const generateUniqueProductSlug = async (string) => {
         const token = slugsRandomString(8)
         slugs = `${slug}-${token}`;
         exists= false
-        // exists = await ProductModel.findOne({slugs});  /// if not found then auto set exists there false value.
+        exists = await ProductModel.findOne({slug: slugs});  /// if not found then auto set exists there false value.
     }
     
     return slugs;
 }
 
+// new Promise((resolve, rejects)=>{
+//     resolve(generateUniqueProductSlug("ikea-markus-chair"))
+// }).then(data=> console.log(data))
 
 
-export default generateUniqueShopSlug;
+
+export {generateUniqueShopSlug, generateUniqueProductSlug};
 
 
 

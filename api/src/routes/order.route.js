@@ -3,11 +3,10 @@ import auth from "../middleware/auth.middleware.js";
 import roleBasedAuth from "../middleware/roleBase.middleware.js";
 import Roles from "../constants/userRoles.js";
 
-import { placeNewOrder, customerOrderHistory, orderDetail, orderCancel, getAllOrderByVendorId, updateOrderItemStatus, getAllOrder,
-    getOrdersByStatus, getOrderById, adminUpdateOrderStatus } from "../controllers/order.controller.js";
+import { placeNewOrder, customerOrderHistory, orderDetail, orderCancel, getAllOrderByVendorId, updateOrderItemStatus,
+    getAllOrder, getOrdersByStatus, getOrderById, adminUpdateOrderStatus } from "../controllers/order.controller.js";
 
 const router = Router();
-
 
 // CUSTOMER ROUTES
 router.post("/orders", auth, placeNewOrder);
@@ -17,7 +16,7 @@ router.patch("/orders/:orderId/cancel", auth, orderCancel);
 
 // VENDOR ROUTES
 router.get("/vendor/orders", auth, roleBasedAuth(Roles.VENDOR_ROLE), getAllOrderByVendorId);
-router.patch("/vendor/orders/:orderId/items/:itemId/status", auth, roleBasedAuth(Roles.VENDOR_ROLE), updateOrderItemStatus);
+router.patch("/vendor/orders/items/:orderItemId/status", auth, roleBasedAuth(Roles.VENDOR_ROLE), updateOrderItemStatus);
 
 // ADMIN ROUTES
 router.get("/admin/orders", auth, roleBasedAuth(Roles.ADMIN_ROLE), getAllOrder);
