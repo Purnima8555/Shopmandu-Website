@@ -38,9 +38,9 @@ class ProductService {
         const productPayload = {
             vendorId,
             shopId: vendorShop._id,
+            ...productData,
             slug,
             images: productImages,
-            ...productData,
             discountPrice:
                 productData.discountPercent > 0
                     ? productData.price -

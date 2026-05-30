@@ -9,10 +9,10 @@ import { placeNewOrder, customerOrderHistory, orderDetail, orderCancel, getAllOr
 const router = Router();
 
 // CUSTOMER ROUTES
-router.post("/orders", auth, placeNewOrder);
-router.get("/orders", auth, customerOrderHistory);
-router.get("/orders/:orderId", auth, orderDetail);
-router.patch("/orders/:orderId/cancel", auth, orderCancel);
+router.post("/orders", auth,roleBasedAuth(Roles.USER_ROLE) ,placeNewOrder);
+router.get("/orders", auth, roleBasedAuth(Roles.USER_ROLE), customerOrderHistory);
+router.get("/orders/:orderId", roleBasedAuth(Roles.USER_ROLE),auth, orderDetail);
+router.patch("/orders/:orderId/cancel", auth, roleBasedAuth(Roles.USER_ROLE),orderCancel);
 
 // VENDOR ROUTES
 router.get("/vendor/orders", auth, roleBasedAuth(Roles.VENDOR_ROLE), getAllOrderByVendorId);

@@ -7,6 +7,7 @@ import config from "./config/config.js";
 import authRouters from "./routes/auth.route.js";
 import vendorRouters from "./routes/vendor.routes.js"
 import userRouters from "./routes/user.route.js";
+import orderRouters from "./routes/order.route.js"
 
 import { NotFoundError } from "./utils/AppError.js";
 import { upload } from "./middleware/multer.middleware.js";
@@ -41,46 +42,44 @@ app.use("/api", vendorRouters)
 /// shop routers
 app.use("/api", shopRouters);
 
-/// address routers 
+/// address routers
 app.use("/api/address", addressRouters)
 
 /// cart routers
-
 app.use("/api/cart", cartRouters)
 app.use("/api/wishlist", wishlistRouters)
 
 /// product routers
-
 app.use("/api", productRouters)
 
-
-
+/// order routers
+app.use("/api", orderRouters)
 
 //// khalti payment for testing.
-app.post("/api/pay",  async (req,res) => { 
+app.post("/api/pay",  async (req,res) => {
   
   try {
     const payload = req.body;
     // console.log(payload)
-   const khaltiUrl= await payment.payWithKhalti(payload)
-   res.status(200).json({
-    success: true,
-    message: "Khalti pay url generate succesfull",
-    data: khaltiUrl
-   })
+    const khaltiUrl= await payment.payWithKhalti(payload)
+    res.status(200).json({
+      success: true,
+      message: "Khalti pay url generate succesfull",
+      data: khaltiUrl
+    })
+    } catch (error) {
+      res.status(500).json({message: "Something wind wrong.", error: error.message})
+    }
+  })
+
+app.get("/api/payment/checkout", async (req, res)=>{
+  try {
+    const {pidx, transaction_id, tidx, txnId, amount, total_amount, mobile, status, purchase_order_id, purchase_order_name} = req.query
+    const isVerify = await payment.verifyKhaltiPayment( { pidx, transaction_id })
+    res.status(200).json({isVerify})
   } catch (error) {
     res.status(500).json({message: "Something wind wrong.", error: error.message})
   }
- })
-
-app.get("/api/payment/checkout", async (req, res)=>{
- try {
-  const {pidx, transaction_id, tidx, txnId, amount, total_amount, mobile, status, purchase_order_id, purchase_order_name} = req.query
- const isVerify = await payment.verifyKhaltiPayment( { pidx, transaction_id })
- res.status(200).json({isVerify})
- } catch (error) {
-  res.status(500).json({message: "Something wind wrong.", error: error.message})
- }
 //  res.status(200).json({message: 'paynment succesfull', data: {pidx, transaction_id, tidx, txnId, amount: amount/100, total_amount: total_amount/100, mobile, status, purchase_order_id, purchase_order_name}})
 })
 

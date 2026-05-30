@@ -131,7 +131,7 @@ const orderSchema = new mongoose.Schema({
 }, { timestamps: true })
 
 orderSchema.index({ customerId: 1 })
-orderSchema.index({ orderNumber: 1 })
+// orderSchema.index({ orderNumber: 1 })
 orderSchema.index({ createdAt: -1 })
 
 

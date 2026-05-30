@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import OrderModel from "../models/order.model.js";
 import OrderItemModel from "../models/orderItem.model.js";
-import { NotFoundError, ForbiddenError } from "../utils/AppError.js";
+import { NotFoundError, ForbiddenError, BadRequestError } from "../utils/AppError.js";
 
 class orderServices {
 
@@ -43,7 +43,6 @@ class orderServices {
             shippingCharge,
             taxAmount,
             discountAmount,
-
             paymentMethod,
         });
 
@@ -98,65 +97,47 @@ class orderServices {
     // CUSTOMER ORDER HISTORY
     //
     async customerOrderHistory(userId) {
-
-        return await OrderModel.find({
-            customerId: userId,
-        }).sort({ createdAt: -1 });
-
+        return OrderModel.find({ customerId: userId }).sort({ createdAt: -1 });
     }
 
     //
-    // CUSTOMER ORDER DETAIL
+    // CUSTOMER ORDER DETAIL-SINGLE ORDER
     //
     async orderDetail(userId, orderId) {
-
-        const order = await OrderModel.findById(orderId);
-
-        if (!order) {
-            throw new NotFoundError("Order not found");
-        }
-
-        if (order.customerId.toString() !== userId.toString()) {
-            throw new ForbiddenError("Unauthorized access");
-        }
-
-        const orderItems = await OrderItemModel.find({
-            orderId: order._id,
+        const order = await OrderModel.findOne({
+            _id: orderId,
+            customerId: userId,
         });
 
-        return {
-            order,
-            orderItems,
-        };
+        if (!order) throw new NotFoundError("Order not found");
+        const orderItems = await OrderItemModel.find({ orderId });
+        return { order, orderItems };
     }
 
     //
-    // CUSTOMER CANCEL ORDER
+    // CUSTOMER CANCEL ORDER (CLEANED)
     //
     async orderCancel(userId, orderId) {
+        const order = await OrderModel.findOne({
+            _id: orderId,
+            customerId: userId,
+        });
 
-        const order = await OrderModel.findById(orderId);
-        if (!order) {
-            throw new NotFoundError("Order not found");
-        }
-
-        if (order.customerId.toString() !== userId.toString()) {
-            throw new ForbiddenError("Unauthorized access");
+        if (!order) throw new NotFoundError("Order not found");
+        if (!["PENDING", "PROCESSING"].includes(order.orderStatus)) {
+            throw new BadRequestError(
+                `Order cannot be cancelled when status is ${order.orderStatus}`
+            );
         }
 
         order.orderStatus = "CANCELLED";
         order.cancelledAt = new Date();
-
         await order.save();
 
         await OrderItemModel.updateMany(
-            { orderId: order._id },
-            {
-                orderItemsStatus: "CANCELLED",
-                cancelledAt: new Date(),
-            },
+            { orderId },
+            { orderItemsStatus: "CANCELLED", cancelledAt: new Date() }
         );
-
         return order;
     }
 
@@ -164,38 +145,25 @@ class orderServices {
     // VENDOR GET ORDERS
     //
     async getAllOrderByVendorId(vendorId) {
-
-        return await OrderItemModel.find({
-            vendorId,
-        })
-        .populate("orderId")
-        .sort({ createdAt: -1 });
+        return OrderItemModel.find({ vendorId })
+            .populate("orderId")
+            .sort({ createdAt: -1 });
     }
 
     //
     // VENDOR UPDATE ORDER ITEM STATUS
     //
-    async updateOrderItemStatus(vendorId, orderItemId, orderItemsStatus) {
+    async updateOrderItemStatus(vendorId, orderItemId, status) {
+        const orderItem = await OrderItemModel.findOne({
+            _id: orderItemId,
+            vendorId,
+        });
 
-        const orderItem = await OrderItemModel.findById(orderItemId);
-        if (!orderItem) {
-            throw new NotFoundError("Order item not found");
-        }
+        if (!orderItem) throw new NotFoundError("Order item not found");
+        orderItem.orderItemsStatus = status;
 
-        if (orderItem.vendorId.toString() !== vendorId.toString()) {
-            throw new ForbiddenError("Unauthorized access");
-        }
-
-        orderItem.orderItemsStatus = orderItemsStatus;
-
-        if (orderItemsStatus === "DELIVERED") {
-            orderItem.deliveredAt = new Date();
-        }
-
-        if (orderItemsStatus === "OUT_FOR_DELIVERY") {
-            orderItem.shippedAt = new Date();
-        }
-
+        if (status === "DELIVERED") orderItem.deliveredAt = new Date();
+        if (status === "OUT_FOR_DELIVERY") orderItem.shippedAt = new Date();
         await orderItem.save();
         return orderItem;
     }
@@ -204,56 +172,38 @@ class orderServices {
     // ADMIN GET ALL ORDERS
     //
     async getAllOrder() {
-        return await OrderModel.find({})
-            .sort({ createdAt: -1 });
-
+        return OrderModel.find({}).sort({ createdAt: -1 });
     }
 
     //
     // ADMIN GET ORDERS BY STATUS
     //
     async getOrdersByStatus(status) {
-        return await OrderModel.find({ orderStatus: status, })
-            .sort({ createdAt: -1 });
+        return OrderModel.find({ orderStatus: status }).sort({ createdAt: -1 });
     }
 
     //
     // ADMIN GET ORDER BY ID
     //
     async getOrderById(orderId) {
-
         const order = await OrderModel.findById(orderId);
-        if (!order) {
-            throw new NotFoundError("Order not found");
-        }
+        if (!order) throw new NotFoundError("Order not found");
 
-        const orderItems = await OrderItemModel.find({
-            orderId,
-        });
-
-        return {
-            order,
-            orderItems,
-        };
+        const orderItems = await OrderItemModel.find({ orderId });
+        return { order, orderItems };
     }
 
     //
     // ADMIN UPDATE ORDER STATUS
     //
     async adminUpdateOrderStatus(orderId, orderStatus) {
-
         const order = await OrderModel.findById(orderId);
+        if (!order) throw new NotFoundError("Order not found");
 
-        if (!order) {
-            throw new NotFoundError("Order not found");
-        }
         order.orderStatus = orderStatus;
-        if (orderStatus === "DELIVERED") {
-            order.deliveredAt = new Date();
-        }
-        if (orderStatus === "CONFIRMED") {
-            order.confirmedAt = new Date();
-        }
+
+        if (orderStatus === "DELIVERED") order.deliveredAt = new Date();
+        if (orderStatus === "CONFIRMED") order.confirmedAt = new Date();
         await order.save();
         return order;
     }

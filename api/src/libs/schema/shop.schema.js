@@ -44,7 +44,7 @@ const shopSchema = z.object({
             landmark: z.string().trim().optional(),
         }),
 
-    discription: z.string().trim()
+    description: z.string().trim()
         .min(3, "Shop discription must be at least 3 characters.")
         .max(200, "Shop discription must not exceed 200 characters.").optional(),
 
