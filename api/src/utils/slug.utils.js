@@ -3,6 +3,7 @@ import crypto from "crypto"
 import slugify from "slugify"
 import ShopModel from "../models/Shop.model.js";
 import ProductModel from "../models/Product.model.js";
+import OrderModel from "../models/Order.model.js";
 
 
 
@@ -50,13 +51,29 @@ const generateUniqueProductSlug = async (string) => {
     return slugs;
 }
 
+
+const generateUniqueOrderNumber = async () => {
+
+    const orderPrefix  =  `ORD-${Date.now()}`
+    let orderNumber
+    let exists = true;
+    while (exists) {
+        const token = slugsRandomString(8)
+        orderNumber = `${orderPrefix}-${token}`;
+        exists= false
+        exists = await OrderModel.findOne({orderNumber});  /// if not found then auto set exists there false value.
+    }
+    return orderNumber;
+}
+
+
 // new Promise((resolve, rejects)=>{
 //     resolve(generateUniqueProductSlug("ikea-markus-chair"))
 // }).then(data=> console.log(data))
 
 
 
-export {generateUniqueShopSlug, generateUniqueProductSlug};
+export {generateUniqueShopSlug, generateUniqueProductSlug, generateUniqueOrderNumber};
 
 
 

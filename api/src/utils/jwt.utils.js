@@ -1,11 +1,11 @@
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
+// import dotenv from "dotenv";
 import { BadRequestError, UnauthorizedError } from "./AppError.js";
+import config from "../config/config.js";
 
-dotenv.config();
 
 // Secret key from environment variables
-const secretKey = process.env.JWT_SECRET;
+const secretKey = config.jwtSecret;
 
 /**
  *

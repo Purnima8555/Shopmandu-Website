@@ -2,6 +2,8 @@
 
 import mongoose from "mongoose";
 import orderStatus from "../constants/orderStatus.js";
+import paymentStatus from "../constants/paymentStatus.js";
+import { orderProductSchema } from "./Order.model.js";
 
 
 const orderItemsSchema = new mongoose.Schema({
@@ -18,40 +20,10 @@ const orderItemsSchema = new mongoose.Schema({
         required: [true, "vendor Id is required."]
     },
 
-    products: [{
-        productId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Product",
-            required: [true, "Product Id is required"]
-        },
-        productName: {
-            type: String,
-            required: [true, "Product name is required"],
-            trim: true,
-        },
-        price: {
-            type: Number,
-            min: 0,
-            required: [true, "Product price is required."]
-        },
-        quantity: {
-            type: Number,
-            min: 1,
-            default: 1,
-            required: [true, "Product Quantity is required."]
-        },
-
-        total: {
-            type: Number,
-            min: 0,
-            required: [true, "Product Total price is required."]
-        },
-       productImage: String,
-        variant: {
-            color: String,
-            size: String
-        }
-    }],
+    products: {
+        type: [orderProductSchema],
+        default: []
+    },
 
     orderItemsStatus: {
         type: String,
@@ -60,12 +32,24 @@ const orderItemsSchema = new mongoose.Schema({
         required: [true, "Item Status is required"]
     },
 
+    paymentStatus: {
+        type: String,
+        enum: [paymentStatus.FAILED, paymentStatus.PAID, paymentStatus.REFUNDED, paymentStatus.PENDING, paymentStatus.UNPAID, paymentStatus.EXPIRED],
+        default: paymentStatus.UNPAID,
+        required: [true, "payment Status is required."]
+    },
     totalPrice: {
         type: Number,
         min: 0,
         required: [true, "Total price is required."]
     },
 
+    taxAmount: {
+        type: Number,
+        min: 0,
+        required: [true, "Total price is required."]
+    },
+    
     shippedAt: {
         type: Date,
         immutable: true

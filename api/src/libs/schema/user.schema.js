@@ -36,18 +36,18 @@ export const userSchema = z
       ])
       .default(Roles.USER_ROLE),
 
-    authProvider: z
+    userAuthProvider: z
       .enum([authProvider.GOOGLE, authProvider.LOCAL])
       .default(authProvider.LOCAL),
   })
 
   .refine(
     (data) => {
-      if (data.authProvider === authProvider.LOCAL) {
+      if (data.userAuthProvider === authProvider.LOCAL) {
         return !!data.password;
       }
 
-      if (data.authProvider === authProvider.GOOGLE) {
+      if (data.userAuthProvider === authProvider.GOOGLE) {
         return !!data.googleId;
       }
 

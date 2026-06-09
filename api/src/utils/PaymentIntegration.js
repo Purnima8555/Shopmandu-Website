@@ -48,7 +48,7 @@ class PaymentGateway {
     }
 
     async verifyKhaltiPayment(khaltiRedirectPayload) {
-        const { pidx, transaction_id } = khaltiRedirectPayload
+        const { pidx, transaction_id, total_amount } = khaltiRedirectPayload
         // console.log(pidx, transaction_id)
         try {
             const verificationResponse = await axios.post(

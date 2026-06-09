@@ -2,7 +2,7 @@
 
 import mongoose from "mongoose";
 import currencyType from "../constants/currencyType.js";
-import paymentMethod from "../constants/paymentMethod.js";
+import { paymentMethod, paymentGateway } from "../constants/paymentMethod.js";
 import paymentStatus from "../constants/paymentStatus.js";
 
 const paymentSchema = new mongoose.Schema({
@@ -23,6 +23,12 @@ const paymentSchema = new mongoose.Schema({
         required: [true, "Amount is required."],
         min: [0, "Amount must be positive."]
     },
+    orderNumber: {
+        type: String,
+        required: [true, "Order Number is required."],
+        unique: [true, "order number should be unique."],
+        index: true
+    },
 
     currency: {
         type: String,
@@ -32,17 +38,24 @@ const paymentSchema = new mongoose.Schema({
 
     gateway: {
         type: String,
-        enum: [paymentMethod.KHALTI, paymentMethod.ESEWA, paymentMethod.STRIPE],
-        default: paymentMethod.KHALTI
+        enum: [paymentGateway.KHALTI, paymentGateway.ESEWA, paymentGateway.STRIPE, paymentGateway.CASH_ON_DELIVERY],
+        default: paymentGateway.KHALTI
+    },
+    paymentMethod: {
+        type: String,
+        enum: [paymentMethod.CASH_ON_DELIVERY, paymentMethod.ONLINE],
+        default: paymentMethod.CASH_ON_DELIVERY,
+        required: [true, "payment method is required."]
     },
     gatewayTransactionId: {
         type: String,
-        unique: true
+        unique: true,
+        sparse: true
     },
 
     status: {
         type: String,
-        enum: [paymentStatus.FAILED, paymentStatus.PAID, paymentStatus.PENDING, paymentStatus.REFUNDED,],
+        enum: [paymentStatus.FAILED, paymentStatus.PAID, paymentStatus.PENDING, paymentStatus.REFUNDED, paymentStatus.EXPIRED],
         default: paymentStatus.PENDING
     },
 

@@ -7,7 +7,8 @@ const paymentStatus = Object.freeze({
     PAID: "PAID",
 
     FAILED: "FAILED",
-    REFUNDED: "REFUNDED"
+    REFUNDED: "REFUNDED",
+    EXPIRED: "EXPIRED"
 });
 
 

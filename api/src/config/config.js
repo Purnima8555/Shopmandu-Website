@@ -31,7 +31,9 @@ const config = {
     khalti_request_uri: process.env.REQUEST_URI,
     khalti_redirect_uri: process.env.PAYMENT_REDIRECT_URI,
     web_uri: process.env.WEB_URI,
-    khalti_lookup_uri: process.env.KHALTI_PAYMENT_LOOKUP_URI
+    khalti_lookup_uri: process.env.KHALTI_PAYMENT_LOOKUP_URI,
+
+    encrypt_Key: process.env.ENCRYPT_KEY,
 }
 
 export default config
