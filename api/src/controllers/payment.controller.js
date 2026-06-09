@@ -16,7 +16,10 @@ export const createStripeSession = async (req, res) => {
       });
     }
 
-    const order = await OrderModel.findById(orderId);
+    const order = await OrderModel.findById(orderId).populate({
+      path: "items.productId",
+      select: "name image images",
+    });
 
     if (!order) {
       return res.status(404).json({
@@ -26,13 +29,29 @@ export const createStripeSession = async (req, res) => {
     }
 
     const payload = {
-      amount: order.totalAmount * 100, // Stripe expects cents
+      amount: order.totalAmount * 100, // Stripe expects cents/paisa
       purchase_order_name: `Order ${order.orderNumber}`,
       purchase_order_id: String(order._id),
       customer_info: {
         email: req.user.email,
       },
-      items: order.items,
+
+      items: order.items.map((item) => {
+        const productDetails = item.productId || {};
+
+        return {
+          productId: productDetails._id || item.productId,
+          name: productDetails.name || item.name || "Unknown Product",
+          price: item.price,
+          quantity: item.quantity,
+          image:
+            productDetails.image ||
+            (Array.isArray(productDetails.images)
+              ? productDetails.images[0]
+              : "") ||
+            "",
+        };
+      }),
     };
 
     const session = await StripeGateway.createCheckoutSession(payload);

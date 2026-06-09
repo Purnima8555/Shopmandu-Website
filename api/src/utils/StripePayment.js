@@ -14,16 +14,24 @@ class StripeGateway {
 
     try {
 
-        const line_items = items.map((item) => ({
-            quantity: item.quantity,
-            price_data: {
-                currency: "npr",
-                unit_amount: item.price * 100, // Stripe uses paisa
-                product_data: {
-                    name: item.name || `Product ${item.productId}`,
+        const line_items = items.map((item) => {
+            const product_data = {
+                name: item.name || `Product ${item.productId}`,
+            };
+
+            if (item.image && item.image.trim() !== "") {
+                product_data.images = [item.image];
+            }
+
+            return {
+                quantity: item.quantity,
+                price_data: {
+                    currency: "npr",
+                    unit_amount: Math.round(item.price * 100), // Protects against JS floating point decimals
+                    product_data: product_data,
                 },
-            },
-        }));
+            };
+        });
 
         const session = await this.stripe.checkout.sessions.create({
             payment_method_types: ["card"],
@@ -39,7 +47,6 @@ class StripeGateway {
 
             line_items,
         });
-        // console.log(session.url,"Sessionid:",session.id);
 
         return {
             url: session.url,
@@ -55,7 +62,7 @@ class StripeGateway {
     // verify
     async verifyStripePayment(sessionId) {
         try {
-            const session = await this.stripe.checkout.sessions.retrieve(sessionId)
+            const session = await this.stripe.stripe.checkout.sessions.retrieve(sessionId)
 
             if (session.payment_status === "paid") {
                 return {
