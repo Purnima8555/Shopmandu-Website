@@ -11,7 +11,7 @@ const router = Router();
 // CUSTOMER ROUTES
 router.post("/orders", auth,roleBasedAuth(Roles.USER_ROLE) ,placeNewOrder);
 router.get("/orders", auth, roleBasedAuth(Roles.USER_ROLE), customerOrderHistory);
-router.get("/orders/:orderId", roleBasedAuth(Roles.USER_ROLE),auth, orderDetail);
+router.get("/orders/:orderId", auth, roleBasedAuth(Roles.USER_ROLE), orderDetail);
 router.patch("/orders/:orderId/cancel", auth, roleBasedAuth(Roles.USER_ROLE),orderCancel);
 
 // VENDOR ROUTES

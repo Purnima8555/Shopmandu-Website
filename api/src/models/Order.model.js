@@ -33,26 +33,37 @@ const orderSchema = new mongoose.Schema({
     couponCode: {
         type: String,
     },
-    items: [
+        items: [
         {
             productId: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "Product",
-                required: [true, "product id is required."]
+                required: true
             },
+
+            productName: {
+                type: String,
+                required: true
+            },
+
+            productImage: {
+                type: String,
+                default: ""
+            },
+
             quantity: {
                 type: Number,
-                min: [1, "quantity must be 1."],
-                default: 1,
-                required: [true, "product quantity is required"]
+                min: 1,
+                required: true
             },
+
             price: {
                 type: Number,
                 min: 0,
-                required: [true, "Product Price is required."]
+                required: true
             }
         }
-    ],
+        ],
 
     orderStatus: {
         type: String,

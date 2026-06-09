@@ -1,7 +1,9 @@
 import crypto from "crypto";
+import mongoose from "mongoose";
 import OrderModel from "../models/order.model.js";
 import OrderItemModel from "../models/orderItem.model.js";
-import { NotFoundError, ForbiddenError, BadRequestError } from "../utils/AppError.js";
+import ProductModel from "../models/product.model.js";
+import { NotFoundError, BadRequestError } from "../utils/AppError.js";
 
 class orderServices {
 
@@ -10,61 +12,66 @@ class orderServices {
     //
     async placeNewOrder(userId, orderData) {
 
-        const {
-            items,
-            shippingAddress,
-            paymentMethod,
-            subTotal,
-            totalAmount,
-            shippingCharge = 0,
-            taxAmount = 0,
-            discountAmount = 0,
-            couponCode,
-        } = orderData;
+    const {
+        items,
+        shippingAddress,
+        paymentMethod,
+        shippingCharge = 0,
+        taxAmount = 0,
+        discountAmount = 0,
+        couponCode,
+    } = orderData;
 
-        //
-        // CREATE MAIN ORDER
-        //
-        const order = await OrderModel.create({
-            customerId: userId,
-            orderNumber: crypto.randomUUID(),
+    try {
 
-            shippingAddress,
-            couponCode,
+        let subTotal = 0;
 
-            items: items.map((item) => ({
-                productId: item.productId,
-                quantity: item.quantity,
-                price: item.price,
-            })),
-
-            subTotal,
-            totalAmount,
-            shippingCharge,
-            taxAmount,
-            discountAmount,
-            paymentMethod,
-        });
-
-        //
-        // GROUP ITEMS BY VENDOR
-        //
+        const validatedItems = [];
         const vendorMap = {};
 
+        // STEP 1: VALIDATE PRODUCTS (NO STOCK REDUCTION HERE)
         for (const item of items) {
 
-            if (!vendorMap[item.vendorId]) {
-                vendorMap[item.vendorId] = [];
+            const product = await ProductModel.findById(item.productId);
+
+            if (!product) {
+                throw new NotFoundError(`Product not found: ${item.productId}`);
             }
 
-            vendorMap[item.vendorId].push({
-                productId: item.productId,
-                productName: item.productName,
-                price: item.price,
-                quantity: item.quantity,
-                total: item.price * item.quantity,
-                productImage: item.productImage,
+            if (product.stock < item.quantity) {
+                throw new BadRequestError(
+                    `${product.name} has only ${product.stock} left`
+                );
+            }
 
+            const price = product.discountPrice || product.price;
+            const itemTotal = price * item.quantity;
+
+            subTotal += itemTotal;
+
+            // store snapshot for order history
+            validatedItems.push({
+                productId: product._id,
+                productName: product.name,
+                productImage: product.images?.[0] || "",
+                quantity: item.quantity,
+                price,
+            });
+
+            // group for vendor order system
+            const vendorId = product.vendorId.toString();
+
+            if (!vendorMap[vendorId]) {
+                vendorMap[vendorId] = [];
+            }
+
+            vendorMap[vendorId].push({
+                productId: product._id,
+                productName: product.name,
+                productImage: product.images?.[0] || "",
+                quantity: item.quantity,
+                price,
+                total: itemTotal,
                 variant: {
                     color: item.color,
                     size: item.size,
@@ -72,15 +79,39 @@ class orderServices {
             });
         }
 
-        //
-        // CREATE ORDER ITEMS
-        //
+        const totalAmount =
+            subTotal + shippingCharge + taxAmount - discountAmount;
+
+        // STEP 2: CREATE ORDER (PENDING PAYMENT)
+        const order = await OrderModel.create({
+            customerId: userId,
+            orderNumber: crypto.randomUUID(),
+
+            shippingAddress,
+            couponCode,
+
+            items: validatedItems,
+
+            subTotal,
+            totalAmount,
+            shippingCharge,
+            taxAmount,
+            discountAmount,
+
+            paymentMethod,
+
+            orderStatus: "PENDING",
+            paymentStatus: "PENDING",
+        });
+
+        // STEP 3: CREATE VENDOR ORDER ITEMS (IMPORTANT)
         for (const vendorId in vendorMap) {
 
             const products = vendorMap[vendorId];
+
             const totalPrice = products.reduce(
-                (acc, item) => acc + item.total,
-                0,
+                (sum, p) => sum + p.total,
+                0
             );
 
             await OrderItemModel.create({
@@ -88,16 +119,24 @@ class orderServices {
                 vendorId,
                 products,
                 totalPrice,
+                orderItemsStatus: "PENDING",
             });
         }
+
         return order;
+
+    } catch (error) {
+        throw error;
     }
+}
 
     //
     // CUSTOMER ORDER HISTORY
     //
     async customerOrderHistory(userId) {
-        return OrderModel.find({ customerId: userId }).sort({ createdAt: -1 });
+        return OrderModel.find({ customerId: userId })
+            .populate("items.productId")
+            .sort({ createdAt: -1 });
     }
 
     //

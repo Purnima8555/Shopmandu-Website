@@ -1,39 +1,60 @@
-const LoginPage = () => {
-  const handleGoogleLogin = async () => {
+import axios from "axios";
+import { useState } from "react";
+
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
     try {
-      const response = await fetch(
-        "http://localhost:3000/api/auth/register",
-        {
-          method: "GET",
-        },
-      );
+        const res = await axios.post(
+            "http://localhost:3000/api/auth/login",
+            { email, password },
+            { withCredentials: true } // IMPORTANT
+        );
 
-      const data = await response.json();
+        console.log("LOGIN RESPONSE:", res.data);
+        alert("Login successful");
 
-      if (data.success && data.url) {
-        window.location.href = data.url;
-      } else {
-        console.error("Failed to get Google login URL");
-      }
-    } catch (error) {
-      console.error("Google login error:", error);
+    } catch (err) {
+        console.log(err);
+        alert(err.response?.data?.message || "Login failed");
     }
-  };
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <button
-        onClick={handleGoogleLogin}
-        className="flex items-center gap-3 px-6 py-3 bg-white shadow-md rounded-lg hover:shadow-lg"
+      <form
+        onSubmit={handleLogin}
+        className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm"
       >
-        <img
-          src="https://www.svgrepo.com/show/475656/google-color.svg"
-          className="w-5 h-5"
+        <h2 className="text-2xl font-semibold mb-6 text-center">Login</h2>
+
+        <input
+          type="email"
+          placeholder="Email"
+          className="w-full mb-4 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
-        Sign in with Google
-      </button>
+
+        <input
+          type="password"
+          placeholder="Password"
+          className="w-full mb-6 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        <button
+          type="submit"
+          className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition"
+        >
+          Login
+        </button>
+      </form>
     </div>
   );
-};
-
-export default LoginPage;
+}

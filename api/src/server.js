@@ -19,6 +19,7 @@ import addressRouters from "./routes/address.route.js"
 import cartRouters from "./routes/cart.route.js"
 import wishlistRouters from "./routes/wishlist.route.js"
 import productRouters from "./routes/product.route.js"
+import paymentRoutes from "./routes/payment.route.js";
 
 // // import { success } from "zod";
 // import { is } from "zod/v4/locales";
@@ -28,7 +29,12 @@ const PORT = config.port;
 
 app.use(bodyParser.json());
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  }),
+);
 
 /// User Routes
 app.use("/api", userRouters);
@@ -54,6 +60,9 @@ app.use("/api", productRouters)
 
 /// order routers
 app.use("/api", orderRouters)
+
+/// payment routers
+app.use("/api/payment", paymentRoutes);
 
 //// khalti payment for testing.
 app.post("/api/pay",  async (req,res) => {
