@@ -5,7 +5,7 @@ const productSchema = new mongoose.Schema(
   {
     vendorId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "VendorProfile",
+      ref: "User",
       required: [true, "Vendor Id is required"],
     },
 
@@ -99,7 +99,7 @@ const productSchema = new mongoose.Schema(
       default: [],
     },
 
-    videos:{
+    videos: {
       type: [String],
       default: [],
     },
@@ -119,6 +119,19 @@ const productSchema = new mongoose.Schema(
       trim: true,
     },
 
+    productWeight: {
+      type: mongoose.Schema.Types.Decimal128,
+      required: [true, "Product weight is required."],
+      default: 0,
+    },
+
+    boxVolume: {
+      type: mongoose.Schema.Types.Decimal128,
+      required: [true, "Product volume is required."],
+      default: 0
+    },
+
+
     rating: {
       type: Number,
       min: 0,
@@ -132,13 +145,15 @@ const productSchema = new mongoose.Schema(
       default: 0,
     },
 
-    inReserve:{
+    inReserve: {
       type: Number,
+      default: 0,
       min: 0
     },
 
-    releseStock:{
+    releasedStock: {
       type: Number,
+      default: 0,
       min: 0
     },
 

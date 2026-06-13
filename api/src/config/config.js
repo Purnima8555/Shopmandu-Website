@@ -37,6 +37,8 @@ const config = {
     stripe_secret_key: process.env.STRIPE_SECRET_KEY,
     stripe_redirect_uri: process.env.STRIPE_REDIRECT_URI,
     stripe_cancel_uri: process.env.STRIPE_CANCEL_URI,
+    
+    encrypt_Key: process.env.ENCRYPT_KEY,
 }
 
 export default config

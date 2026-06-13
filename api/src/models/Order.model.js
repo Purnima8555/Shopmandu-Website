@@ -4,7 +4,98 @@
 import mongoose, { mongo } from "mongoose";
 import orderStatus from "../constants/orderStatus.js";
 import paymentStatus from "../constants/paymentStatus.js";
-import paymentMethod from "../constants/paymentMethod.js";
+import { paymentMethod, paymentGateway } from "../constants/paymentMethod.js";
+import addressType from "../constants/addressType.js";
+
+
+export const shippingAddressSchema = new mongoose.Schema({
+    addressType: {
+        type: String,
+        enum: {
+            values: [
+                addressType.HOME,
+                addressType.OFFICE,
+                addressType.BILLING,
+                addressType.SHOP,
+                addressType.PICKUP,
+                addressType.OTHER
+            ],
+            message: "Invalid address type."
+        },
+        default: addressType.HOME,
+        required: [true, "address type is required."]
+    },
+
+    location: {
+        type: String,
+        required: [true, "locality is required."]
+    },
+
+    city: {
+        type: String,
+        required: [true, "city is required."]
+    },
+
+    mobile: {
+        type: String,
+        required: [true, "mobile number is required."]
+    },
+
+    state: {
+        type: String,
+        required: [true, "state is required."]
+    },
+
+    pincode: String,
+    landmark: String,
+},
+    {
+        _id: false
+    }
+);
+
+export const orderProductSchema = new mongoose.Schema(
+    {
+        productId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Product",
+            required: [true, "product id is required."]
+        },
+        productName: {
+            type: String,
+            required: [true, "Product name is required"],
+            trim: true,
+        },
+        quantity: {
+            type: Number,
+            min: [1, "quantity must be 1."],
+            default: 1,
+            required: [true, "product quantity is required"]
+        },
+        price: {
+            type: Number,
+            min: 0,
+            required: [true, "Product Price is required."]
+        },
+
+        variant: {
+            color: String,
+            size: String
+        },
+
+        total: {
+            type: Number,
+            min: 0,
+            default: 0,
+            required: [true, "Product Total is required."]
+        },
+
+        productImage: String
+    },
+    {
+        _id: false
+    }
+);
 
 
 const orderSchema = new mongoose.Schema({
@@ -17,53 +108,30 @@ const orderSchema = new mongoose.Schema({
     orderNumber: {
         type: String,
         required: [true, "Order Number is required."],
-        unique: [true, "order number should be unique."]
+        unique: [true, "order number should be unique."],
+        index: true
     },
-    couponId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Coupon"
-    },
+    // couponId: {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "Coupon"
+    // },
+    // shippingAddress: {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "Address",
+    //     required: [true, "Shipping Address Id is required."]
+    // },
     shippingAddress: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Address",
-        required: [true, "Shipping Address Id is required."]
+        type: shippingAddressSchema
     },
-
 
     couponCode: {
         type: String,
     },
-        items: [
-        {
-            productId: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Product",
-                required: true
-            },
 
-            productName: {
-                type: String,
-                required: true
-            },
-
-            productImage: {
-                type: String,
-                default: ""
-            },
-
-            quantity: {
-                type: Number,
-                min: 1,
-                required: true
-            },
-
-            price: {
-                type: Number,
-                min: 0,
-                required: true
-            }
-        }
-        ],
+    items: {
+        type: [orderProductSchema],
+        default: []
+    },
 
     orderStatus: {
         type: String,
@@ -102,17 +170,18 @@ const orderSchema = new mongoose.Schema({
     },
     paymentStatus: {
         type: String,
-        enum: [paymentStatus.FAILED, paymentStatus.PAID, paymentStatus.REFUNDED, paymentStatus.PENDING, paymentStatus.UNPAID],
-        default: paymentStatus.PENDING,
+        enum: [paymentStatus.FAILED, paymentStatus.PAID, paymentStatus.REFUNDED, paymentStatus.PENDING, paymentStatus.UNPAID, paymentStatus.EXPIRED],
+        default: paymentStatus.UNPAID,
         required: [true, "payment Status is required."]
     },
 
     paymentMethod: {
         type: String,
-        enum: [paymentMethod.CASH_ON_DELIVERY, paymentMethod.ESEWA, paymentMethod.STRIPE, paymentMethod.KHALTI],
+        enum: [paymentMethod.CASH_ON_DELIVERY, paymentMethod.ONLINE],
+        default: paymentMethod.CASH_ON_DELIVERY,
         required: [true, "payment method is required."]
     },
-    cancelledAt:{
+    cancelledAt: {
         type: Date,
         immutable: true
     },

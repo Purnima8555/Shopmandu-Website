@@ -1,57 +1,25 @@
-<<<<<<< HEAD
+
 import { z } from "zod";
-import paymentMethod from "../../constants/paymentMethod.js";
-=======
+import {paymentMethod} from "../../constants/paymentMethod.js"
+import addressSchema from "./address.schema.js"
 
-
-import z from "zod"
-import paymentMethod from "../../constants/paymentMethod.js"
->>>>>>> 5ca6db8adc0e72c9aa5f9fa35772e1d749e1f498
-
-//
-// ORDER ITEM SCHEMA
-//
-const orderItemValidationSchema = z.object({
-    productId: z.string().regex(/^[0-9a-fA-F]{24}$/, {
-        message: "Invalid Product ObjectId",
-    }),
-
-    quantity: z.number().int().gte(1, {
-        message: "Quantity must be at least 1",
-    }),
-
-    selectedColor: z.string().trim().optional(),
-
-    selectedSize: z.string().trim().optional(),
-    });
 
 //
 // CREATE ORDER SCHEMA
 //
-export const createOrderSchema = z.object({
-  // order items
-    items: z.array(orderItemValidationSchema).min(1, {
-        message: "At least one item is required",
-    }),
+const createOrderSchema = z.object({
 
-    // selected address
-    addressId: z.string().regex(/^[0-9a-fA-F]{24}$/, {
-        message: "Invalid Address ObjectId",
-    }),
+    products: z.array(
+        z.object({
+            productId: z.string(),
+            quantity: z.coerce.number().gte(1, "Quantity must be at least 1"),
+            color: z.string().optional(),
+            size: z.string().optional()
+        })
+    ).min(1, "At least one item is required"),
+    shippingAddress: addressSchema,
+    couponCode: z.string().optional(),
+    paymentMethod: z.enum([paymentMethod.CASH_ON_DELIVERY, paymentMethod.ONLINE])
+}).strict();
 
-    // optional coupon
-    couponCode: z.string().trim().toUpperCase().optional(),
-
-    // optional delivery note
-    notes: z.string().trim().max(300).optional(),
-
-    // payment method
-    paymentMethod: z
-        .enum([
-        paymentMethod.CASH_ON_DELIVERY,
-        paymentMethod.ESEWA,
-        paymentMethod.KHALTI,
-        paymentMethod.STRIPE,
-        ])
-    .default(paymentMethod.CASH_ON_DELIVERY),
-});
+export default createOrderSchema;

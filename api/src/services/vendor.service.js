@@ -1,12 +1,14 @@
 
 import kycStatus from "../constants/kycStatus.js";
 import Roles from "../constants/userRoles.js";
+import { kycApproveTemplate, kycRejectTemplate } from "../messaging/email/templates/vendorKycStatus.template.js";
 import Address from "../models/Address.model.js";
 import UserModel from "../models/User.model.js";
 import vendorKycModel from "../models/VendorKYC.model.js";
 import { BadRequestError, ConflictError, NotFoundError } from "../utils/AppError.js";
 import CloudinaryUpload from "../utils/CloudinaryUpload.js";
-import sendEmail from "../utils/emailsend.utils.js";
+import addEmailJob from "../utils/EmailQueue.js";
+import sendEmail from "../messaging/email/email.service.js";
 import { verifyJwt } from "../utils/jwt.utils.js";
 
 import { v2 as cloudinary } from "cloudinary"
@@ -335,22 +337,10 @@ class vendorService {
 
     /// create mail body for vendor say you accound are active now.
 
-    const emailBody = `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <h2 style="color: #16a34a;">
-                KYC Verification Successful
-            </h2>
-            <p>
-                Dear User,
-            </p>
-            <p>Congratulations! Your KYC and business verification process has been completed successfully.</p>
-            <p>Your vendor account is now active on <strong>ShopMandu</strong>. </p>
-            <p>You can now start listing products, manage your store, and sell products on our platform.</p>
-            <p>Thank you for choosing ShopMandu.</p>
-            <p>Regards,<br />ShopMandu Team</p>
-          </div>
-`
-    await sendEmail(vendor.email, "KYC Verification Approved", emailBody)
+    const emailBody = kycApproveTemplate();
+    // console.log(emailBody)
+    // await sendEmail(vendor.email, "KYC Verification Approved", emailBody)
+    await addEmailJob(vendor.email, "Kyc Verifaction Approved", emailBody)
 
     return {
       success: true,
@@ -377,15 +367,9 @@ class vendorService {
     await vendorKYC.save()
 
     // create email for reject reason
-    const emailBody = ` <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                        <h2 style="color: #dc2626;"> KYC Verification Rejected </h2> 
-                        <p> Dear User, </p> 
-                        <p> We reviewed your submitted KYC documents, but unfortunately your verification request has been rejected. </p> 
-                        <p> <strong>Reason:</strong> ${reason} </p> 
-                        <p> Please review and resubmit the correct documents again. </p> 
-                        <p> Regards,<br/> ShopMandu Team </p> 
-                        </div> `
-    await sendEmail(vendor.email, "Kyc Document Verification.", emailBody)
+    const emailBody = kycRejectTemplate(reason)
+    // await sendEmail(vendor.email, "Kyc Document Verification.", emailBody)
+    await addEmailJob(vendor.email, "Kyc Document Verification", emailBody)
 
     return {
       success: true,

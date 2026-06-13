@@ -3,9 +3,15 @@ import axios from "axios";
 
 const CartPage = () => {
     const [cart, setCart] = useState(null);
+    const [addresses, setAddresses] = useState([]);
+    const [selectedAddress, setSelectedAddress] = useState(null);
+
+    const [couponCode, setCouponCode] = useState("");
+
     const [loading, setLoading] = useState(true);
     const [checkingOut, setCheckingOut] = useState(false);
 
+    // ---------------- FETCH CART ----------------
     const fetchCart = async () => {
         try {
             const res = await axios.get("http://localhost:3000/api/cart", {
@@ -15,57 +21,82 @@ const CartPage = () => {
             setCart(res.data.data);
         } catch (err) {
             console.log("Cart error:", err.response?.data || err.message);
-        } finally {
-            setLoading(false);
+        }
+    };
+
+    // ---------------- FETCH ADDRESSES ----------------
+    const fetchAddresses = async () => {
+        try {
+            const res = await axios.get("http://localhost:3000/api/address", {
+                withCredentials: true,
+            });
+
+            setAddresses(res.data.data);
+
+            const defaultAddr = res.data.data.find(a => a.isDefault);
+            setSelectedAddress(defaultAddr || res.data.data[0]);
+        } catch (err) {
+            console.log("Address error:", err.response?.data || err.message);
         }
     };
 
     useEffect(() => {
-        fetchCart();
+        const init = async () => {
+            await Promise.all([fetchCart(), fetchAddresses()]);
+            setLoading(false);
+        };
+        init();
     }, []);
 
+    // ---------------- CHECKOUT ----------------
     const handleCheckout = async () => {
-    setCheckingOut(true);
+        setCheckingOut(true);
 
-    try {
-        // CREATE ORDER
-        const orderRes = await axios.post(
-            "http://localhost:3000/api/orders",
-            {
-                items: cart.items.map(item => ({
-                    productId: item.productId._id,
-                    quantity: item.quantity
-                })),
+        try {
+            const orderRes = await axios.post(
+                "http://localhost:3000/api/order/place",
+                {
+                    products: cart.items.map(item => ({
+                        productId: item.productId._id,
+                        quantity: item.quantity,
+                    })),
 
-                // SHIPPING ADDRESS ID
-                shippingAddress: "6a188bcc645c7fc0850a7d40",
+                    shippingAddress: {
+                        addressType: selectedAddress.addressType,
+                        location: selectedAddress.location,
+                        city: selectedAddress.city,
+                        mobile: selectedAddress.mobile,
+                        state: selectedAddress.state,
+                        pincode: selectedAddress.pincode,
+                        landmark: selectedAddress.landmark,
+                    },
 
-                paymentMethod: "STRIPE"
-            },
-            {
-                withCredentials: true
-            }
-        );
+                    paymentMethod: "ONLINE",
 
-        const orderId = orderRes.data.data._id;
+                    // ✅ ADDED COUPON
+                    couponCode: couponCode.trim() || undefined
+                },
+                { withCredentials: true }
+            );
 
-        // STRIPE SESSION
-        const stripeRes = await axios.post(
-            "http://localhost:3000/api/payment/stripe/create-session",
-            { orderId },
-            {
-                withCredentials: true
-            }
-        );
+            const orderId = orderRes.data.data.masterOrder._id;
 
-        // console.log(stripeRes.data.url);
-        window.location.href = stripeRes.data.url;
+            const stripeRes = await axios.post(
+                "http://localhost:3000/api/order/pay",
+                {
+                    orderId,
+                    gateway: "STRIPE"
+                },
+                { withCredentials: true }
+            );
 
-    } catch (err) {
-        console.log("Checkout error:", err.response?.data || err.message);
-        setCheckingOut(false);
-    }
-};
+            window.location.href = stripeRes.data.paymentOrder.data.url;
+
+        } catch (err) {
+            console.log("Checkout error:", err.response?.data || err.message);
+            setCheckingOut(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -90,72 +121,121 @@ const CartPage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <div className="max-w-2xl mx-auto px-4 py-10">
+            <div className="max-w-5xl mx-auto px-4 py-10 flex flex-col md:flex-row gap-6">
 
-                {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-2xl font-bold">My Cart</h1>
-                    <p className="text-sm text-gray-500">
-                        {itemCount} items
-                    </p>
+                {/* ================= LEFT: CART ================= */}
+                <div className="flex-1">
+
+                    <div className="mb-8">
+                        <h1 className="text-2xl font-bold">My Cart</h1>
+                        <p className="text-sm text-gray-500">
+                            {itemCount} items
+                        </p>
+                    </div>
+
+                    {/* Items */}
+                    <div className="bg-white rounded-xl shadow divide-y">
+                        {cart.items.map((item, idx) => {
+                            const product = item.productId;
+
+                            return (
+                                <div
+                                    key={item._id || idx}
+                                    className="flex items-center justify-between px-5 py-4"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <img
+                                            src={product?.images?.[0]}
+                                            alt={product?.name}
+                                            className="w-12 h-12 rounded object-cover bg-gray-100"
+                                        />
+
+                                        <div>
+                                            <p className="text-sm font-medium">
+                                                {product?.name}
+                                            </p>
+
+                                            <p className="text-xs text-gray-500">
+                                                Rs {item.priceAtAdd} × {item.quantity}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <p className="font-semibold">
+                                        Rs {(item.priceAtAdd * item.quantity).toLocaleString()}
+                                    </p>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Summary */}
+                    <div className="mt-6 bg-white rounded-xl p-5 shadow">
+                        <div className="flex justify-between">
+                            <span>Total</span>
+                            <span className="font-bold">
+                                Rs {cart.totalPrice.toLocaleString()}
+                            </span>
+                        </div>
+                    </div>
+
                 </div>
 
-                {/* Items */}
-                <div className="bg-white rounded-xl shadow divide-y">
-                    {cart.items.map((item, idx) => {
-                        const product = item.productId;
+                {/* ================= RIGHT: ADDRESS ================= */}
+                <div className="w-full md:w-[320px]">
 
-                        return (
+                    <div className="bg-white rounded-xl shadow p-5">
+                        <h2 className="font-semibold mb-3">Delivery Address</h2>
+
+                        {addresses.length === 0 && (
+                            <p className="text-sm text-gray-500">
+                                No address found
+                            </p>
+                        )}
+
+                        {addresses.map(addr => (
                             <div
-                                key={item._id || idx}
-                                className="flex items-center justify-between px-5 py-4"
+                                key={addr._id}
+                                onClick={() => setSelectedAddress(addr)}
+                                className={`p-3 mb-2 border rounded cursor-pointer text-sm ${
+                                    selectedAddress?._id === addr._id
+                                        ? "border-black bg-gray-50"
+                                        : "border-gray-200"
+                                }`}
                             >
-                                {/* Left side */}
-                                <div className="flex items-center gap-4">
-                                    <img
-                                        src={product?.images?.[0]}
-                                        alt={product?.name}
-                                        className="w-12 h-12 rounded object-cover bg-gray-100"
-                                    />
-
-                                    <div>
-                                        <p className="text-sm font-medium">
-                                            {product?.name}
-                                        </p>
-
-                                        <p className="text-xs text-gray-500">
-                                            Rs {item.priceAtAdd} × {item.quantity}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Right side */}
-                                <p className="font-semibold">
-                                    Rs {(item.priceAtAdd * item.quantity).toLocaleString()}
+                                <p className="font-medium">
+                                    {addr.addressType}
+                                </p>
+                                <p className="text-gray-600">
+                                    {addr.location}, {addr.city}
                                 </p>
                             </div>
-                        );
-                    })}
-                </div>
-
-                {/* Summary */}
-                <div className="mt-6 bg-white rounded-xl p-5 shadow">
-                    <div className="flex justify-between">
-                        <span>Total</span>
-                        <span className="font-bold">
-                            Rs {cart.totalPrice.toLocaleString()}
-                        </span>
+                        ))}
                     </div>
-                </div>
 
-                {/* Checkout */}
-                <button
-                    onClick={handleCheckout}
-                    disabled={checkingOut}
-                    className="mt-6 w-full bg-black text-white py-3 rounded-lg"
-                >
-                    {checkingOut ? "Redirecting..." : "Pay with Stripe"}
-                </button>
+                    {/* ================= COUPON INPUT ================= */}
+                    <div className="bg-white rounded-xl shadow p-5 mt-4">
+                        <h2 className="font-semibold mb-2">Coupon</h2>
+
+                        <input
+                            type="text"
+                            placeholder="Enter coupon code"
+                            value={couponCode}
+                            onChange={(e) => setCouponCode(e.target.value)}
+                            className="w-full border p-2 rounded text-sm"
+                        />
+                    </div>
+
+                    {/* Checkout */}
+                    <button
+                        onClick={handleCheckout}
+                        disabled={checkingOut || !selectedAddress}
+                        className="mt-6 w-full bg-black text-white py-3 rounded-lg"
+                    >
+                        {checkingOut ? "Redirecting..." : "Pay with Stripe"}
+                    </button>
+
+                </div>
             </div>
         </div>
     );

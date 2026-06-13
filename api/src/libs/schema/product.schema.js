@@ -42,6 +42,8 @@ const productSchema = z.object({
     colors: formArray(z.string()).optional(),
     sizes: formArray(z.string()).optional(),
     brand: z.string().trim().optional(),
+    productWeight: z.coerce.number().gt(0),
+    boxVolume: z.coerce.number().gt(0)
 }).refine((data) => {
     if (data.discountPrice !== undefined) return data.discountPrice < data.price
     return true
@@ -74,6 +76,8 @@ const updateProductSchema = z.object({
     colors: formArray(z.string()).optional(),
     sizes: formArray(z.string()).optional(),
     brand: z.string().trim().optional(),
+    productWeight: z.coerce.number().gt(0).optional(),
+    boxVolume: z.coerce.number().gt(0).optional()
 }).refine((data) => {
     if (data.discountPrice !== undefined && data.price !== undefined) return data.discountPrice < data.price
     return true

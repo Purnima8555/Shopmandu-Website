@@ -62,7 +62,7 @@ class StripeGateway {
     // verify
     async verifyStripePayment(sessionId) {
         try {
-            const session = await this.stripe.stripe.checkout.sessions.retrieve(sessionId)
+            const session = await this.stripe.checkout.sessions.retrieve(sessionId)
 
             if (session.payment_status === "paid") {
                 return {

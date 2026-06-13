@@ -1,13 +1,27 @@
-import { Router } from "express";
-import auth from "../middleware/auth.middleware.js";
-import { createStripeSession, verifyStripePayment } from "../controllers/payment.controller.js";
+
+
+
+import {Router} from "express"
+import auth from "../middleware/auth.middleware.js"
+import roleBasedAuth from "../middleware/roleBase.middleware.js";
+import Roles from "../constants/userRoles.js";
+import schemaValidator from "../middleware/schemaValidator.middleware.js";
+import { getAllPayments, getMyPaymentHistory, getPaymentById, paymentCheckOut, payOrder, verifyStripeCheckout } from "../controllers/payment.controller.js";
+
 
 const router = Router();
 
-// create session
-router.post("/stripe/create-session", auth, createStripeSession);
+router.post("/order/pay",  auth, roleBasedAuth(Roles.USER_ROLE), payOrder)
 
-// verify payment
-router.get("/stripe/verify", auth, verifyStripePayment);
+router.get("/payment/checkout", paymentCheckOut);
+
+// stripe checkout
+router.get("/payment/stripe/verify", auth, roleBasedAuth(Roles.USER_ROLE), verifyStripeCheckout);
+
+router.get("/payment/history", auth, roleBasedAuth(Roles.USER_ROLE), getMyPaymentHistory);
+
+router.get("/payment/:id", auth, roleBasedAuth(Roles.USER_ROLE), getPaymentById);
+
+router.get("/admin/payments", auth, roleBasedAuth(Roles.ADMIN_ROLE), getAllPayments)
 
 export default router;

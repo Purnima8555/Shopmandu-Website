@@ -25,7 +25,7 @@ const resetForgerSchema = new mongoose.Schema({
         default: () => Date.now() + 900 * 1000,
         /// Date.now() provides current time, adding 900 second * 1000 millisecond  = 15 minutes. 900 
         expires: 900, /// it means auto delete after 15 minutes
-        immutable: true
+        // immutable: true
     }
 
 

@@ -11,13 +11,15 @@ import {
 } from "../utils/AppError.js";
 import OTPModels from "../models/OTPverifaction.model.js";
 import generateOTP from "../utils/otp.utils.js";
-import sendEmail from "../utils/emailsend.utils.js";
+import sendEmail from "../messaging/email/email.service.js";
 import mongoose from "mongoose";
 import authProvider from "../constants/authProvider.js";
 import CloudinaryUpload from "../utils/CloudinaryUpload.js";
 import config from "../config/config.js";
 import crypto from "crypto"
 import ResetForgetPassword from "../models/ResetForgerPassword.models.js";
+import addEmailJob, { addResetPasswordEmailJob } from "../utils/EmailQueue.js";
+import { otpEmailBody } from "../messaging/email/templates/otp.template.js";
 
 
 class authService {
@@ -124,7 +126,7 @@ class authService {
                     mobile,
                     roles,
                     avatar: userData.avatar,
-                    authProvider: userAuthProvider,
+                    authProvider: userAuthProvider || authProvider.LOCAL,
                     password: hashPassword,
                     isVerify: false,
                 },
@@ -140,7 +142,7 @@ class authService {
                 mobile,
                 roles,
                 avatar: userData.avatar,
-                authProvider: userAuthProvider,
+                authProvider: userAuthProvider || authProvider.LOCAL,
                 password: hashPassword,
                 isVerify: false,
             });
@@ -148,28 +150,7 @@ class authService {
         }
 
         /// send otp for email verifaction
-        const body = (otp) => {
-            const emailbody = `
-    <h4>Verify your ShopMandu account.</h4>
-    <p>Dear, ${createUser.userName}</p>
-    <p>
-        Thank you for registering with <b>ShopMandu</b>.
-        Use the OTP below to verify your email address.
-    </p>
-    <h2><u>${otp}</u></h2>
-    <p><b>This code will expire in 5 minutes.</b></p>
-    <p>
-        If you did not request this email, you can safely ignore it.
-    </p>
-    <p>
-        Thanks,<br>
-        <b>The ShopMandu Rock Team</b>
-    </p>
-
-    `;
-            return emailbody;
-        };
-        const response = this.sendOTP(createUser.email, "Email verifaction.", body);
+        const response = this.sendOTP(createUser.email, "Email verifaction.", createUser);
         return response;
     }
 
@@ -183,7 +164,7 @@ class authService {
      */
 
     /// OTP send function
-    async sendOTP(email, subject, body) {
+    async sendOTP(email, subject, user) {
         if (!email) {
             throw new BadRequestError("Email is required");
         }
@@ -202,14 +183,16 @@ class authService {
                     expiresAt: new Date(Date.now() + 5 * 60 * 1000), // expire after 5 minutes
                 },
                 {
-                    new: true,
+                    // new: true,
+                    returnDocument: "after",
                     upsert: true,
                 }
             );
-            const emailbody = body(otp);
-
+            const emailbody = otpEmailBody(otp, user);
             // send email
-            await sendEmail(email, subject, emailbody);
+            // await sendEmail(email, subject, emailbody);
+
+            await addEmailJob(email, subject, emailbody)
 
             return { message: "OTP sent successfully, please verify your email." };
         } catch (error) {
@@ -226,7 +209,7 @@ class authService {
      * @returns //// it response back, 'resend otp message succesfully.'
      */
     //// resend otp
-    async resendOtp(email, subject, body) {
+    async resendOtp(email, subject) {
         /// check user are not verified
         const userVerify = await UserModel.findOne({ email })
         if (!userVerify) {
@@ -257,10 +240,12 @@ class authService {
                     upsert: true,
                 }
             );
-            const emailbody = body(otp);
+            const emailbody = otpEmailBody(otp, userVerify);
 
             // send email
-            await sendEmail(email, subject, emailbody);
+            // await sendEmail(email, subject, emailbody);
+
+            await addEmailJob(email, subject, emailbody)
 
             return { message: "OTP sent resend successfully, please checked your email and verify." };
         } catch (error) {
@@ -360,7 +345,7 @@ class authService {
         // console.log(email)
 
         /// hash token/ encrypt the token
-        const hashToken = crypto.createHash('sha256').update(token).digest('hex')
+        // const hashToken = crypto.createHash('sha256').update(token).digest('hex')
         // console.log(hashToken)
 
         /// check if user are present in our database?
@@ -376,26 +361,30 @@ class authService {
         // }
 
         //// create reset password link
-        const resetPasswordLink = `http://localhost:${config.port}/api/auth/reset-password/?id=${user._id}&token=${token}`
+        // const resetPasswordLink = `http://localhost:${config.port}/api/auth/reset-password/?id=${user._id}&token=${token}`
         try {
 
             await ResetForgetPassword.findOneAndUpdate(
                 { userId: user._id },
                 {
-                    token: hashToken,
+                    // token: hashToken,
+                    token: token,
                     isUsed: false,
                     expiresAt: new Date(Date.now() + 15 * 60 * 1000), // expire after 15 minutes
                 },
                 {
-                    new: true,
+                    // new: true,
+                    returnDocument: "after",
                     upsert: true,
                 }
             );
 
             /// send mail to user with there reset password link
 
-            const emailHtml = emailbody(resetPasswordLink)
-            await sendEmail(email, "Reset Password.", emailHtml);
+            // const emailHtml = emailbody(resetPasswordLink)
+            // await sendEmail(email, "Reset Password.", emailHtml);
+            await addResetPasswordEmailJob(email, user._id, token);
+
             return { message: "Reset password Link send succesfully." };
 
         } catch (error) {
@@ -418,8 +407,15 @@ class authService {
         }
 
         /// that token are validate or not
-        const hashToken = crypto.createHash('sha256').update(token).digest('hex')
-        if (hashToken !== sendRequestForResetPassword.token) {
+        // const hashToken = crypto.createHash('sha256').update(token).digest('hex')
+        // if (hashToken !== sendRequestForResetPassword.token) {
+        //     throw new BadRequestError("Invalid Link.")
+        // }
+
+        // console.log(sendRequestForResetPassword)
+
+        const hashToken = crypto.createHash('sha256').update(sendRequestForResetPassword.token).digest('hex')
+        if (hashToken !== token) {
             throw new BadRequestError("Invalid Link.")
         }
 

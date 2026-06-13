@@ -1,251 +1,351 @@
-import crypto from "crypto";
 import mongoose from "mongoose";
-import OrderModel from "../models/order.model.js";
-import OrderItemModel from "../models/orderItem.model.js";
-import ProductModel from "../models/product.model.js";
-import { NotFoundError, BadRequestError } from "../utils/AppError.js";
+import client from "../config/redis.config.js";
+import orderStatus from "../constants/orderStatus.js";
+import { paymentMethod } from "../constants/paymentMethod.js";
+import paymentStatus from "../constants/paymentStatus.js";
+import OrderModel from "../models/Order.model.js";
+import OrderItemsModel from "../models/OrderItem.model.js";
+import PaymentModel from "../models/Payment.model.js";
+import { AppError, BadRequestError, NotFoundError } from "../utils/AppError.js";
+import { groupByVendorItems, calculateOrderTotals, calculateShipping, calculateTax, restoreProductStock } from "../utils/Order.utils.js";
+import { generateUniqueOrderNumber } from "../utils/slug.utils.js";
+import ProductModel from "../models/Product.model.js";
+import { orderNotification, scheduleCodOrderConfirmation, scheduleUnpaidOrderCancellation } from "../utils/EmailQueue.js";
+import { applyCouponService, markCouponAsUsedService } from "./coupon.service.js";
 
-class orderServices {
 
-    //
-    // PLACE NEW ORDER
-    //
-    async placeNewOrder(userId, orderData) {
+class OrderServices {
 
-    const {
-        items,
-        shippingAddress,
-        paymentMethod,
-        shippingCharge = 0,
-        taxAmount = 0,
-        discountAmount = 0,
-        couponCode,
-    } = orderData;
+    //// place a new order from cart.
+    async placeNewOrder(userId, cartData) {
 
-    try {
+        const session = await mongoose.startSession();
+        let notifactionJobs = [];
+        try {
 
-        let subTotal = 0;
-
-        const validatedItems = [];
-        const vendorMap = {};
-
-        // STEP 1: VALIDATE PRODUCTS (NO STOCK REDUCTION HERE)
-        for (const item of items) {
-
-            const product = await ProductModel.findById(item.productId);
-
-            if (!product) {
-                throw new NotFoundError(`Product not found: ${item.productId}`);
+            session.startTransaction();
+            /// load and validate cart/stock
+            const { vendorOrders, productReserve } = await groupByVendorItems(cartData.products)
+            ////  reserve stock
+            if (productReserve.length > 0) {
+                const result = await ProductModel.bulkWrite(productReserve, { session });
+                //   console.log(result)
+                /// check if every items stock filter matched
+                if (result.matchedCount !== productReserve.length) {
+                    throw new BadRequestError("One or more items in your cart are no longer available in the requested quantity.");
+                }
             }
 
-            if (product.stock < item.quantity) {
-                throw new BadRequestError(
-                    `${product.name} has only ${product.stock} left`
-                );
+            let subTotal = 0;
+
+            // console.dir(vendorOrders, { depth: null })
+            /// calculate Total
+            const grandTotal = calculateOrderTotals(vendorOrders)
+            // console.log(grandTotal)
+
+            /// shipping fee calculate
+            const shippingFee = calculateShipping({ orderAmount: grandTotal.subTotal, weightKg: grandTotal.totalWeight, volumeCm3: grandTotal.totalVolume, zone: "local" });
+
+            /// tax calculate
+            const tax = calculateTax(grandTotal.subTotal)
+            /// discount price calculate from copun
+            let discount = 0
+            let couponDiscount = {}
+            let couponUsed;
+            if (cartData.couponCode) {
+                couponDiscount = await applyCouponService(userId, cartData.couponCode, grandTotal.subTotal)
+                if (couponDiscount.coupon) {
+                    couponUsed = await markCouponAsUsedService(couponDiscount.coupon._id, userId)
+                }
             }
 
-            const price = product.discountPrice || product.price;
-            const itemTotal = price * item.quantity;
+            // console.log(couponDiscount)
 
-            subTotal += itemTotal;
-
-            // store snapshot for order history
-            validatedItems.push({
-                productId: product._id,
-                productName: product.name,
-                productImage: product.images?.[0] || "",
-                quantity: item.quantity,
-                price,
-            });
-
-            // group for vendor order system
-            const vendorId = product.vendorId.toString();
-
-            if (!vendorMap[vendorId]) {
-                vendorMap[vendorId] = [];
+            /// coupon mark as used 
+            if (couponUsed) {
+                discount = couponDiscount.discountAmount
             }
 
-            vendorMap[vendorId].push({
-                productId: product._id,
-                productName: product.name,
-                productImage: product.images?.[0] || "",
-                quantity: item.quantity,
-                price,
-                total: itemTotal,
-                variant: {
-                    color: item.color,
-                    size: item.size,
+            // console.log(tax)
+            const totalAmount = grandTotal.subTotal + shippingFee.totalShippingFee - discount;
+
+            /// generate order number
+            const orderNumber = await generateUniqueOrderNumber()
+            const paymentId = new mongoose.Types.ObjectId();
+
+            // console.log(totalAmount)
+            // console.log(orderNumber)
+            const items = Object.values(vendorOrders).map(item => (
+                item.products
+            )).flat()
+
+            // console.log(items)
+
+
+            /// create master order. with transactions
+            ///  note: using create with an array and session returns an array of documents
+            const [masterOrder] = await OrderModel.create([{
+                customerId: userId,
+                orderNumber,
+                shippingAddress: { ...cartData.shippingAddress },
+                //// product items.
+                items: items,
+                orderStatus: orderStatus.PENDING,
+                subTotal: grandTotal.subTotal,
+                discountAmount: discount || 0,
+                shippingCharge: shippingFee.totalShippingFee,
+                taxAmount: tax,
+                totalAmount,
+                paymentId,
+                paymentStatus: paymentStatus.UNPAID,
+                paymentMethod: cartData.paymentMethod || paymentMethod.CASH_ON_DELIVERY,
+            }], { session })
+
+            // console.log(masterOrder)
+            /// payment setup with transactions
+
+            // console.log(paymentId)
+            const [payment] = await PaymentModel.create([{
+                _id: paymentId,
+                orderId: masterOrder._id,
+                orderNumber,
+                customerId: userId,
+                amount: totalAmount,
+                status: paymentStatus.PENDING,
+                paymentMethod: cartData.paymentMethod || paymentMethod.CASH_ON_DELIVERY
+            }], { session })
+
+
+            //// create orderItems with transactions
+            // console.log(payment)
+            /// loop to generate all order items 
+            const orderItemsArray = Object.values(vendorOrders).map(vendor => {
+                const tax = calculateTax(vendor.totalPrice);
+                return {
+                    orderId: masterOrder._id,
+                    vendorId: vendor.vendorId,
+                    products: vendor.products,
+                    totalPrice: vendor.totalPrice,
+                    taxAmount: tax,
+                    paymentStatus: paymentStatus.UNPAID,
+                    orderItemsStatus: orderStatus.PENDING
+                }
+            })
+            await OrderItemsModel.insertMany(orderItemsArray, { session });
+
+            // masterOrder.paymentId = payment._id
+            // await masterOrder.save({ session })
+
+            await session.commitTransaction();
+
+
+            /// checked if order is COD or ONLINE
+            if (cartData.paymentMethod === paymentMethod.CASH_ON_DELIVERY) {
+                scheduleCodOrderConfirmation(masterOrder._id)
+            } else {
+                scheduleUnpaidOrderCancellation(masterOrder._id)
+            }
+            return {
+                success: true,
+                masterOrder,
+            };
+
+        } catch (error) {
+            await session.abortTransaction();
+            throw new AppError(error.message || "Order creation failed.");
+        } finally {
+            await session.endSession()
+        }
+
+    }
+
+    //// order history
+    async customerOrderHistory(userId, data) {
+
+            const page = parseInt(data.page, 10) || 1;
+            const limit = parseInt(data.limit, 10) || 10;
+            const skip = (page - 1) * limit; // Number of items to skip
+            const filter = { userId }
+
+            /// apply filter, paginated, get order with filter.
+            if (data.paymentStatus) {
+                filter.paymentStatus = data.paymentStatus
+            }
+            if (data.orderStatus) {
+                filter.orderStatus = data.orderStatus
+            }
+            if (data.paymentMethod) {
+                filter.paymentMethod = data.paymentMethod
+            }
+
+            const [orderData, totalDocuments] = await Promise.all([
+                OrderModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+                OrderModel.countDocuments(filter)
+            ])
+            const totalPages = Math.ceil(totalDocuments / limit)
+
+            return {
+                metadata: {
+                    totalResults: totalDocuments,
+                    totalPages: totalPages,
+                    currentPage: page,
+                    limit: limit,
+                    hasNextPage: page < totalPages,
+                    hasPrevPage: page > 1
                 },
-            });
+                data: orderData
+            }
         }
 
-        const totalAmount =
-            subTotal + shippingCharge + taxAmount - discountAmount;
-
-        // STEP 2: CREATE ORDER (PENDING PAYMENT)
-        const order = await OrderModel.create({
-            customerId: userId,
-            orderNumber: crypto.randomUUID(),
-
-            shippingAddress,
-            couponCode,
-
-            items: validatedItems,
-
-            subTotal,
-            totalAmount,
-            shippingCharge,
-            taxAmount,
-            discountAmount,
-
-            paymentMethod,
-
-            orderStatus: "PENDING",
-            paymentStatus: "PENDING",
-        });
-
-        // STEP 3: CREATE VENDOR ORDER ITEMS (IMPORTANT)
-        for (const vendorId in vendorMap) {
-
-            const products = vendorMap[vendorId];
-
-            const totalPrice = products.reduce(
-                (sum, p) => sum + p.total,
-                0
-            );
-
-            await OrderItemModel.create({
-                orderId: order._id,
-                vendorId,
-                products,
-                totalPrice,
-                orderItemsStatus: "PENDING",
-            });
+    /// pending unpade order get 
+    async unpaidOrderGet(userId) {
+            /// get unpade order
+            const order = await OrderModel.find({
+                customerId: userId,
+                paymentStatus: paymentStatus.UNPAID,
+                paymentMethod: paymentMethod.ONLINE,
+                orderStatus: orderStatus.PENDING
+            }).sort({ createAt: -1 }).lean()
+            return order;
         }
 
-        return order;
-
-    } catch (error) {
-        throw error;
-    }
-}
-
-    //
-    // CUSTOMER ORDER HISTORY
-    //
-    async customerOrderHistory(userId) {
-        return OrderModel.find({ customerId: userId })
-            .populate("items.productId")
-            .sort({ createdAt: -1 });
-    }
-
-    //
-    // CUSTOMER ORDER DETAIL-SINGLE ORDER
-    //
+    /// customer order detail
     async orderDetail(userId, orderId) {
-        const order = await OrderModel.findOne({
-            _id: orderId,
-            customerId: userId,
-        });
 
-        if (!order) throw new NotFoundError("Order not found");
-        const orderItems = await OrderItemModel.find({ orderId });
-        return { order, orderItems };
-    }
+            //// get order.
+            const [order, orderItems] = await Promise.all([
+                OrderModel.findOne({ _id: orderId, customerId: userId }).populate("paymentId").lean(),
+                OrderItemsModel.find({
+                    orderId
+                }).populate("vendorId", "userName")
+                    .populate({
+                        path: "products.productId",
+                        select: "productName slug images"
+                    }).lean()
+            ]);
 
-    //
-    // CUSTOMER CANCEL ORDER (CLEANED)
-    //
-    async orderCancel(userId, orderId) {
-        const order = await OrderModel.findOne({
-            _id: orderId,
-            customerId: userId,
-        });
+            if (!order) {
+                throw new NotFoundError("Order not found.");
+            }
 
-        if (!order) throw new NotFoundError("Order not found");
-        if (!["PENDING", "PROCESSING"].includes(order.orderStatus)) {
-            throw new BadRequestError(
-                `Order cannot be cancelled when status is ${order.orderStatus}`
-            );
+            return {
+                order,
+                orderItems
+            };
         }
 
-        order.orderStatus = "CANCELLED";
-        order.cancelledAt = new Date();
-        await order.save();
+    //// order cancels
+    async orderCancel(userId, orderId) {
+            const session = await mongoose.startSession();
 
-        await OrderItemModel.updateMany(
-            { orderId },
-            { orderItemsStatus: "CANCELLED", cancelledAt: new Date() }
-        );
-        return order;
-    }
+            try {
+                session.startTransaction();
+                const userOrder = await OrderModel.findOneAndUpdate(
+                    { _id: orderId, customerId: userId, orderStatus: orderStatus.PENDING },
+                    {
+                        $set: {
+                            orderStatus: orderStatus.CANCELLED
+                        }
+                    },
+                    {
+                        returnDocument: "after",
+                        session
+                    }
+                );
 
-    //
-    // VENDOR GET ORDERS
-    //
-    async getAllOrderByVendorId(vendorId) {
-        return OrderItemModel.find({ vendorId })
-            .populate("orderId")
-            .sort({ createdAt: -1 });
-    }
 
-    //
-    // VENDOR UPDATE ORDER ITEM STATUS
-    //
-    async updateOrderItemStatus(vendorId, orderItemId, status) {
-        const orderItem = await OrderItemModel.findOne({
-            _id: orderItemId,
-            vendorId,
-        });
+                if (!userOrder) {
+                    throw new BadRequestError("Order cannot be cancelled anymore");
+                }
 
-        if (!orderItem) throw new NotFoundError("Order item not found");
-        orderItem.orderItemsStatus = status;
+                // restore stock
+                await restoreProductStock(userOrder.items);
 
-        if (status === "DELIVERED") orderItem.deliveredAt = new Date();
-        if (status === "OUT_FOR_DELIVERY") orderItem.shippedAt = new Date();
-        await orderItem.save();
-        return orderItem;
-    }
+                // update vendor orders
+                await OrderItemsModel.updateMany(
+                    { orderId: userOrder._id },
+                    { $set: { orderItemsStatus: orderStatus.CANCELLED } },
+                    { session }
+                );
 
-    //
-    // ADMIN GET ALL ORDERS
-    //
-    async getAllOrder() {
-        return OrderModel.find({}).sort({ createdAt: -1 });
-    }
+                await session.commitTransaction();
+                session.endSession();
 
-    //
-    // ADMIN GET ORDERS BY STATUS
-    //
-    async getOrdersByStatus(status) {
-        return OrderModel.find({ orderStatus: status }).sort({ createdAt: -1 });
-    }
+                return { message: "Order canceled successfully." };
 
-    //
-    // ADMIN GET ORDER BY ID
-    //
+            } catch (error) {
+                await session.abortTransaction();
+                session.endSession();
+                throw error
+            }
+        }
+
+    //// get vendor all order 
+    async getAllOrderByVendorId(vendorId, queryData) {
+
+            const page = parseInt(queryData.page, 10) || 1
+            const limit = parseInt(queryData.limit, 10) || 10
+            const skip = (page - 1) * limit
+
+            const filter = { vendorId };
+
+            /// apply filter, paginated, get order with filter.
+            if (queryData.paymentStatus) {
+                filter.paymentStatus = queryData.paymentStatus
+            }
+            if (queryData.orderItemsStatus) {
+                filter.orderItemsStatus = queryData.orderItemsStatus
+            }
+
+            const [orderData, totalDocuments] = await Promise.all([
+                OrderItemsModel.find(filter).sort({ createAt: -1 }).skip(skip).limit(limit)
+                    .populate("orderId", "orderNumber").lean(),
+                OrderItemsModel.countDocuments(filter)
+            ])
+            const totalPages = Math.ceil(totalDocuments / limit)
+
+            return {
+                metadata: {
+                    totalResults: totalDocuments,
+                    totalPages: totalPages,
+                    currentPage: page,
+                    limit: limit,
+                    hasNextPage: page < totalPages,
+                    hasPrevPage: page > 1
+                },
+                data: orderData
+            }
+
+        }
+
+    //// admin get spacefic order by id
     async getOrderById(orderId) {
-        const order = await OrderModel.findById(orderId);
-        if (!order) throw new NotFoundError("Order not found");
 
-        const orderItems = await OrderItemModel.find({ orderId });
-        return { order, orderItems };
+            const order = await OrderModel.findById(orderId)
+                .populate("customerId", "userName email mobile")
+                .populate("paymentId");
+
+            if (!order) {
+                throw new NotFoundError("Order not found.");
+            }
+
+            const orderItems = await OrderItemsModel.find({
+                orderId: order._id
+            })
+                .populate("vendorId", "userName email")
+                .populate({
+                    path: "products.productId",
+                    select: "productName slug images"
+                });
+
+            return {
+                order,
+                orderItems
+            };
     }
 
-    //
-    // ADMIN UPDATE ORDER STATUS
-    //
-    async adminUpdateOrderStatus(orderId, orderStatus) {
-        const order = await OrderModel.findById(orderId);
-        if (!order) throw new NotFoundError("Order not found");
-
-        order.orderStatus = orderStatus;
-
-        if (orderStatus === "DELIVERED") order.deliveredAt = new Date();
-        if (orderStatus === "CONFIRMED") order.confirmedAt = new Date();
-        await order.save();
-        return order;
-    }
+    
 }
 
-export default new orderServices();
+
+export default new OrderServices();

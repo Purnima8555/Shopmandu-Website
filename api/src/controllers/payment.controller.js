@@ -1,120 +1,113 @@
-import StripeGateway from "../utils/StripePayment.js";
-import PaymentService from "../services/payment.service.js";
-import OrderModel from "../models/order.model.js";
 
-/**
- * CREATE STRIPE SESSION
- */
-export const createStripeSession = async (req, res) => {
-  try {
-    const { orderId } = req.body;
+import paymentService from "../services/payment.service.js"
+import { getWishlist } from "./wishlist.controller.js"
 
-    if (!orderId) {
-      return res.status(400).json({
-        success: false,
-        message: "orderId is required",
-      });
+
+
+const payOrder = async (req, res, next) => {
+
+    try {
+
+        const userId = req.user._id
+        const { orderId, gateway } = req.body
+
+        const paymentOrder = await paymentService.orderPay(userId, orderId, gateway);
+        res.status(200).json({
+            paymentOrder
+        })
+    } catch (error) {
+        next(error)
     }
 
-    const order = await OrderModel.findById(orderId).populate({
-      path: "items.productId",
-      select: "name image images",
-    });
+}
 
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found",
-      });
+
+const paymentCheckOut = async (req, res, next)=>{
+    try {
+        const { pidx, transaction_id, tidx, txnId, amount, total_amount, mobile, status, purchase_order_id, purchase_order_name } = req.query
+        // console.log({ pidx, transaction_id, tidx, txnId, amount, total_amount, mobile, status, purchase_order_id, purchase_order_name })
+        const verifyPayment = await paymentService.verifyOrderPayment(pidx, transaction_id, total_amount, purchase_order_id)
+        res.status(200).json({ verifyPayment })
+    } catch (error) {
+        next(error)
     }
+}
 
-    const payload = {
-      amount: order.totalAmount * 100, // Stripe expects cents/paisa
-      purchase_order_name: `Order ${order.orderNumber}`,
-      purchase_order_id: String(order._id),
-      customer_info: {
-        email: req.user.email,
-      },
 
-      items: order.items.map((item) => {
-        const productDetails = item.productId || {};
+// STRIPE PAYMENT CHECKOUT (VERIFY)
+const verifyStripeCheckout = async (req, res, next) => {
+    try {
+        const { sessionId } = req.query;
 
-        return {
-          productId: productDetails._id || item.productId,
-          name: productDetails.name || item.name || "Unknown Product",
-          price: item.price,
-          quantity: item.quantity,
-          image:
-            productDetails.image ||
-            (Array.isArray(productDetails.images)
-              ? productDetails.images[0]
-              : "") ||
-            "",
-        };
-      }),
-    };
+        const verifyPayment = await paymentService.verifyStripePayment(sessionId);
 
-    const session = await StripeGateway.createCheckoutSession(payload);
+        res.status(200).json({
+            success: true,
+            verifyPayment
+        });
 
-    // create payment record (PENDING)
-    await PaymentService.createStripePaymentRecord(order, session.sessionId);
-
-    return res.status(200).json({
-      success: true,
-      message: "Stripe session created successfully",
-      url: session.url,
-      sessionId: session.sessionId,
-    });
-  } catch (error) {
-    console.log("Stripe create session error:", error.message);
-
-    return res.status(500).json({
-      success: false,
-      message: "Stripe checkout session creation failed",
-      error: error.message,
-    });
-  }
+    } catch (error) {
+        next(error);
+    }
 };
 
-/**
- * VERIFY STRIPE PAYMENT
- * (called from frontend success page)
- */
-export const verifyStripePayment = async (req, res) => {
-  try {
-    const { sessionId } = req.query;
 
-    if (!sessionId) {
-      return res.status(400).json({
-        success: false,
-        message: "sessionId is required",
-      });
+/// get my payment history
+
+const getMyPaymentHistory= async (req, res, next)=>{
+
+    try {
+        
+        const userId = req.user._id;
+        const data = req.query;
+
+        const payments = await paymentService.paymentHistory(userId, data)
+
+        res.status(200).json({
+            success: true,
+            payments
+
+        })
+
+    } catch (error) {
+        next(error)
+    }
+}
+
+/// get payment by id
+
+const getPaymentById = async (req, res, next) =>{
+    try {
+
+      const payment = await paymentService.paymentById(req.user._id, req.params.id)
+        res.status(200).json({
+            success: true,
+            payment
+        })
+        
+    } catch (error) {
+        next(error)
+    }
+}
+
+/// get payment for admin
+const getAllPayments = async (req, res, next) => { 
+    
+    try {
+        
+        const payments = await paymentService.getPayments(req.query);
+
+        res.status(200).json({
+            success: true,
+            payments
+        })
+
+
+    } catch (error) {
+        next(error)
     }
 
-    // check Stripe session
-    const result = await StripeGateway.verifyStripePayment(sessionId);
+}
 
-    if (!result.success) {
-      return res.status(400).json(result);
-    }
 
-    // update DB payment + order
-    const updated = await PaymentService.markPaymentSuccess({
-      id: sessionId,
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: "Payment verified successfully",
-      data: updated,
-    });
-  } catch (error) {
-    console.log("Stripe verify error:", error.message);
-
-    return res.status(500).json({
-      success: false,
-      message: "Payment verification failed",
-      error: error.message,
-    });
-  }
-};
+export { payOrder, paymentCheckOut, verifyStripeCheckout, getMyPaymentHistory, getPaymentById, getAllPayments }

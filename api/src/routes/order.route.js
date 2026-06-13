@@ -1,27 +1,23 @@
-import { Router } from "express";
-import auth from "../middleware/auth.middleware.js";
+
+
+import {Router} from "express"
+import auth from "../middleware/auth.middleware.js"
 import roleBasedAuth from "../middleware/roleBase.middleware.js";
 import Roles from "../constants/userRoles.js";
-
-import { placeNewOrder, customerOrderHistory, orderDetail, orderCancel, getAllOrderByVendorId, updateOrderItemStatus,
-    getAllOrder, getOrdersByStatus, getOrderById, adminUpdateOrderStatus } from "../controllers/order.controller.js";
+import {orderPlace,cancelOrder, getOrderHistory, adminGetOrderById} from "../controllers/order.controller.js";
+import schemaValidator from "../middleware/schemaValidator.middleware.js";
+import createOrderSchema from "../libs/schema/order.schema.js";
 
 const router = Router();
 
-// CUSTOMER ROUTES
-router.post("/orders", auth,roleBasedAuth(Roles.USER_ROLE) ,placeNewOrder);
-router.get("/orders", auth, roleBasedAuth(Roles.USER_ROLE), customerOrderHistory);
-router.get("/orders/:orderId", auth, roleBasedAuth(Roles.USER_ROLE), orderDetail);
-router.patch("/orders/:orderId/cancel", auth, roleBasedAuth(Roles.USER_ROLE),orderCancel);
 
-// VENDOR ROUTES
-router.get("/vendor/orders", auth, roleBasedAuth(Roles.VENDOR_ROLE), getAllOrderByVendorId);
-router.patch("/vendor/orders/items/:orderItemId/status", auth, roleBasedAuth(Roles.VENDOR_ROLE), updateOrderItemStatus);
+router.post("/place", auth, roleBasedAuth(Roles.USER_ROLE), schemaValidator(createOrderSchema), orderPlace)
 
-// ADMIN ROUTES
-router.get("/admin/orders", auth, roleBasedAuth(Roles.ADMIN_ROLE), getAllOrder);
-router.get("/admin/orders/status", auth, roleBasedAuth(Roles.ADMIN_ROLE), getOrdersByStatus);
-router.get("/admin/orders/:orderId", auth, roleBasedAuth(Roles.ADMIN_ROLE), getOrderById);
-router.patch("/admin/orders/:orderId/status", auth, roleBasedAuth(Roles.ADMIN_ROLE), adminUpdateOrderStatus);
+router.patch("/:orderId/cancel", auth, roleBasedAuth(Roles.USER_ROLE), cancelOrder)
+
+router.get("/history", auth, roleBasedAuth(Roles.USER_ROLE), getOrderHistory);
+
+router.get("/admin/:id", auth, roleBasedAuth(Roles.ADMIN_ROLE), adminGetOrderById)
+
 
 export default router;

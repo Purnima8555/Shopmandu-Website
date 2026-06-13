@@ -7,8 +7,11 @@ import schemaValidator from "../middleware/schemaValidator.middleware.js";
 import { loginSchema, registerSchema } from "../libs/schema/auth.schema.js";
 import { upload } from "../middleware/multer.middleware.js";
 import resetPasswordSchema from "../libs/schema/resetPassword.schema.js";
+import readLimiting from "../middleware/rateLimiting.middleware.js";
 
 const router= Router()
+
+router.use(readLimiting)
 
 router.post("/register", upload.single("avatar"), schemaValidator(registerSchema), authController.register);
 
