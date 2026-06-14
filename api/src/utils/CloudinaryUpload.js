@@ -73,6 +73,7 @@ class CloudinaryFileUpload {
                 allowed_formats: ['mp4', 'webm'],
                 resource_type: "video",
                 type: type,
+                timeout: 60000*2 // 2 minute safeguard
             },
                 /// callback
                 (error, data) => {

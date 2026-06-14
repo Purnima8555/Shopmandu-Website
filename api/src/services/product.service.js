@@ -15,6 +15,7 @@ class ProductService {
 
         /// get vendor shop
         const vendorShop = await ShopModel.findOne({ user_id: vendorId });
+
         if (!vendorShop) {
             throw new NotFoundError("Shop not found, please create shop first.");
         }
@@ -83,17 +84,51 @@ class ProductService {
         return await ProductModel.create(productPayload);
     }
 
+    // For All Products
+    async getAllProducts(query) {
+        const sort = query.sort ? JSON.parse(query.sort) : {};
+        /*limit  15 and offset  0 is default case  */
+        const limit = query.limit ?? 15;
+        const offset = query.offset ?? 0;
+        const filters = {};
+
+        /* for destructuring */
+        const { category, min, max, brands, createdBy, name } = query;
+
+
+        if (category) filters.category = category;
+        if (brands) filters.brand = { $in: brands.split(",") };
+
+        //  $regex matches and $options : "i" case insansative 
+        if (name) filters.name = { $regex: name, $options: "i" };
+
+        if (min) filters.price = { $gte: min };
+        // spread operator for min price or max price 
+        if (max) filters.price = { ...filters.price, $lte: max };
+
+        // if (createdBy) filters.createdBy = createdBy;
+
+        const products = await ProductModel.find(filters).sort(sort).limit(limit).skip(offset);
+        if (!products) {
+            throw new NotFoundError("There is no products");
+        }
+        return products;
+    }
+
     //// vendor can get their products
     async getMyProducts(vendorId) {
         const products = await ProductModel.find({
             vendorId: vendorId
         });
-
+        if (!products) {
+            throw new NotFoundError("Product not found");
+        }
         return products;
     }
 
     /// get my product by id 
     async getMyProductById(vendorId, productId) {
+        /* filtering */
         const product = await ProductModel.findOne({ _id: productId, vendorId: vendorId });
         if (!product) {
             throw new NotFoundError("Product not found");
@@ -125,7 +160,11 @@ class ProductService {
 
     // get product by shop id
     async getProductByShop(shopId) {
+
         const products = await ProductModel.find({ shopId }, { vendorId: 0 }).sort({ createdAt: -1 }).lean();
+        if (!products) {
+            throw new NotFoundError("Shop Product not found");
+        }
         return products;
     }
 
@@ -148,9 +187,10 @@ class ProductService {
 
 
     /// update product information
-    async updateProductInfo(vendorId, productId, updateData) {
+    /* async updateProductInfo(vendorId, productId, updateData) {
 
         const product = await this.getMyProductById(vendorId, productId);
+        
 
         //// prevent invalid combination
         if (updateData.discountPrice !== undefined && updateData.discountPercent !== undefined) {
@@ -188,6 +228,58 @@ class ProductService {
             }
         }
 
+        if (updateData.discountPrice || updateData.discountPercent) {
+            product.salePrice = parseFloat((price - product.discountPrice).toFixed(2));
+        }
+
+        await product.save();
+
+        return product;
+    } */
+
+
+
+    async updateProductInfo(vendorId, productId, updateData) {
+
+        //Fetch the product profile
+        const product = await this.getMyProductById(vendorId, productId);
+
+        // Prevent invalid combinations
+        if (updateData.discountPrice !== undefined && updateData.discountPercent !== undefined) {
+            throw new BadRequestError("You cannot provide both discountPrice and discountPercent simultaneously.");
+        }
+
+        //Apply base updates first to incorporate incoming changes
+        Object.assign(product, updateData);
+
+
+        const price = parseFloat(product.price) || 0;
+
+        //Percent updated -> compute absolute discount amount
+        if (updateData.discountPercent !== undefined) {
+            const percent = parseFloat(product.discountPercent) || 0;
+            product.discountPrice = percent <= 0 ? 0 : parseFloat(((price * percent) / 100).toFixed(2));
+        }
+
+        //Absolute cash discount amount updated -> compute tracking percent
+        else if (updateData.discountPrice !== undefined) {
+            const dPrice = parseFloat(product.discountPrice) || 0;
+            if (dPrice > price) {
+                throw new BadRequestError("Discount price cannot exceed the original base price.");
+            }
+            product.discountPercent = price > 0 ? parseFloat(((dPrice / price) * 100).toFixed(2)) : 0;
+        }
+
+        // Base price changed -> recompute relative metrics
+        else if (updateData.price !== undefined) {
+            const percent = parseFloat(product.discountPercent) || 0;
+            product.discountPrice = percent > 0 ? parseFloat(((price * percent) / 100).toFixed(2)) : 0;
+        }
+
+        // re-calculate final salePrice
+        product.salePrice = parseFloat((price - product.discountPrice).toFixed(2));
+
+        //Commit modifications back into the database
         await product.save();
 
         return product;
@@ -198,7 +290,6 @@ class ProductService {
 
         /// find product
         const product = await this.getMyProductById(vendorId, productId);
-
 
         /// validate index
         if (imageIndex === undefined || imageIndex < 0 || imageIndex >= product.images.length) {
@@ -265,6 +356,23 @@ class ProductService {
 
     }
 
+    async updateProductVideo(vendorId, productId, video, videoIndex) {
+        /// find product
+        const product = await this.getMyProductById(vendorId, productId);
+
+        /// validate index
+        if (videoIndex === undefined || videoIndex < 0 || videoIndex >= product.videos.length) {
+            throw new NotFoundError("Invalid video index");
+        }
+        /// upload new image
+        const uploadedVideo = await CloudinaryUpload.videoUpload(video, "upload");
+
+        /// replace image
+        product.videos[videoIndex] = uploadedVideo.secure_url;
+        await product.save();
+        return product;
+    }
+
     /// delete product image 
 
     async deleteProductImage(vendorId, productId, imageIndex) {
@@ -279,6 +387,26 @@ class ProductService {
         product.images.splice(imageIndex, 1)
         await product.save();
         return { message: "Image remove succesfull!" };
+    }
+
+    async deleteProductVideo(vendorId, productId, videoIndex) {
+
+        const product = await this.getMyProductById(vendorId, productId);
+        if (
+            videoIndex === undefined || videoIndex === null || videoIndex < 0 ||
+            videoIndex >= product.videos.length
+        ) {
+            throw new BadRequestError("Invalid video Index.");
+        }
+
+        const targetVideoUrl = product.videos[videoIndex];
+        product.videos.splice(videoIndex, 1);
+        await product.save();
+
+        return {
+            message: "Video removed successfully from project registration layout.",
+            removedVideo: targetVideoUrl
+        };
     }
 
 

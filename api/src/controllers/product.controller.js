@@ -9,8 +9,6 @@ const createProduct = async (req, res, next) => {
         const productData = req.body;
         const images = req.files["images"];
         const videos = req.files["videos"];
-        // console.log(images);
-        // console.log(videos);
 
         /// validate images
         if (!images || images.length === 0) {
@@ -29,6 +27,23 @@ const createProduct = async (req, res, next) => {
     }
 };
 
+///All products
+const getAllProducts = async (req, res, next) => {
+    try {
+        const products = await productService.getAllProducts(req.query);
+        // products validation
+        if (!products || products.length == 0) {
+            res.status(404).json({ message: "No Products Available." })
+        }
+        res.status(200).json({
+            success: true,
+            data: products
+        });
+
+    } catch (error) {
+        next(error)
+    }
+}
 
 /// vendor get there own products
 const getMyProducts = async (req, res, next) => {
@@ -36,6 +51,7 @@ const getMyProducts = async (req, res, next) => {
     try {
         const vendorId = req.user._id;
         const products = await productService.getMyProducts(vendorId);
+        
         res.status(200).json({
             success: true,
             data: products
@@ -88,7 +104,6 @@ const getProductsById = async (req, res, next) => {
 const getProductBySlug = async (req, res, next) => {
     try {
         const slug = req.params.slug
-        // console.log(slug)
         const product = await productService.getProductBySlug(slug);
         res.status(200).json({
             success: true,
@@ -157,12 +172,12 @@ const updateProductInfo = async (req, res, next) => {
 const updateProductImage = async (req, res, next) => {
 
     try {
-
         const vendorId = req.user._id;
         const productId = req.params.id;
         const file = req.file;
-        const { imageIndex } = req.body
-        const updatedProduct = await productService.updateProductImage(vendorId, productId, file, imageIndex)
+        const { imageIndex } = req.body;
+
+        const updatedProduct = await productService.updateProductImage(vendorId, productId, file, imageIndex);
 
         res.status(200).json({
             success: true,
@@ -212,26 +227,50 @@ const productVideoUpload = async (req, res, next) => {
             data: product
         });
 
-
-
     } catch (error) {
         next(error)
     }
 
 }
 
+const updateProductVideo = async (req, res, next) => {
+    try {
+        const vendorId = req.user._id;
+        const productId = req.params.id;
+        const file = req.file; // Captured by upload.single("video")
+        const { videoIndex } = req.body;
+
+
+        // Execute service invocation matching parameter signatures exactly
+        const updatedProduct = await productService.updateProductVideo(
+            vendorId,
+            productId,
+            file,
+            videoIndex
+        );
+
+        return res.status(200).json({
+            success: true,
+            data: updatedProduct
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+
 const deleteProductImage = async (req, res, next) => {
 
     try {
-
         const vendorId = req.user._id;
         const productId = req.params.id;
-        const { imageIndex } = req.body
-        const updatedProduct = await productService.updateProductImage(vendorId, productId, imageIndex)
+        const { imageIndex } = req.body;
 
+        const deleteImage = await productService.deleteProductImage(vendorId, productId, imageIndex);
         res.status(200).json({
             success: true,
-            data: updatedProduct
+            data: deleteImage,
         });
 
     } catch (error) {
@@ -239,6 +278,30 @@ const deleteProductImage = async (req, res, next) => {
     }
 
 }
+
+
+const deleteProductVideo = async (req, res, next) => {
+    try {
+        const vendorId = req.user._id;
+        const productId = req.params.id;
+        const { videoIndex } = req.body;
+
+        // Guard clause prevents the "undefined" crash
+        if (videoIndex === undefined || videoIndex === null) {
+            throw new BadRequestError("Missing required parameter: videoIndex");
+        }
+
+        const result = await productService.deleteProductVideo(
+            vendorId,
+            productId,
+            videoIndex // Force cast to a clean Number index safely
+        );
+
+        return res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+};
 
 
 const deleteProduct = async (req, res, next) => {
@@ -263,6 +326,7 @@ const deleteProduct = async (req, res, next) => {
 
 export {
     createProduct,
+    getAllProducts,
     getMyProducts,
     getMyProductsById,
     getProductByShop,
@@ -275,4 +339,6 @@ export {
     addProductImage,
     updateProductInfo,
     productVideoUpload,
+    updateProductVideo,
+    deleteProductVideo,
 }
