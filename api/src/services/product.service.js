@@ -6,6 +6,7 @@ import ShopModel from "../models/Shop.model.js";
 import { BadRequestError, NotFoundError } from "../utils/AppError.js";
 import CloudinaryUpload from "../utils/CloudinaryUpload.js";
 import { generateUniqueProductSlug } from "../utils/slug.utils.js"
+import categoryService from "./category.service.js";
 
 
 
@@ -26,6 +27,14 @@ class ProductService {
             throw new BadRequestError(`Your shop status is ${vendorShop.ShopStatus}. Only active shops can create products.`);
         }
 
+        let category
+        /// category used.
+        if(productData?.categoryId){
+           await categoryService.useCategory(productData?.categoryId);
+           category = productData?.categoryId
+           
+        }     
+
         /// generate slug
         const slug = await generateUniqueProductSlug(productData.slug || productData.name);
 
@@ -41,6 +50,7 @@ class ProductService {
             images: productImages,
             ...productData,
             slug,
+            categoryId: category,
             discountPrice:
                 productData.discountPercent > 0
                     ? productData.price -

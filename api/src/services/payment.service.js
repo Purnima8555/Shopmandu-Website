@@ -9,7 +9,7 @@ import OrderItemsModel from "../models/OrderItem.model.js";
 import PaymentModel from "../models/Payment.model.js";
 import { BadRequestError, NotFoundError } from "../utils/AppError.js";
 import { orderConfermationNotifaction, orderNotification, removeOrderCancellationJob } from "../utils/EmailQueue.js";
-import payment from "../utils/PaymentIntegration.js";
+import { getGateway, paymentVerificationHelper } from "../utils/PaymentIntegration.js";
 import { notifyVendor } from "../utils/Order.utils.js";
 
 
@@ -21,7 +21,7 @@ class PaymentService {
 
         /// get that order payment record.
 
-        const orderPayment = await PaymentModel.findOne({ customerId: userId, orderId: orderid, paymentMethod: paymentMethod.ONLINE }).populate("customerId", 'userName email mobile').populate("orderId", "orderNumber items")
+        const orderPayment = await PaymentModel.findOne({ customerId: userId, orderId: orderid, paymentMethod: paymentMethod.ONLINE }).populate("customerId", 'userName email mobile').populate("orderId", "orderNumber items shippingCharge taxAmount")
 
         if (!orderPayment) {
             throw new NotFoundError("Order Payment Status Not Found.");
@@ -41,6 +41,9 @@ class PaymentService {
             amount,
             purchase_order_id: orderNumber,
             purchase_order_name: `Order with ${orderPayment.orderId.items.length} items`,  /// i dont know what value i am add  here.
+            items: orderPayment.orderId.items,
+            shippingAmount: orderPayment.orderId.shippingCharge,
+            taxAmount: orderPayment.orderId.taxAmount,
             customer_info: {
                 name: orderPayment.customerId.userName,
                 email: orderPayment.customerId.email,
@@ -50,25 +53,9 @@ class PaymentService {
 
         // console.log(paymentPayload)
 
-        /// pay vieaw KHALTI
-        if (gateway === paymentGateway.KHALTI) {
-            /// generate payment url for khalti gateway
-            const khaltiUrl = await payment.payWithKhalti(paymentPayload)
-
-            return {
-                success: true,
-                message: "Khalti pay url generate succesfull",
-                data: khaltiUrl
-            }
-        }
-
-        if (gateway === paymentGateway.STRIPE) {
-
-        }
-
-        if (gateway === paymentGateway.CASH_ON_DELIVERY) {
-
-        }
+        const gatewayInstance = getGateway(gateway)
+        const payment = await gatewayInstance.createPayment(paymentPayload)
+        return payment
     }
 
     //// verify order payment for Khalti
@@ -78,12 +65,18 @@ class PaymentService {
         try {
             session.startTransaction();
 
-            //// verify with Khalti 
-            const isVerify = await payment.verifyKhaltiPayment({
+            const khalti = getGateway(paymentGateway.KHALTI)
+            const isVerify = await khalti.verifyPayment({
                 pidx,
                 transaction_id,
                 total_amount
             });
+            //// verify with Khalti 
+            // const isVerify = await payment.verifyKhaltiPayment({
+            //     pidx,
+            //     transaction_id,
+            //     total_amount
+            // });
 
             if (!isVerify.success) {
                 throw new BadRequestError("Payment verification failed.");
@@ -92,55 +85,19 @@ class PaymentService {
             //// Get payment + related order in ONE query 
             const paymentRecord = await PaymentModel.findOne({
                 orderNumber: purchase_order_id
-            })
+            }).session(session)
 
             if (!paymentRecord) {
                 throw new NotFoundError("Payment record not found.");
             }
-
-            // Idempotency check
-            if (paymentRecord.status === paymentStatus.PAID) {
+            const order = await paymentVerificationHelper(session, paymentRecord, transaction_id, paymentGateway.KHALTI)
+            if (order.alreadyPaid) {
                 await session.commitTransaction();
                 return {
                     success: true,
                     message: "Payment already verified."
                 };
             }
-
-
-            ///  Update payment
-            paymentRecord.status = paymentStatus.PAID;
-            paymentRecord.gatewayTransactionId = transaction_id;
-            paymentRecord.gateway = paymentGateway.KHALTI;
-            paymentRecord.paidAt = new Date();
-
-            await paymentRecord.save({ session });
-
-            /// Update order
-            const order = await OrderModel.findByIdAndUpdate(
-                paymentRecord.orderId,
-                {
-                    paymentStatus: paymentStatus.PAID,
-                    orderStatus: orderStatus.CONFIRMED
-                },
-                {
-                    // new: true,
-                    returnDocument: "after",
-                    session
-                }
-            ).populate("customerId", "userName email");
-
-            ////  Update vendor orders
-            await OrderItemsModel.updateMany(
-                { orderId: order._id },
-                {
-                    $set: {
-                        paymentStatus: paymentStatus.PAID,
-                        orderItemsStatus: orderStatus.CONFIRMED
-                    }
-                },
-                { session }
-            );
 
             await session.commitTransaction();
 
@@ -170,6 +127,64 @@ class PaymentService {
             await session.endSession();
         }
     }
+
+    async verifyStripePayment(sessionId) {
+        const session = await mongoose.startSession();
+
+        try {
+            session.startTransaction();
+
+            const stripe = getGateway(paymentGateway.STRIPE)
+            const isVerify = await stripe.verifyPayment(sessionId);
+
+            if (!isVerify.success) {
+                throw new BadRequestError("Stripe payment verification failed.");
+            }
+
+            const paymentRecord = await PaymentModel.findOne({
+                orderNumber: isVerify.data.purchase_order_id
+            }).session(session);
+
+            if (!paymentRecord) {
+                throw new NotFoundError("Payment record not found.");
+            }
+
+            const order = await paymentVerificationHelper(session, paymentRecord, sessionId, paymentGateway.STRIPE)
+
+            if (order.alreadyPaid) {
+                await session.commitTransaction();
+                return {
+                    success: true,
+                    message: "Payment already verified."
+                };
+            }
+
+            await session.commitTransaction();
+
+            await removeOrderCancellationJob(order._id.toString());
+
+            const commonData = {
+                template: "New Order",
+                orderNumber: order.orderNumber,
+                shippingAddress: order.shippingAddress
+            };
+
+            await notifyVendor(order, commonData);
+            await orderConfermationNotifaction(order);
+
+            return {
+                success: true,
+                message: "Stripe payment verified successfully."
+            };
+
+        } catch (error) {
+            await session.abortTransaction();
+            throw error;
+        } finally {
+            await session.endSession();
+        }
+    }
+
 
     //// customer payment history
     async paymentHistory(userId, data) {
@@ -211,7 +226,7 @@ class PaymentService {
         }
     }
 
-    /// get poayment by Id
+    /// get payment by Id
     async paymentById(userId, paymentId) {
         const payment = await PaymentModel.findOne({
             _id: paymentId,
@@ -268,9 +283,8 @@ class PaymentService {
         };
     }
 
-
     /// request for refunt
-    
+
 }
 
 

@@ -5,11 +5,8 @@ import config from "./config/config.js";
 
 import authRouters from "./routes/auth.route.js";
 import vendorRouters from "./routes/vendor.routes.js"
-import { NotFoundError } from "./utils/AppError.js";
-import { upload } from "./middleware/multer.middleware.js";
 import cloudinaryConnect from "./config/cloudinary.config.js";
 import shopRouters from "./routes/shop.routes.js"
-import payment from "./utils/PaymentIntegration.js";
 
 import addressRouters from "./routes/address.route.js"
 import cartRouters from "./routes/cart.route.js"
@@ -19,65 +16,52 @@ import orderRoutes from "./routes/order.route.js"
 
 import { connectRedis } from "./config/redis.config.js"
 import client from "./config/redis.config.js"
-import sendEmail from "./messaging/email/email.service.js";
-import addEmailJob from "./utils/EmailQueue.js";
-import readLimiting from "./middleware/rateLimiting.middleware.js";
 import paymentRouters from "./routes/payment.route.js"
 
 import couponRouters from "./routes/coupon.route.js"
-// // import { success } from "zod";
-// import { is } from "zod/v4/locales";
+import categoryRoters from "./routes/category.route.js"
+import { errorMiddleware, RouteNotFoundMiddleware } from "./middleware/error.middleware.js";
+import helmet from "helmet"
+
 
 const app = express();
 const PORT = config.port;
 
+app.use(helmet())
 app.use(bodyParser.json());
 app.use(express.json());
 
 //// routes
 app.use("/api/auth", authRouters);
-
 /// vendor routes
 app.use("/api", vendorRouters)
-
 /// shop routers
 app.use("/api", shopRouters);
-
 /// address routers 
 app.use("/api/address", addressRouters)
 
 /// cart routers
-
 app.use("/api/cart", cartRouters)
 app.use("/api/wishlist", wishlistRouters)
 
 /// product routers
 app.use("/api", productRouters)
-
 // order routers
 app.use("/api/order", orderRoutes)
-
 /// payment routes
 app.use("/api", paymentRouters)
 /// coupon Routers
 app.use("/api/coupon", couponRouters)
 
-//// handle unknown routes (optional but recommended)
-app.use((req, res, next) => {
-  next(new NotFoundError(`Cannot ${req.method} ${req.originalUrl}`));
-});
+/// category Routers
+app.use("/api/category", categoryRoters)
 
-///  error handler
-app.use((err, req, res, next) => {
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message,
-    code: err.code || "INTERNAL_ERROR",
-    details: err.details || null,
-  });
-});
 
-app.listen(PORT, "0.0.0.0",async () => {
+/// error handel
+app.use(RouteNotFoundMiddleware);
+app.use(errorMiddleware);
+
+app.listen(PORT, "0.0.0.0", async () => {
   await connectRedis()
   await cloudinaryConnect()
   await connectDB();

@@ -22,7 +22,7 @@ const payOrder = async (req, res, next) => {
 }
 
 
-const paymentCheckOut = async (req, res, next)=>{
+const paymentCheckOut = async (req, res, next) => {
     try {
         const { pidx, transaction_id, tidx, txnId, amount, total_amount, mobile, status, purchase_order_id, purchase_order_name } = req.query
         // console.log({ pidx, transaction_id, tidx, txnId, amount, total_amount, mobile, status, purchase_order_id, purchase_order_name })
@@ -33,12 +33,30 @@ const paymentCheckOut = async (req, res, next)=>{
     }
 }
 
+// STRIPE PAYMENT CHECKOUT (VERIFY)
+const verifyStripeCheckout = async (req, res, next) => {
+    try {
+        const sessionId = req.query.session_id;
+        // console.log(sessionId)
+        const verifyPayment = await paymentService.verifyStripePayment(sessionId);
+
+        res.status(200).json({
+            success: true,
+            verifyPayment
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+
 /// get my payment history
 
-const getMyPaymentHistory= async (req, res, next)=>{
+const getMyPaymentHistory = async (req, res, next) => {
 
     try {
-        
+
         const userId = req.user._id;
         const data = req.query;
 
@@ -57,25 +75,25 @@ const getMyPaymentHistory= async (req, res, next)=>{
 
 /// get payment by id
 
-const getPaymentById = async (req, res, next) =>{
+const getPaymentById = async (req, res, next) => {
     try {
 
-       const payment = await paymentService.paymentById(req.user._id, req.params.id)
+        const payment = await paymentService.paymentById(req.user._id, req.params.id)
         res.status(200).json({
             success: true,
             payment
         })
-        
+
     } catch (error) {
         next(error)
     }
 }
 
 /// get payment for admin
-const getAllPayments = async (req, res, next) => { 
-    
+const getAllPayments = async (req, res, next) => {
+
     try {
-        
+
         const payments = await paymentService.getPayments(req.query);
 
         res.status(200).json({
@@ -88,7 +106,7 @@ const getAllPayments = async (req, res, next) => {
         next(error)
     }
 
- }
+}
 
 
-export { payOrder, paymentCheckOut, getMyPaymentHistory, getPaymentById, getAllPayments }
+export { payOrder, paymentCheckOut, getMyPaymentHistory, getPaymentById, getAllPayments, verifyStripeCheckout }

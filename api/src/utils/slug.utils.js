@@ -4,6 +4,7 @@ import slugify from "slugify"
 import ShopModel from "../models/Shop.model.js";
 import ProductModel from "../models/Product.model.js";
 import OrderModel from "../models/Order.model.js";
+import CategoryModel from "../models/Category.model.js";
 
 
 
@@ -67,13 +68,29 @@ const generateUniqueOrderNumber = async () => {
 }
 
 
+const generatedUniqueCategorySlug = async (string) => { 
+    
+    let categorySlug
+    let exists = true 
+    while(exists){
+        const slug = slugsRandomString(6);
+        categorySlug = `${string}-${slug}`;
+        exists = false;
+
+        exists = await CategoryModel.findOne({slug: categorySlug})
+    }
+    return categorySlug
+
+ }
+
+
 // new Promise((resolve, rejects)=>{
 //     resolve(generateUniqueProductSlug("ikea-markus-chair"))
 // }).then(data=> console.log(data))
 
 
 
-export {generateUniqueShopSlug, generateUniqueProductSlug, generateUniqueOrderNumber};
+export {generateUniqueShopSlug, generateUniqueProductSlug, generateUniqueOrderNumber, generatedUniqueCategorySlug};
 
 
 

@@ -4,9 +4,10 @@ import dotenv from "dotenv"
 dotenv.config()
 
 
-const config = {
+const config = Object.freeze({
     mongoDB_URL: process.env.MONGODB_URL || "",
     port: process.env.PORT || "3000",
+    node_env : process.env.NODE_ENV,
     jwtSecret: process.env.JWT_SECRET,
 
     // email pass
@@ -34,7 +35,11 @@ const config = {
     khalti_lookup_uri: process.env.KHALTI_PAYMENT_LOOKUP_URI,
 
     encrypt_Key: process.env.ENCRYPT_KEY,
-}
+
+    /// stripe credentials
+    stripe_secret_key: process.env.STRIPE_SECRET_KEY,
+    stripe_publishable_key: process.env.STRIPE_PUBLIC_KEY,
+})
 
 export default config
 

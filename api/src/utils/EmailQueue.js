@@ -2,7 +2,7 @@
 import { Queue } from "bullmq";
 import IORedis from "ioredis";
 import crypto from "crypto"
-import { encrypt } from "./encryptDecrypt.util.js";
+// import { encrypt } from "./encryptDecrypt.util.js";
 
 const connection = new IORedis({
   host: "127.0.0.1",
@@ -69,7 +69,7 @@ export async function scheduleCodOrderConfirmation(orderId) {
       orderId,
     },
     {
-      delay: 10000, // 30 minutes
+      delay: 10000, // 10 seconds
       attempts: 3,
       backoff: {
         type: "exponential",
@@ -87,7 +87,7 @@ export async function scheduleUnpaidOrderCancellation(orderId) {
       orderId,
     },
     {
-      delay: 1 * 60 * 1000,
+      delay: 10 * 60 * 1000,
       attempts: 3,
       backoff: {
         type: "exponential",
@@ -146,8 +146,6 @@ export async function removeOrderCancellationJob(orderId) {
 // const counts = await emailQueue.getJobCounts();
 // console.log(counts);
 
-// const job = await emailQueue.getJob(12);
-// console.log(job);
 
 
 export default addEmailJob;

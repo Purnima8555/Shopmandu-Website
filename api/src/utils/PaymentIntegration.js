@@ -1,62 +1,104 @@
 import axios from "axios"
 
 import config from "../config/config.js"
+import Stripe from "stripe"
+import { AppError, BadRequestError } from "./AppError.js"
+import paymentGatewayConfig from "../config/paymentGatewayConfig.js"
+import paymentStatus from "../constants/paymentStatus.js"
+import OrderModel from "../models/Order.model.js"
+import OrderItemsModel from "../models/OrderItem.model.js"
+import orderStatus from "../constants/orderStatus.js"
+import { paymentGateway } from "../constants/paymentMethod.js"
 
-//// payment integration.
 
-class PaymentGateway {
-    constructor() {
-        this.return_uri = config.khalti_redirect_uri
-        this.website_uri = config.web_uri
-        this.khalti_POST_uri = config.khalti_request_uri
-        this.khalti_secret_key = config.khalti_api,
-        this.khalti_payment_lookup_uri = config.khalti_lookup_uri
+/// blueprint (parent ) payment class.
+class PaymentGatewayNew {
+    constructor(config, method) {
+        this.config = config;
+        this.method = method;
     }
 
-    async payWithKhalti(payload) {
+    //// create payment session
+    async createPayment() {
+        throw new AppError("createPayment() must be implemented");
+    }
 
-        // console.log(this.return_uri, this.website_uri, this.khalti_POST_uri, this.khalti_secret_key)
-        const { amount, purchase_order_id, purchase_order_name, customer_info } = payload
+    /// verify payment session
+    async verifyPayment() {
+        throw new AppError("verifyPayment() must be implemented");
+    }
+
+    /// normalize return for all getways
+    normalize(response = {}) {
+        return {
+            success: response.success ?? true,
+            method: response.method ?? null,
+            transactionId: response.transactionId ?? null,
+            paymentUrl: response.paymentUrl ?? null,
+            message: response.message ?? null,
+            data: response.data ?? null
+        };
+    }
+}
+
+//// pay with khalti class
+class KhaltiGateway extends PaymentGatewayNew {
+
+    constructor(config) {
+        super(config, paymentGateway.KHALTI);
+    }
+
+    async createPayment(payload) {
+        const { amount, purchase_order_id, purchase_order_name, customer_info, taxAmount } = payload;
+
         try {
 
             const payRequest = await axios.post(
-                this.khalti_POST_uri,
+                this.config.khalti_POST_uri,
                 {
-                    return_url: this.return_uri,
-                    website_url: this.website_uri,
-                    amount,
+                    return_url: this.config.return_uri,
+                    website_url: this.config.website_uri,
+                    amount: amount + (taxAmount * 100),
                     purchase_order_id,
                     purchase_order_name,
                     customer_info
                 },
                 {
                     headers: {
-                        Authorization: `Key ${this.khalti_secret_key}`,
+                        Authorization: `Key ${this.config.khalti_secret_key}`,
                         "Content-Type": "application/json"
                     }
                 }
             )
 
             // console.log(payRequest.data)
-            return payRequest.data
+            return this.normalize({
+                success: true,
+                method: this.method,
+                transactionId: payRequest.data.pidx,
+                paymentUrl: payRequest.data.payment_url,
+                message: 'Payment URL generated successfully',
+                data: payRequest.data,
+            })
 
         } catch (error) {
             console.log(error.response?.data || error.message)
-            throw new Error("Khalti payment initialization failed.")
+            return {
+                success: false
+            }
         }
-
     }
 
-    async verifyKhaltiPayment(khaltiRedirectPayload) {
-        const { pidx, transaction_id, total_amount } = khaltiRedirectPayload
+    async verifyPayment(paymentPayload) {
+        const { pidx, transaction_id, total_amount } = paymentPayload
         // console.log(pidx, transaction_id)
         try {
             const verificationResponse = await axios.post(
-                this.khalti_payment_lookup_uri,
+                this.config.khalti_payment_lookup_uri,
                 { pidx },
                 {
                     headers: {
-                        Authorization: `Key ${this.khalti_secret_key}`,
+                        Authorization: `Key ${this.config.khalti_secret_key}`,
                         "Content-Type": "application/json"
                     }
                 }
@@ -82,27 +124,186 @@ class PaymentGateway {
 
         }
 
-    }
 
+    }
 }
 
+/// pay with stripe class
+class StripeGateway extends PaymentGatewayNew {
+    constructor(config) {
+        super(config, paymentGateway.STRIPE);
+        this.stripe = new Stripe(config.secret_key);
+    }
+    async createPayment(payload) {
 
-// console.log(config.khalti_redirect_uri, config)
+        const line_items = payload.items.map(item => {
+            return {
+                price_data: {
+                    currency: payload.currency || "npr",
+                    product_data: {
+                        name: item.productName || `Product ${item.productId}`,
+                        images: item.images,
+                    },
+                    unit_amount: item.price * 100,
+                },
+                quantity: item.quantity,
+            }
+        })
 
-const payment = new PaymentGateway()
-export default payment;
+        // Shipping
+        if (payload?.shippingAmount > 0) {
+            line_items.push({
+                price_data: {
+                    currency: payload.currency || "npr",
+                    product_data: {
+                        name: "Shipping",
+                    },
+                    unit_amount: payload.shippingAmount * 100,
+                },
+                quantity: 1,
+            });
+        }
+        if (payload?.taxAmount > 0) {
+            line_items.push({
+                price_data: {
+                    currency: payload.currency || "npr",
+                    product_data: {
+                        name: "Tax",
+                    },
+                    unit_amount: payload.taxAmount * 100,
+                },
+                quantity: 1,
+            });
+        }
 
-// const payload = {
-//     amount: 20 * 100,
-//     purchase_order_id: "my_order_1",
-//     purchase_order_name: "pay for test",
-//     customer_info: {
-//         name: "test user",
-//         email: "example@gmail.com",
-//         phone: "9800000003"
-//     }
+        const session = await this.stripe.checkout.sessions.create({
+            payment_method_types: ["card"],
+            mode: "payment",
+            line_items,
+            customer_email: payload.customer_info?.email,
+            success_url: this.config.success_url,
+            cancel_url: this.config.cancel_url,
 
-// }
+            metadata: {
+                purchase_order_id: String(payload.purchase_order_id),
+                shippingAmount: String(payload.shippingAmount || 0),
+                taxAmount: String(payload.taxAmount || 0),
+            },
 
-// payment.payWithKhalti(payload)
+        });
+
+        return this.normalize({
+            success: true,
+            method: this.method,
+            message: "Payment url generated successfully",
+            transactionId: session.id,
+            paymentUrl: session.url,
+            data: {
+                sessionId: session.id,
+                amount: session.amount_total,
+                currency: session.currency
+            }
+        });
+    }
+
+    async verifyPayment(sessionId) {
+        try {
+            const session = await this.stripe.checkout.sessions.retrieve(sessionId)
+
+            if (session.payment_status === "paid") {
+                return {
+                    success: true,
+                    message: "Payment verified successfully.",
+                    data: {
+                        sessionId: session.id,
+                        purchase_order_id: session.metadata.purchase_order_id,
+                        amount: session.amount_total,
+                        shippingAmount: session.metadata.shippingAmount,
+                        taxAmount: session.metadata.taxAmount,
+                        currency: session.currency,
+                        customer_email: session.customer_details.email
+                    }
+                }
+            }
+
+            return {
+                success: false,
+                message: "Payment not completed."
+            }
+
+        } catch (error) {
+            console.log(error.message)
+            return {
+                success: false,
+                message: "Unable to verify Stripe payment."
+            }
+        }
+    }
+}
+
+/// create instance of both gateways.
+export const gateways = Object.freeze({
+    stripe: new StripeGateway(paymentGatewayConfig.STRIPE),
+    khalti: new KhaltiGateway(paymentGatewayConfig.KHALTI),
+});
+
+//// gateways get function 
+export const getGateway = (method) => {
+    const gateway = gateways[method.toLowerCase()]
+    if (!gateway) {
+        throw new BadRequestError(`unsupported payment geteway: ${method}`)
+    }
+    return gateway;
+}
+
+export const paymentVerificationHelper = async (session, paymentRecord, purchaseId, gateway) => {
+
+    // Idempotency check
+    if (paymentRecord.status === paymentStatus.PAID) {
+        return {
+            alreadyPaid: true
+        }
+    }
+
+
+    ///  Update payment
+    paymentRecord.status = paymentStatus.PAID;
+    paymentRecord.gatewayTransactionId = purchaseId;
+    paymentRecord.gateway = gateway;
+    paymentRecord.paidAt = new Date();
+
+    await paymentRecord.save({ session });
+
+    /// Update order
+    const order = await OrderModel.findByIdAndUpdate(
+        paymentRecord.orderId,
+        {
+            paymentStatus: paymentStatus.PAID,
+            orderStatus: orderStatus.CONFIRMED
+        },
+        {
+            // new: true,
+            returnDocument: "after",
+            session
+        }
+    ).populate("customerId", "userName email");
+
+    if (!order) {
+        throw new NotFoundError("Order not found.");
+    }
+
+    ////  Update vendor orders
+    await OrderItemsModel.updateMany(
+        { orderId: order._id },
+        {
+            $set: {
+                paymentStatus: paymentStatus.PAID,
+                orderItemsStatus: orderStatus.CONFIRMED
+            }
+        },
+        { session }
+    );
+
+    return order;
+}
 

@@ -12,7 +12,7 @@ const orderPlace = async (req, res, next) => {
     const lock = await client.set(
         orderKey,
         "Order In Processing",
-        { EX: 10, NX: true });
+        { EX: 30, NX: true });
 
     if (!lock) {
         res.status(200).json({
@@ -29,6 +29,7 @@ const orderPlace = async (req, res, next) => {
         })
 
     } catch (error) {
+        await client.del(orderKey);
         next(error)
     }
 

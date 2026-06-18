@@ -5,6 +5,7 @@ import { signJwt } from "../utils/jwt.utils.js"
 import { AppError, BadRequestError } from "../utils/AppError.js"
 import { generateOAuthURI, googleLogin } from "../services/googleAuth.service.js"
 import CloudinaryUpload from "../utils/CloudinaryUpload.js"
+import config from "../config/config.js"
 
 const logIn = async (req, res, next) => {
 
@@ -28,7 +29,10 @@ const logIn = async (req, res, next) => {
         const token = await signJwt(payload)
 
         res.cookie("authToken", token, {
-            maxAge: 86400 * 1000 /// valid for 1 day 
+            maxAge: 86400 * 1000, /// valid for 1 day 
+            httpOnly: true,
+            secure: config.node_env === "production",
+            sameSite: "lax",
         })
 
         res.json({ ...user, token })
@@ -140,10 +144,11 @@ const verifyEmail = async (req, res, next) => {
 
         // Set cookie
         res.cookie("authToken", token, {
-            maxAge: 86400 * 1000, // 1 day
+            maxAge: 86400 * 1000, /// valid for 1 day 
             httpOnly: true,
-            secure: false // true in production with HTTPS
-        });
+            secure: config.node_env === "production",
+            sameSite: "lax",
+        })
 
         // Response
         res.status(200).json({
