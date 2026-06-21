@@ -29,6 +29,8 @@
     "multer": "^2.1.1",
     "multer-storage-cloudinary": "^2.2.1",
     "nodemailer": "^8.0.7",
+    "puppeteer": "^25.1.0",
+    "qrcode": "^1.5.4",
     "qs": "^6.15.1",
     "redis": "^6.0.0",
     "slugify": "^1.6.9",

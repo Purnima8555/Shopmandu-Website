@@ -20,6 +20,7 @@ import cartRouters from "./routes/cart.route.js"
 import wishlistRouters from "./routes/wishlist.route.js"
 import productRouters from "./routes/product.route.js"
 import orderRoutes from "./routes/order.route.js"
+import returnRouters from "./routes/return.route.js"
 
 import { connectRedis } from "./config/redis.config.js"
 import client from "./config/redis.config.js"
@@ -71,8 +72,12 @@ app.use("/api/order", orderRoutes)
 
 /// payment routes
 app.use("/api", paymentRouters)
+
 /// coupon Routers
 app.use("/api/coupon", couponRouters)
+
+/// returnrequest
+app.use("/api/return", returnRouters)
 
 //// handle unknown routes (optional but recommended)
 app.use((req, res, next) => {

@@ -215,7 +215,6 @@ orderSchema.index({ customerId: 1 })
 orderSchema.index({ createdAt: -1 })
 
 
-
-const OrderModel = mongoose.model("Order", orderSchema)
+const OrderModel = mongoose.models.Order || mongoose.model("Order", orderSchema);
 
 export default OrderModel;

@@ -4,7 +4,8 @@ import {Router} from "express"
 import auth from "../middleware/auth.middleware.js"
 import roleBasedAuth from "../middleware/roleBase.middleware.js";
 import Roles from "../constants/userRoles.js";
-import {orderPlace,cancelOrder, getOrderHistory, adminGetOrderById} from "../controllers/order.controller.js";
+import {orderPlace, cancelOrder, getOrderHistory, adminGetOrderById, updateOrderItemStatus, getAllOrders,
+        getOrdersByStatus, adminUpdateOrderStatus, getOrderDetail, customerInvoice, vendorInvoice} from "../controllers/order.controller.js";
 import schemaValidator from "../middleware/schemaValidator.middleware.js";
 import createOrderSchema from "../libs/schema/order.schema.js";
 
@@ -17,7 +18,18 @@ router.patch("/:orderId/cancel", auth, roleBasedAuth(Roles.USER_ROLE), cancelOrd
 
 router.get("/history", auth, roleBasedAuth(Roles.USER_ROLE), getOrderHistory);
 
+router.get("/detail/:orderId", auth, roleBasedAuth(Roles.USER_ROLE), getOrderDetail);
+
+router.patch("/vendor/item/status", auth, roleBasedAuth(Roles.VENDOR_ROLE), updateOrderItemStatus);
+
+router.get("/admin/orders", auth, roleBasedAuth(Roles.ADMIN_ROLE), getAllOrders);
+
+router.patch("/admin/status", auth, roleBasedAuth(Roles.ADMIN_ROLE), adminUpdateOrderStatus);
+
 router.get("/admin/:id", auth, roleBasedAuth(Roles.ADMIN_ROLE), adminGetOrderById)
 
+router.get("/invoice/customer/:orderId", auth, roleBasedAuth(Roles.USER_ROLE), customerInvoice);
+
+router.get("/invoice/vendor/:orderItemId", auth, roleBasedAuth(Roles.VENDOR_ROLE), vendorInvoice);
 
 export default router;

@@ -1,0 +1,198 @@
+import ReturnRequestModel from "../models/returnRequest.model.js";
+import OrderModel from "../models/order.model.js";
+import OrderItemsModel from "../models/orderItem.model.js";
+import CloudinaryUpload from "../utils/CloudinaryUpload.js";
+import { BadRequestError, NotFoundError } from "../utils/AppError.js";
+
+class ReturnService {
+
+    /// create requests
+    async createReturnRequest(customerId, data, files) {
+        const {
+            orderId,
+            orderItemId,
+            productId,
+            reason,
+            description,
+        } = data;
+
+        // check order
+        const order = await OrderModel.findOne({
+            _id: orderId,
+            customerId,
+        }).lean();
+
+        if (!order) {
+            throw new NotFoundError("Order not found");
+        }
+
+        if (order.orderStatus !== "DELIVERED") {
+            throw new BadRequestError("Only delivered orders can be returned.");
+        }
+
+        // check order item
+        const orderItem = await OrderItemsModel.findOne({
+            _id: orderItemId,
+            orderId,
+        }).lean();
+
+        if (!orderItem) {
+            throw new NotFoundError("Order item not found");
+        }
+
+        // validate product in memory
+        const productExists = orderItem.products.some(
+            (p) => p.productId.toString() === productId
+        );
+
+        if (!productExists) {
+            throw new BadRequestError("Product not found in this order item");
+        }
+
+        // faster duplicate check
+        const existing = await ReturnRequestModel.exists({
+            orderItemId,
+            productId,
+        });
+
+        if (existing) {
+            throw new BadRequestError("Return request already exists for this product.");
+        }
+
+        // upload images
+        let uploadedImages = [];
+
+        if (files?.length > 0) {
+            const uploaded = await CloudinaryUpload.uploadMultipleImage(
+                files,
+                "upload"
+            );
+
+            uploadedImages = uploaded.map(img => img.secure_url);
+        }
+
+        // create return request
+        const returnRequest = await ReturnRequestModel.create({
+            orderId,
+            orderItemId,
+            productId,
+            customerId,
+            vendorId: orderItem.vendorId,
+            reason,
+            description,
+            images: uploadedImages,
+            status: "PENDING",
+        });
+
+        return returnRequest;
+    }
+
+    /// customer getrquests
+    async getCustomerRequests(customerId, query = {}) {
+        const page = parseInt(query.page, 10) || 1;
+        const limit = parseInt(query.limit, 10) || 10;
+        const skip = (page - 1) * limit;
+
+        const filter = { customerId };
+
+        if (query.status) {
+            filter.status = query.status;
+        }
+
+        const [data, total] = await Promise.all([
+            ReturnRequestModel.find(filter)
+                .populate("orderId", "orderNumber totalAmount orderStatus")
+                .populate("orderItemId", "orderItemsStatus totalPrice")
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+
+            ReturnRequestModel.countDocuments(filter)
+        ]);
+
+        return {
+            metadata: {
+                totalResults: total,
+                totalPages: Math.ceil(total / limit),
+                currentPage: page,
+                limit,
+                hasNextPage: page * limit < total,
+                hasPrevPage: page > 1
+            },
+            data
+        };
+    }
+
+    /// vendor getrequests
+    async getVendorRequests(vendorId) {
+        return await ReturnRequestModel.find({ vendorId })
+            .populate("customerId", "userName email")
+            .sort({ createdAt: -1 })
+            .lean();
+    }
+
+    /// APPROVE
+    async approveRequest(requestId, vendorId) {
+        const request = await ReturnRequestModel.findOne({
+            _id: requestId,
+            vendorId,
+        });
+
+        if (!request) throw new NotFoundError("Request not found");
+
+        request.status = "APPROVED";
+        return await request.save();
+    }
+
+    /// REJECT
+    async rejectRequest(requestId, vendorId) {
+        const request = await ReturnRequestModel.findOne({
+            _id: requestId,
+            vendorId,
+        });
+
+        if (!request) throw new NotFoundError("Request not found");
+
+        request.status = "REJECTED";
+        return await request.save();
+    }
+
+    /// MARK RETURNED
+    async markReturned(requestId, vendorId) {
+        const request = await ReturnRequestModel.findOne({
+            _id: requestId,
+            vendorId,
+        });
+
+        if (!request) throw new NotFoundError("Request not found");
+
+        if (request.status !== "APPROVED") {
+            throw new BadRequestError("Only approved requests can be marked returned.");
+        }
+
+        request.status = "RETURNED";
+        return await request.save();
+    }
+
+    /// REFUND
+    async refundRequest(requestId, vendorId) {
+        const request = await ReturnRequestModel.findOne({
+            _id: requestId,
+            vendorId,
+        });
+
+        if (!request) throw new NotFoundError("Request not found");
+
+        if (request.status !== "RETURNED") {
+            throw new BadRequestError("Item must be returned before refund.");
+        }
+
+        request.status = "REFUNDED";
+        request.refundedAt = new Date();
+
+        return await request.save();
+    }
+}
+
+export default new ReturnService();

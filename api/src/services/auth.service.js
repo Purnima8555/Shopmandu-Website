@@ -18,7 +18,7 @@ import CloudinaryUpload from "../utils/CloudinaryUpload.js";
 import config from "../config/config.js";
 import crypto from "crypto"
 import ResetForgetPassword from "../models/ResetForgerPassword.models.js";
-import addEmailJob, { addResetPasswordEmailJob } from "../utils/EmailQueue.js";
+import addEmailJob, { addResetPasswordEmailJob, welcomeEmailNotification } from "../utils/EmailQueue.js";
 import { otpEmailBody } from "../messaging/email/templates/otp.template.js";
 
 
@@ -311,6 +311,7 @@ class authService {
                     returnDocument: "after",
                 },
             );
+            await welcomeEmailNotification(verifyUser);
 
             // if (!verifyUser) {
             //     throw new BadRequestError("User not found!");

@@ -92,6 +92,6 @@ orderItemsSchema.index({ orderId: 1 })
 orderItemsSchema.index({ vendorId: 1 })
 orderItemsSchema.index({ orderItemsStatus: 1 })
 
-const OrderItemsModel = mongoose.model("OrderItem", orderItemsSchema);
+const OrderItemsModel = mongoose.models.OrderItem || mongoose.model("OrderItem", orderItemsSchema);
 
 export default OrderItemsModel;

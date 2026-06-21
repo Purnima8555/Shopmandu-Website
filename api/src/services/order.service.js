@@ -12,6 +12,10 @@ import { generateUniqueOrderNumber } from "../utils/slug.utils.js";
 import ProductModel from "../models/Product.model.js";
 import { orderNotification, scheduleCodOrderConfirmation, scheduleUnpaidOrderCancellation } from "../utils/EmailQueue.js";
 import { applyCouponService, markCouponAsUsedService } from "./coupon.service.js";
+import puppeteer from "puppeteer";
+import  { QR } from "../utils/qr.generator.js";
+import { customerInvoiceTemplate } from "../messaging/email/templates/customerInvoice.template.js";
+import { vendorInvoiceTemplate } from "../messaging/email/templates/vendorInvoice.template.js";
 
 
 class OrderServices {
@@ -344,6 +348,208 @@ class OrderServices {
             };
     }
 
+    // vendor status update and automatically update master
+    async updateOrderItemStatus(vendorId, orderItemId, status) {
+
+    const allowed = [
+        orderStatus.PROCESSING,
+        orderStatus.OUT_FOR_DELIVERY,
+        orderStatus.DELIVERED,
+        orderStatus.CANCELLED
+    ];
+
+    if (!allowed.includes(status)) {
+        throw new BadRequestError("Invalid status update");
+    }
+
+    const now = new Date();
+    const update = {
+        orderItemsStatus: status
+    };
+
+    if (status === orderStatus.PROCESSING) update.processedAt = now;
+    if (status === orderStatus.OUT_FOR_DELIVERY) update.shippedAt = now;
+    if (status === orderStatus.DELIVERED) update.deliveredAt = now;
+
+    const orderItem = await OrderItemsModel.findOneAndUpdate(
+        { _id: orderItemId, vendorId },
+        { $set: update },
+        { new: true }
+    );
+
+    if (!orderItem) {
+        throw new NotFoundError("Order item not found");
+    }
+
+    const items = await OrderItemsModel.find({
+        orderId: orderItem.orderId
+    });
+
+    const statuses = items.map(i => i.orderItemsStatus);
+
+    const masterStatus =
+        statuses.every(s => s === orderStatus.DELIVERED)
+            ? orderStatus.DELIVERED
+        : statuses.every(s => s === orderStatus.CANCELLED)
+            ? orderStatus.CANCELLED
+        : statuses.some(s => s === orderStatus.OUT_FOR_DELIVERY)
+            ? orderStatus.OUT_FOR_DELIVERY
+        : statuses.some(s => s === orderStatus.PROCESSING)
+            ? orderStatus.PROCESSING
+        : orderStatus.PARTIALLY_SHIPPED;
+
+    await OrderModel.findByIdAndUpdate(orderItem.orderId, {
+        orderStatus: masterStatus
+    });
+
+    return orderItem;
+    }
+
+    /// admin getAllOrders with filter
+    async getAllOrders(queryData) {
+
+        const page = parseInt(queryData.page, 10) || 1;
+        const limit = parseInt(queryData.limit, 10) || 10;
+        const skip = (page - 1) * limit;
+
+        const filter = {};
+
+        if (queryData.orderStatus) {
+            filter.orderStatus = queryData.orderStatus;
+        }
+
+        if (queryData.paymentStatus) {
+            filter.paymentStatus = queryData.paymentStatus;
+        }
+
+        if (queryData.paymentMethod) {
+            filter.paymentMethod = queryData.paymentMethod;
+        }
+
+        const [orders, totalDocuments] = await Promise.all([
+
+            OrderModel.find(filter)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .populate("customerId", "userName email")
+                .lean(),
+
+            OrderModel.countDocuments(filter)
+
+        ]);
+
+        const totalPages = Math.ceil(totalDocuments / limit);
+
+        return {
+            metadata: {
+                totalResults: totalDocuments,
+                totalPages,
+                currentPage: page,
+                limit,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1
+            },
+
+            data: orders
+        };
+    }
+
+    // admin stausUpdate
+    async adminUpdateOrderStatus(orderId, status) {
+
+    const order = await OrderModel.findById(orderId);
+    if (!order) throw new NotFoundError("Order not found");
+
+    // block statuses
+    if (!ADMIN_ALLOWED_STATUSES.includes(status)) {
+        throw new BadRequestError(
+            `Admin cannot manually set status to ${status}`
+        );
+    }
+
+    order.orderStatus = status;
+
+    if (status === "DELIVERED") order.deliveredAt = new Date();
+    if (status === "OUT_FOR_DELIVERY") order.shippedAt = new Date();
+    if (status === "RETURNED") order.returnedAt = new Date();
+
+    await order.save();
+    return order;
+    }
+
+    /// cusotmer invoice
+    async generateCustomerInvoice(orderId, userId) {
+
+    const order = await OrderModel.findOne({
+        _id: orderId,
+        customerId: userId
+    }).lean();
+
+    if (!order) throw new NotFoundError("Order not found");
+
+    const qr = await QR(
+        `${order.orderNumber}`
+    );
+
+    const html = customerInvoiceTemplate({
+        orderNumber: order.orderNumber,
+        customerName: "Customer",
+        orderStatus: order.orderStatus,
+        items: order.items,
+        totalAmount: order.totalAmount,
+        qr
+    });
+
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+
+    await page.setContent(html);
+
+    const pdf = await page.pdf({
+        format: "A4",
+        printBackground: true
+    });
+
+    await browser.close();
+
+    return pdf;
+    }
+
+    async generateVendorInvoice(orderItemId, vendorId) {
+
+    const orderItem = await OrderItemsModel.findOne({
+        _id: orderItemId,
+        vendorId
+    }).lean();
+
+    if (!orderItem) throw new NotFoundError("Order item not found");
+
+    const qr = await QR(
+        `${orderItemId}`
+    );
+
+    const html = vendorInvoiceTemplate({
+        orderItemId,
+        vendorName: "Vendor",
+        products: orderItem.products,
+        totalPrice: orderItem.totalPrice,
+        qr
+    });
+
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+
+    await page.setContent(html);
+
+    const pdf = await page.pdf({
+        format: "A4",
+        printBackground: true
+    });
+
+    await browser.close();
+    return pdf;
+    }
     
 }
 
