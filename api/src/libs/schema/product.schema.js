@@ -2,6 +2,8 @@ import z from "zod"
 import productStatus from "../../constants/productStatus.js";
 
 
+const categoryIdRegex = /^[0-9a-fA-F]{24}$/;
+
 const formArray = (schema = z.string()) =>
     z.preprocess((value) => {
         if (typeof value === "string") {
@@ -43,7 +45,8 @@ const productSchema = z.object({
     sizes: formArray(z.string()).optional(),
     brand: z.string().trim().optional(),
     productWeight: z.coerce.number().gt(0),
-    boxVolume: z.coerce.number().gt(0)
+    boxVolume: z.coerce.number().gt(0),
+    categoryId: z.string().regex(categoryIdRegex, "Invalid category ID").optional()
 }).refine((data) => {
     if (data.discountPrice !== undefined) return data.discountPrice < data.price
     return true
@@ -77,7 +80,8 @@ const updateProductSchema = z.object({
     sizes: formArray(z.string()).optional(),
     brand: z.string().trim().optional(),
     productWeight: z.coerce.number().gt(0).optional(),
-    boxVolume: z.coerce.number().gt(0).optional()
+    boxVolume: z.coerce.number().gt(0).optional(),
+    categoryId: z.string().regex(categoryIdRegex, "Invalid category ID").optional()
 }).refine((data) => {
     if (data.discountPrice !== undefined && data.price !== undefined) return data.discountPrice < data.price
     return true

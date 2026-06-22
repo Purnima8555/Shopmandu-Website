@@ -15,11 +15,10 @@ const productSchema = new mongoose.Schema(
       required: [true, "Shop Id is required"],
     },
 
-    // categoryId: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: "Category",
-    //   required: [true, "Product category is required"],
-    // },
+    categoryId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+    },
 
     name: {
       type: String,

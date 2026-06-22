@@ -227,11 +227,11 @@ const deleteProductImage = async (req, res, next) => {
         const vendorId = req.user._id;
         const productId = req.params.id;
         const { imageIndex } = req.body
-        const updatedProduct = await productService.updateProductImage(vendorId, productId, imageIndex)
+        const deleteProduct = await productService.updateProductImage(vendorId, productId, imageIndex)
 
         res.status(200).json({
             success: true,
-            data: updatedProduct
+            data: deleteProduct
         });
 
     } catch (error) {

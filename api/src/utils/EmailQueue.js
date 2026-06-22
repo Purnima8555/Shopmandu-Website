@@ -69,7 +69,7 @@ export async function scheduleCodOrderConfirmation(orderId) {
       orderId,
     },
     {
-      delay: 10000, // 30 minutes
+      delay: 10000, // 10 seconds
       attempts: 3,
       backoff: {
         type: "exponential",
@@ -87,7 +87,7 @@ export async function scheduleUnpaidOrderCancellation(orderId) {
       orderId,
     },
     {
-      delay: 1 * 60 * 1000,
+      delay: 10 * 60 * 1000,
       attempts: 3,
       backoff: {
         type: "exponential",
@@ -165,8 +165,6 @@ export async function welcomeEmailNotification(user) {
 // const counts = await emailQueue.getJobCounts();
 // console.log(counts);
 
-// const job = await emailQueue.getJob(12);
-// console.log(job);
 
 
 export default addEmailJob;

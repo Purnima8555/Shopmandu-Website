@@ -56,17 +56,17 @@ class OrderServices {
             let discount = 0
             let couponDiscount = {}
             let couponUsed;
-            if (cartData.couponCode) {
+            if(cartData?.couponCode){
                 couponDiscount = await applyCouponService(userId, cartData.couponCode, grandTotal.subTotal)
-                if (couponDiscount.coupon) {
-                    couponUsed = await markCouponAsUsedService(couponDiscount.coupon._id, userId)
-                }
+                /// coupon mark as used 
+                couponUsed = await markCouponAsUsedService(couponDiscount.coupon._id, userId)
             }
 
-            // console.log(couponDiscount)
 
-            /// coupon mark as used 
-            if (couponUsed) {
+
+            console.log(couponUsed)
+            
+            if(couponUsed){
                 discount = couponDiscount.discountAmount
             }
 

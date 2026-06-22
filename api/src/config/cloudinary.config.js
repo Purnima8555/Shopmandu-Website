@@ -27,8 +27,8 @@ const cloudinaryConnect = () => {
             }
             console.log("Cloudinary connection verified.");
         } catch (error) {
-            console.error(error.error.message);
-            throw new BadRequestError(`Cloudinary Error. ${error.error.message}`, error);
+            console.error(error?.error?.message);
+            throw new BadRequestError(`Cloudinary Error. ${error?.error?.message}`);
         }
     }
 

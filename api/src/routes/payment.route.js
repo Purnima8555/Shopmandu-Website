@@ -16,7 +16,7 @@ router.post("/order/pay",  auth, roleBasedAuth(Roles.USER_ROLE), payOrder)
 router.get("/payment/checkout", paymentCheckOut);
 
 // stripe checkout
-router.get("/payment/stripe/verify", auth, roleBasedAuth(Roles.USER_ROLE), verifyStripeCheckout);
+router.get("/payment/success", verifyStripeCheckout);
 
 router.get("/payment/history", auth, roleBasedAuth(Roles.USER_ROLE), getMyPaymentHistory);
 
