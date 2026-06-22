@@ -3,61 +3,52 @@ import mongoose from "mongoose";
 const returnRequestSchema = new mongoose.Schema(
     {
         orderId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Order",
-        required: true,
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Order",
+            required: true,
         },
-
         orderItemId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "OrderItem",
-        required: true,
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "OrderItem",
+            required: true,
         },
-
         productId: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
+            type: mongoose.Schema.Types.ObjectId,
+            required: true,
         },
-
         customerId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
         },
-
         vendorId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
         },
-
         quantity: {
-        type: Number,
-        default: 1,
+            type: Number,
+            default: 1,
         },
-
         reason: {
-        type: String,
-        required: true,
+            type: String,
+            required: true,
+            enum: ["DEFECTIVE", "WRONG_ITEM", "SIZE_ISSUE", "NOT_AS_DESCRIBED", "CHANGE_OF_MIND", "OTHER"],
         },
-
         description: {
-        type: String,
+            type: String,
         },
-
         images: {
-        type: [String],
-        default: [],
+            type: [String],
+            default: [],
         },
-
         status: {
-        type: String,
-        enum: ["PENDING", "APPROVED", "REJECTED", "RETURNED", "REFUNDED", "REFUND_REJECTED"],
-        default: "PENDING",
+            type: String,
+            enum: ["PENDING", "APPROVED", "REJECTED", "RETURNED", "REFUNDED", "REFUND_REJECTED"],
+            default: "PENDING",
         },
-
         refundedAt: {
-        type: Date,
+            type: Date,
         },
     },
     { timestamps: true },
