@@ -223,8 +223,41 @@ const vendorInvoice= async (req, res, next) => {
     }
 }
 
+const getVendorSalesSummary = async (req, res, next) => {
+    try {
+
+        const data = await orderService.getVendorSalesSummary(
+            req.user._id,
+            req.query
+        );
+
+        res.status(200).json({
+            success: true,
+            message: "Vendor sales summary fetched successfully.",
+            data
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+const getAdminSalesSummary = async (req, res, next) => {
+    try {
+        const data = await orderService.getAdminSalesSummary(req.query);
+        
+        res.status(200).json({
+            success: true,
+            message: "Vendor sales summary fetched successfully.",
+            data,
+        });
+        } catch (err) {
+        next(err);
+    }
+};
+
 export {
     orderPlace, cancelOrder, getOrderHistory, adminGetOrderById, updateOrderItemStatus, getAllOrders,
-    getOrdersByStatus, adminUpdateOrderStatus, getOrderDetail, customerInvoice, vendorInvoice
+    getOrdersByStatus, adminUpdateOrderStatus, getOrderDetail, customerInvoice, vendorInvoice, getVendorSalesSummary, getAdminSalesSummary
 };
 

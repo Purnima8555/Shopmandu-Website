@@ -7,7 +7,8 @@ import { BadRequestError, NotFoundError } from "../utils/AppError.js";
 import CloudinaryUpload from "../utils/CloudinaryUpload.js";
 import { generateUniqueProductSlug } from "../utils/slug.utils.js"
 import categoryService from "./category.service.js";
-
+import promptAI from "../utils/ai.js";
+import buildProductPrompt from "../utils/promptMessage.js";
 
 
 class ProductService {
@@ -30,10 +31,9 @@ class ProductService {
         let category
         /// category used.
         if(productData?.categoryId){
-           await categoryService.useCategory(productData?.categoryId);
-           category = productData?.categoryId
-           
-        }     
+            await categoryService.useCategory(productData?.categoryId);
+            category = productData?.categoryId
+        }
 
         /// generate slug
         const slug = await generateUniqueProductSlug(productData.slug || productData.name);
@@ -59,6 +59,30 @@ class ProductService {
         };
         /// create product
         const product = await ProductModel.create(productPayload);
+        if (!productData.description || productData.description.trim() === "") {
+
+            (async () => {
+                try {
+
+                    const prompt = buildProductPrompt({
+                        name: product.name,
+                        brand: product.brand,
+                        category: category || "",
+                        price: product.price,
+                    });
+
+                    const aiDescription = await promptAI(prompt);
+                    await ProductModel.findByIdAndUpdate(
+                        product._id,
+                        { description: aiDescription }
+                    );
+
+                } catch (err) {
+                    console.error("AI description generation failed:", err.message);
+                }
+            })();
+
+        }
 
         return product;
     }
@@ -272,6 +296,43 @@ class ProductService {
         return {
             message: "Product deleted successfully"
         };
+    }
+
+    /// Top selling products (Admin,customer)
+    async getTopProducts(limit = 10) {
+
+        const products = await ProductModel.find({
+            productStatus: productStatus.ACTIVE
+        })
+            .sort({
+                totalSold: -1,
+                rating: -1,
+                totalReviews: -1,
+                name: 1,
+            })
+            .limit(limit)
+            .lean();
+
+        return products;
+    }
+
+    /// Top selling products (Vendor)
+    async getTopProductsVendor(vendorId, limit = 10) {
+
+        const products = await ProductModel.find({
+            vendorId,
+            productStatus: productStatus.ACTIVE
+        })
+            .sort({
+                totalSold: -1,
+                rating: -1,
+                totalReviews: -1,
+                name: 1,
+            })
+            .limit(limit)
+            .lean();
+
+        return products;
     }
 
 }

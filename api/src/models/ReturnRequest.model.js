@@ -27,8 +27,10 @@ const returnRequestSchema = new mongoose.Schema(
             required: true,
         },
         quantity: {
-            type: Number,
-            default: 1,
+        type: Number,
+        required: true,
+        min: 1,
+        default: 1
         },
         reason: {
             type: String,
@@ -42,9 +44,19 @@ const returnRequestSchema = new mongoose.Schema(
             type: [String],
             default: [],
         },
+        unitPrice: {
+            type: Number,
+            required: true,
+            min: 0
+        },
+        refundAmount: {
+            type: Number,
+            required: true,
+            min: 0
+        },
         status: {
             type: String,
-            enum: ["PENDING", "APPROVED", "REJECTED", "RETURNED", "REFUNDED", "REFUND_REJECTED"],
+            enum: ["PENDING", "APPROVED", "REJECTED", "REFUNDED"],
             default: "PENDING",
         },
         refundedAt: {
@@ -58,6 +70,6 @@ returnRequestSchema.index({ customerId: 1 });
 returnRequestSchema.index({ vendorId: 1 });
 returnRequestSchema.index({ orderId: 1 });
 
-const ReturnRequestModel = mongoose.model("ReturnRequest", returnRequestSchema);
+const ReturnRequestModel = mongoose.models.ReturnRequest ||mongoose.model("ReturnRequest", returnRequestSchema);
 
 export default ReturnRequestModel;

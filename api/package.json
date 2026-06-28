@@ -12,6 +12,7 @@
   "author": "SHOPMANDU",
   "license": "ISC",
   "dependencies": {
+    "@google/genai": "^2.10.0",
     "arctic": "^3.7.0",
     "axios": "^1.16.1",
     "bcrypt": "^6.0.0",

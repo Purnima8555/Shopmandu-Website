@@ -5,7 +5,10 @@ import auth from "../middleware/auth.middleware.js"
 import roleBasedAuth from "../middleware/roleBase.middleware.js";
 import Roles from "../constants/userRoles.js";
 import schemaValidator from "../middleware/schemaValidator.middleware.js";
-import { addProductImage, createProduct, deleteProduct, deleteProductImage, getMyProducts, getMyProductsById, getProductByShop, getProductBySlug, getProductsById, productVideoUpload, updateProductImage, updateProductInfo, updateStatus } from "../controllers/product.controller.js";
+import {
+    addProductImage, createProduct, deleteProduct, deleteProductImage, getMyProducts, getMyProductsById, getProductByShop, getProductBySlug,
+    getProductsById, productVideoUpload, updateProductImage, updateProductInfo, updateStatus, getTopProductsPublic, getTopProducts, getTopProductsVendor,
+    } from "../controllers/product.controller.js";
 import {productSchema, updateProductSchema} from "../libs/schema/product.schema.js";
 import { upload, videoUpload } from "../middleware/multer.middleware.js"
 
@@ -18,6 +21,12 @@ router.post("/product/create", auth, roleBasedAuth(Roles.VENDOR_ROLE), upload.ar
 
 // Get all vendor products
 router.get("/products", auth, roleBasedAuth(Roles.VENDOR_ROLE), getMyProducts);
+
+router.get("/products/top", auth, roleBasedAuth(Roles.USER_ROLE), getTopProductsPublic);
+
+router.get("/products/admintop", auth, roleBasedAuth(Roles.ADMIN_ROLE), getTopProducts);
+
+router.get("/products/vendortop", auth, roleBasedAuth(Roles.VENDOR_ROLE), getTopProductsVendor);
 
 // Get single product by Id Admin
 router.get("/product/:id", auth, roleBasedAuth(Roles.ADMIN_ROLE), getProductsById);

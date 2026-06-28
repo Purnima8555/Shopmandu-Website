@@ -17,7 +17,7 @@ const createReturnRequestSchema = z.object({
     ]),
 
     description: z.string().max(500).optional(),
-    quantity: z.number().int().min(1).default(1),
+    quantity: z.coerce.number().int().min(1).default(1),
 });
 
 export default createReturnRequestSchema;

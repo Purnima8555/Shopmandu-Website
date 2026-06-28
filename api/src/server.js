@@ -16,6 +16,7 @@ import wishlistRouters from "./routes/wishlist.route.js"
 import productRouters from "./routes/product.route.js"
 import orderRoutes from "./routes/order.route.js"
 import returnRouters from "./routes/return.route.js"
+import aiRoutes from "./routes/ai.route.js";
 
 import { connectRedis } from "./config/redis.config.js"
 import client from "./config/redis.config.js"
@@ -51,11 +52,12 @@ app.use("/api", vendorRouters)
 app.use("/api", shopRouters);
 /// address routers
 app.use("/api/address", addressRouters)
-
 /// cart routers
 app.use("/api/cart", cartRouters)
+/// wishlist route
 app.use("/api/wishlist", wishlistRouters)
-
+///ai route
+app.use("/api/ai", aiRoutes);
 /// product routers
 app.use("/api", productRouters)
 // order routers

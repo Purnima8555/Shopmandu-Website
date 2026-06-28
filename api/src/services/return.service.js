@@ -1,6 +1,7 @@
 import ReturnRequestModel from "../models/returnRequest.model.js";
 import OrderModel from "../models/order.model.js";
 import OrderItemsModel from "../models/orderItem.model.js";
+import ProductModel from "../models/product.model.js";
 import CloudinaryUpload from "../utils/CloudinaryUpload.js";
 import { BadRequestError, NotFoundError } from "../utils/AppError.js";
 
@@ -12,6 +13,7 @@ class ReturnService {
             orderId,
             orderItemId,
             productId,
+            quantity = 1,
             reason,
             description,
         } = data;
@@ -40,24 +42,37 @@ class ReturnService {
             throw new NotFoundError("Order item not found");
         }
 
-        // validate product in memory
-        const productExists = orderItem.products.some(
+        // find purchased product
+        const purchasedProduct = orderItem.products.find(
             (p) => p.productId.toString() === productId
         );
 
-        if (!productExists) {
+        if (!purchasedProduct) {
             throw new BadRequestError("Product not found in this order item");
         }
 
-        // faster duplicate check
+        // validate return quantity
+        if (quantity > purchasedProduct.quantity) {
+            throw new BadRequestError(
+                `You can return a maximum of ${purchasedProduct.quantity} item(s).`
+            );
+        }
+
+        // duplicate check
         const existing = await ReturnRequestModel.exists({
             orderItemId,
             productId,
         });
 
         if (existing) {
-            throw new BadRequestError("Return request already exists for this product.");
+            throw new BadRequestError(
+                "Return request already exists for this product."
+            );
         }
+
+        // calculate refund values automatically
+        const unitPrice = purchasedProduct.price;
+        const refundAmount = unitPrice * quantity;
 
         // upload images
         let uploadedImages = [];
@@ -78,6 +93,9 @@ class ReturnService {
             productId,
             customerId,
             vendorId: orderItem.vendorId,
+            quantity,
+            unitPrice,
+            refundAmount,
             reason,
             description,
             images: uploadedImages,
@@ -158,40 +176,55 @@ class ReturnService {
         return await request.save();
     }
 
-    /// MARK RETURNED
-    async markReturned(requestId, vendorId) {
-        const request = await ReturnRequestModel.findOne({
-            _id: requestId,
-            vendorId,
-        });
-
-        if (!request) throw new NotFoundError("Request not found");
-
-        if (request.status !== "APPROVED") {
-            throw new BadRequestError("Only approved requests can be marked returned.");
-        }
-
-        request.status = "RETURNED";
-        return await request.save();
-    }
-
     /// REFUND
     async refundRequest(requestId, vendorId) {
+
         const request = await ReturnRequestModel.findOne({
             _id: requestId,
             vendorId,
         });
 
-        if (!request) throw new NotFoundError("Request not found");
+        if (!request) {
+            throw new NotFoundError("Request not found");
+        }
 
-        if (request.status !== "RETURNED") {
-            throw new BadRequestError("Item must be returned before refund.");
+        if (request.status !== "APPROVED") {
+            throw new BadRequestError(
+                "Only approved requests can be refunded."
+            );
+        }
+
+        // Restock if item is resellable
+        const restockReasons = [
+            "WRONG_ITEM",
+            "SIZE_ISSUE",
+            "NOT_AS_DESCRIBED",
+            "CHANGE_OF_MIND"
+        ];
+
+        if (restockReasons.includes(request.reason)) {
+
+            await ProductModel.findByIdAndUpdate(
+                request.productId,
+                {
+                    $inc: {
+                        stock: request.quantity
+                    }
+                }
+            );
         }
 
         request.status = "REFUNDED";
         request.refundedAt = new Date();
 
-        return await request.save();
+        await request.save();
+
+        return {
+            request,
+            refundAmount: request.refundAmount,
+            quantity: request.quantity,
+            unitPrice: request.unitPrice
+        };
     }
 }
 

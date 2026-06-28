@@ -158,6 +158,24 @@ class shopServices {
         return shop
     }
 
+    /// shop details by ID
+    async getShopById(shopId) {
+
+        const shop = await ShopModel.findOne(
+            {
+                _id: shopId,
+                ShopStatus: ShopStatus.ACTIVE_STATUS
+            },
+            {
+                user_id: 0
+            }
+        ).lean();
+        if (!shop) {
+            throw new NotFoundError("Shop not found.");
+        }
+        return shop;
+    }
+
 }
 
 

@@ -183,8 +183,22 @@ const updateShopStatusByAdmin = async (req, res, next) => {
     } catch (error) {
         next(error)
     }
-
 }
+
+const getShopById = async (req, res, next) => {
+    try {
+
+        const shop = await shopService.getShopById(req.params.shopId);
+
+        res.status(200).json({
+            success: true,
+            data: shop
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};
 
 
 
@@ -197,5 +211,6 @@ export {
     myShop,
     updateShopStatusByAdmin,
     updateShopStatus,
+    getShopById,
 }
 

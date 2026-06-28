@@ -81,23 +81,6 @@ export const rejectRequest = async (req, res, next) => {
     }
 };
 
-export const markReturned = async (req, res, next) => {
-    try {
-        const result = await returnService.markReturned(
-        req.params.id,
-        req.user._id,
-        );
-
-        res.status(200).json({
-        success: true,
-        message: "Marked as returned",
-        data: result,
-        });
-    } catch (err) {
-        next(err);
-    }
-};
-
 export const refundRequest = async (req, res, next) => {
     try {
         const result = await returnService.refundRequest(

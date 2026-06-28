@@ -37,7 +37,7 @@ const productSchema = z.object({
     productStatus: z.enum([productStatus.ACTIVE, productStatus.INACTIVE, productStatus.OUT_OF_STOCK]),
     shortDescription: z.string().trim().optional(),
     price: z.coerce.number().gt(0),
-    description: z.string().trim(),
+    description: z.string().trim().optional(),
     discountPrice: z.coerce.number().gte(0).optional(),
     discountPercent: z.coerce.number().min(0).max(100).optional(),
     stock: z.coerce.number().int().gte(0),

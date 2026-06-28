@@ -16,7 +16,8 @@ import puppeteer from "puppeteer";
 import  { QR } from "../utils/qr.generator.js";
 import { customerInvoiceTemplate } from "../messaging/email/templates/customerInvoice.template.js";
 import { vendorInvoiceTemplate } from "../messaging/email/templates/vendorInvoice.template.js";
-
+import ReturnRequestModel from "../models/ReturnRequest.model.js";
+import buildDateFilter from "../utils/dateFilter.js";
 
 class OrderServices {
 
@@ -351,58 +352,58 @@ class OrderServices {
     // vendor status update and automatically update master
     async updateOrderItemStatus(vendorId, orderItemId, status) {
 
-    const allowed = [
-        orderStatus.PROCESSING,
-        orderStatus.OUT_FOR_DELIVERY,
-        orderStatus.DELIVERED,
-        orderStatus.CANCELLED
-    ];
+        const allowed = [
+            orderStatus.PROCESSING,
+            orderStatus.OUT_FOR_DELIVERY,
+            orderStatus.DELIVERED,
+            orderStatus.CANCELLED
+        ];
 
-    if (!allowed.includes(status)) {
-        throw new BadRequestError("Invalid status update");
-    }
+        if (!allowed.includes(status)) {
+            throw new BadRequestError("Invalid status update");
+        }
 
-    const now = new Date();
-    const update = {
-        orderItemsStatus: status
-    };
+        const now = new Date();
+        const update = {
+            orderItemsStatus: status
+        };
 
-    if (status === orderStatus.PROCESSING) update.processedAt = now;
-    if (status === orderStatus.OUT_FOR_DELIVERY) update.shippedAt = now;
-    if (status === orderStatus.DELIVERED) update.deliveredAt = now;
+        if (status === orderStatus.PROCESSING) update.processedAt = now;
+        if (status === orderStatus.OUT_FOR_DELIVERY) update.shippedAt = now;
+        if (status === orderStatus.DELIVERED) update.deliveredAt = now;
 
-    const orderItem = await OrderItemsModel.findOneAndUpdate(
-        { _id: orderItemId, vendorId },
-        { $set: update },
-        { new: true }
-    );
+        const orderItem = await OrderItemsModel.findOneAndUpdate(
+            { _id: orderItemId, vendorId },
+            { $set: update },
+            { new: true }
+        );
 
-    if (!orderItem) {
-        throw new NotFoundError("Order item not found");
-    }
+        if (!orderItem) {
+            throw new NotFoundError("Order item not found");
+        }
 
-    const items = await OrderItemsModel.find({
-        orderId: orderItem.orderId
-    });
+        const items = await OrderItemsModel.find({
+            orderId: orderItem.orderId
+        });
 
-    const statuses = items.map(i => i.orderItemsStatus);
+        const statuses = items.map(i => i.orderItemsStatus);
 
-    const masterStatus =
-        statuses.every(s => s === orderStatus.DELIVERED)
-            ? orderStatus.DELIVERED
-        : statuses.every(s => s === orderStatus.CANCELLED)
-            ? orderStatus.CANCELLED
-        : statuses.some(s => s === orderStatus.OUT_FOR_DELIVERY)
-            ? orderStatus.OUT_FOR_DELIVERY
-        : statuses.some(s => s === orderStatus.PROCESSING)
-            ? orderStatus.PROCESSING
-        : orderStatus.PARTIALLY_SHIPPED;
+        const masterStatus =
+            statuses.every(s => s === orderStatus.DELIVERED)
+                ? orderStatus.DELIVERED
+            : statuses.every(s => s === orderStatus.CANCELLED)
+                ? orderStatus.CANCELLED
+            : statuses.some(s => s === orderStatus.OUT_FOR_DELIVERY)
+                ? orderStatus.OUT_FOR_DELIVERY
+            : statuses.some(s => s === orderStatus.PROCESSING)
+                ? orderStatus.PROCESSING
+            : orderStatus.PARTIALLY_SHIPPED;
 
-    await OrderModel.findByIdAndUpdate(orderItem.orderId, {
-        orderStatus: masterStatus
-    });
+        await OrderModel.findByIdAndUpdate(orderItem.orderId, {
+            orderStatus: masterStatus
+        });
 
-    return orderItem;
+        return orderItem;
     }
 
     /// admin getAllOrders with filter
@@ -458,99 +459,258 @@ class OrderServices {
     // admin stausUpdate
     async adminUpdateOrderStatus(orderId, status) {
 
-    const order = await OrderModel.findById(orderId);
-    if (!order) throw new NotFoundError("Order not found");
+        const order = await OrderModel.findById(orderId);
+        if (!order) throw new NotFoundError("Order not found");
 
-    // block statuses
-    if (!ADMIN_ALLOWED_STATUSES.includes(status)) {
-        throw new BadRequestError(
-            `Admin cannot manually set status to ${status}`
-        );
-    }
+        // block statuses
+        if (!ADMIN_ALLOWED_STATUSES.includes(status)) {
+            throw new BadRequestError(
+                `Admin cannot manually set status to ${status}`
+            );
+        }
 
-    order.orderStatus = status;
+        order.orderStatus = status;
 
-    if (status === "DELIVERED") order.deliveredAt = new Date();
-    if (status === "OUT_FOR_DELIVERY") order.shippedAt = new Date();
-    if (status === "RETURNED") order.returnedAt = new Date();
+        if (status === "DELIVERED") order.deliveredAt = new Date();
+        if (status === "OUT_FOR_DELIVERY") order.shippedAt = new Date();
+        if (status === "RETURNED") order.returnedAt = new Date();
 
-    await order.save();
-    return order;
+        await order.save();
+        return order;
     }
 
     /// cusotmer invoice
     async generateCustomerInvoice(orderId, userId) {
 
-    const order = await OrderModel.findOne({
-        _id: orderId,
-        customerId: userId
-    }).lean();
+        const order = await OrderModel.findOne({
+            _id: orderId,
+            customerId: userId
+        }).lean();
 
-    if (!order) throw new NotFoundError("Order not found");
+        if (!order) throw new NotFoundError("Order not found");
 
-    const qr = await QR(
-        `${order.orderNumber}`
-    );
+        const qr = await QR(
+            `${order.orderNumber}`
+        );
 
-    const html = customerInvoiceTemplate({
-        orderNumber: order.orderNumber,
-        customerName: "Customer",
-        orderStatus: order.orderStatus,
-        items: order.items,
-        totalAmount: order.totalAmount,
-        qr
-    });
+        const html = customerInvoiceTemplate({
+            orderNumber: order.orderNumber,
+            customerName: "Customer",
+            orderStatus: order.orderStatus,
+            items: order.items,
+            totalAmount: order.totalAmount,
+            qr
+        });
 
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
 
-    await page.setContent(html);
+        await page.setContent(html);
 
-    const pdf = await page.pdf({
-        format: "A4",
-        printBackground: true
-    });
+        const pdf = await page.pdf({
+            format: "A4",
+            printBackground: true
+        });
 
-    await browser.close();
+        await browser.close();
 
-    return pdf;
+        return pdf;
     }
 
     async generateVendorInvoice(orderItemId, vendorId) {
 
-    const orderItem = await OrderItemsModel.findOne({
-        _id: orderItemId,
-        vendorId
-    }).lean();
+        const orderItem = await OrderItemsModel.findOne({
+            _id: orderItemId,
+            vendorId
+        }).lean();
 
-    if (!orderItem) throw new NotFoundError("Order item not found");
+        if (!orderItem) throw new NotFoundError("Order item not found");
 
-    const qr = await QR(
-        `${orderItemId}`
-    );
+        const qr = await QR(
+            `${orderItemId}`
+        );
 
-    const html = vendorInvoiceTemplate({
-        orderItemId,
-        vendorName: "Vendor",
-        products: orderItem.products,
-        totalPrice: orderItem.totalPrice,
-        qr
-    });
+        const html = vendorInvoiceTemplate({
+            orderItemId,
+            vendorName: "Vendor",
+            products: orderItem.products,
+            totalPrice: orderItem.totalPrice,
+            qr
+        });
 
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
 
-    await page.setContent(html);
+        await page.setContent(html);
 
-    const pdf = await page.pdf({
-        format: "A4",
-        printBackground: true
-    });
+        const pdf = await page.pdf({
+            format: "A4",
+            printBackground: true
+        });
 
-    await browser.close();
-    return pdf;
+        await browser.close();
+        return pdf;
     }
-    
+
+    /// vendor dashboard sales summary
+    async getVendorSalesSummary(vendorId, query = {}) {
+        const { filter: dateFilter, period } = buildDateFilter(query);
+        const [orders, refundedRequests] = await Promise.all([
+
+            OrderItemsModel.find({
+                vendorId,
+                ...dateFilter
+            }).lean(),
+
+            ReturnRequestModel.find({
+                vendorId,
+                status: "REFUNDED",
+                ...dateFilter
+            }).lean()
+
+        ]);
+
+        let totalRevenue = 0;
+
+        const summary = {
+            totalOrders: orders.length,
+            pendingOrders: 0,
+            confirmedOrders: 0,
+            processingOrders: 0,
+            partiallyShippedOrders: 0,
+            outForDeliveryOrders: 0,
+            deliveredOrders: 0,
+            cancelledOrders: 0
+        };
+
+        for (const order of orders) {
+
+            switch (order.orderItemsStatus) {
+
+                case orderStatus.PENDING:
+                    summary.pendingOrders++;
+                    break;
+
+                case orderStatus.CONFIRMED:
+                    summary.confirmedOrders++;
+                    break;
+
+                case orderStatus.PROCESSING:
+                    summary.processingOrders++;
+                    break;
+
+                case orderStatus.PARTIALLY_SHIPPED:
+                    summary.partiallyShippedOrders++;
+                    break;
+
+                case orderStatus.OUT_FOR_DELIVERY:
+                    summary.outForDeliveryOrders++;
+                    break;
+
+                case orderStatus.DELIVERED:
+                    summary.deliveredOrders++;
+                    totalRevenue += order.totalPrice;
+                    break;
+
+                case orderStatus.CANCELLED:
+                    summary.cancelledOrders++;
+                    break;
+            }
+        }
+
+        for (const refund of refundedRequests) {
+            totalRevenue -= refund.refundAmount;
+        }
+
+        return {
+            period,
+            ...summary,
+            totalRevenue,
+            averageOrderValue:
+                summary.deliveredOrders > 0
+                    ? Number((totalRevenue / summary.deliveredOrders).toFixed(2))
+                    : 0
+        };
+    }
+
+    /// admin dashboard sales summary
+    async getAdminSalesSummary(query = {}) {
+
+        const { filter: dateFilter, period } = buildDateFilter(query);
+
+        const [orders, refundedRequests] = await Promise.all([
+
+            OrderModel.find(dateFilter).lean(),
+
+            ReturnRequestModel.find({
+                status: "REFUNDED",
+                ...dateFilter
+            }).lean()
+
+        ]);
+
+        let grossSales = 0;
+
+        const summary = {
+            totalOrders: orders.length,
+            pendingOrders: 0,
+            confirmedOrders: 0,
+            processingOrders: 0,
+            partiallyShippedOrders: 0,
+            outForDeliveryOrders: 0,
+            deliveredOrders: 0,
+            cancelledOrders: 0
+        };
+
+        for (const order of orders) {
+
+            switch (order.orderStatus) {
+
+                case orderStatus.PENDING:
+                    summary.pendingOrders++;
+                    break;
+
+                case orderStatus.CONFIRMED:
+                    summary.confirmedOrders++;
+                    break;
+
+                case orderStatus.PROCESSING:
+                    summary.processingOrders++;
+                    break;
+
+                case orderStatus.PARTIALLY_SHIPPED:
+                    summary.partiallyShippedOrders++;
+                    break;
+
+                case orderStatus.OUT_FOR_DELIVERY:
+                    summary.outForDeliveryOrders++;
+                    break;
+
+                case orderStatus.DELIVERED:
+                    summary.deliveredOrders++;
+                    grossSales += order.totalAmount;
+                    break;
+
+                case orderStatus.CANCELLED:
+                    summary.cancelledOrders++;
+                    break;
+            }
+        }
+
+        for (const refund of refundedRequests) {
+            grossSales -= refund.refundAmount;
+        }
+
+        return {
+            period,
+            ...summary,
+            grossSales,
+            averageOrderValue:
+                summary.deliveredOrders > 0
+                    ? Number((grossSales / summary.deliveredOrders).toFixed(2))
+                    : 0
+        };
+    }
 }
 
 

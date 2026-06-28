@@ -259,6 +259,61 @@ const deleteProduct = async (req, res, next) => {
 
 }
 
+const getTopProductsPublic = async (req, res, next) => {
+    try {
+
+        const limit = Math.min(Number(req.query.limit) || 10, 20);
+
+        const result = await productService.getTopProducts(limit);
+
+        res.status(200).json({
+            success: true,
+            data: result,
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+const getTopProducts = async (req, res, next) => {
+    try {
+
+        const limit = Math.min(Number(req.query.limit) || 10, 20);
+
+        const result = await productService.getTopProducts(limit);
+
+        res.status(200).json({
+            success: true,
+            data: result
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+
+const getTopProductsVendor = async (req, res, next) => {
+    try {
+
+        const limit = Math.min(Number(req.query.limit) || 10, 20);
+
+        const result = await productService.getTopProductsVendor(
+            req.user._id,
+            limit
+        );
+
+        res.status(200).json({
+            success: true,
+            data: result
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};
+
 
 
 export {
@@ -275,4 +330,7 @@ export {
     addProductImage,
     updateProductInfo,
     productVideoUpload,
+    getTopProductsPublic,
+    getTopProducts,
+    getTopProductsVendor,
 }
