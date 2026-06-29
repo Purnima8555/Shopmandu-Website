@@ -158,6 +158,11 @@ const productSchema = new mongoose.Schema(
       default: 0,
       min: 0
     },
+    
+    flashSales: {
+      type: Boolean,
+      default: false,
+    },
 
     totalSold: {
       type: Number,

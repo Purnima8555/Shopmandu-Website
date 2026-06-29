@@ -115,8 +115,10 @@ class authService {
         let createUser;
 
         /// upload avatar 
-        const userAvatar = await CloudinaryUpload.uploadSingleImage(avatar, "upload")
-        userData.avatar = userAvatar.secure_url
+        if (avatar) {
+            const userAvatar = await CloudinaryUpload.uploadSingleImage(avatar, "upload")
+            userData.avatar = userAvatar.secure_url
+        }
 
         // Update existing unverified user
         if (userIsRegister && !userIsRegister?.isVerify) {
@@ -125,7 +127,7 @@ class authService {
                     userName,
                     mobile,
                     roles,
-                    avatar: userData.avatar,
+                    avatar: userData?.avatar,
                     authProvider: userAuthProvider || authProvider.LOCAL,
                     password: hashPassword,
                     isVerify: false,
@@ -194,7 +196,7 @@ class authService {
 
             await addEmailJob(email, subject, emailbody)
 
-            return { message: "OTP sent successfully, please verify your email." };
+            return { success: true, message: "OTP sent successfully, please verify your email." };
         } catch (error) {
             console.error("OTP send error:", error);
             throw new Error("Failed to send OTP");
@@ -337,7 +339,7 @@ class authService {
 
 
 
-    async forgetPassword(email, emailbody) {
+    async forgetPassword(email) {
 
         /// generate random token 32bytes string
         const token = crypto.randomBytes(32).toString('hex') //// crypto.randomBytes(32) => it return 32 bytes buffer cheracters and .toString('hex') => it convert that buffer into rando string
@@ -385,7 +387,7 @@ class authService {
             // await sendEmail(email, "Reset Password.", emailHtml);
             await addResetPasswordEmailJob(email, user._id, token);
 
-            return { message: "Reset password Link send succesfully." };
+            return {success: true, message: "Reset password Link send succesfully." };
 
         } catch (error) {
             throw new AppError("Fail to send forget password link.")
@@ -468,7 +470,10 @@ class authService {
         sendRequestForResetPassword.isUsed = true;
         await sendRequestForResetPassword.save();
 
-        return user
+        return {
+            success: true,
+            message: "password change successfully."
+        }
 
 
     }

@@ -8,8 +8,12 @@ import { loginSchema, registerSchema } from "../libs/schema/auth.js";
 import { upload } from "../middleware/multer.middleware.js";
 import resetPasswordSchema from "../libs/schema/resetPassword.schema.js";
 import readLimiting from "../middleware/rateLimiting.middleware.js";
+import auth from "../middleware/auth.middleware.js";
 
 const router= Router()
+
+router.get("/me", auth, authController.getme);
+router.post("/logout", authController.logout)
 
 router.use(readLimiting)
 

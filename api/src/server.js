@@ -22,6 +22,7 @@ import couponRouters from "./routes/coupon.route.js"
 import categoryRoters from "./routes/category.route.js"
 import { errorMiddleware, RouteNotFoundMiddleware } from "./middleware/error.middleware.js";
 import helmet from "helmet"
+import cors from "cors"
 
 
 const app = express();
@@ -30,7 +31,12 @@ const PORT = config.port;
 app.use(helmet())
 app.use(bodyParser.json());
 app.use(express.json());
-
+app.use(
+  cors({
+    origin: config.client_url,
+    credentials: true,
+  })
+);
 //// routes
 app.use("/api/auth", authRouters);
 /// vendor routes

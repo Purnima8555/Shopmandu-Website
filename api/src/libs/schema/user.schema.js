@@ -4,7 +4,7 @@ import authProvider from "../../constants/authProvider.js";
 
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;;
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
 
 export const userSchema = z
   .object({
@@ -29,10 +29,8 @@ export const userSchema = z
 
     roles: z
       .enum([
-        Roles.ADMIN_ROLE,
         Roles.USER_ROLE,
         Roles.VENDOR_ROLE,
-        Roles.SUPER_ADMIN_ROLE,
       ])
       .default(Roles.USER_ROLE),
 

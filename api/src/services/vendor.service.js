@@ -129,13 +129,34 @@ class vendorService {
   /// get all vendors from database
 
   /// it only access for admin
-  async getAllVendors() {
-    const vendors = await UserModel.find(
-      { roles: Roles.VENDOR_ROLE },
-      { password: 0 },
-    );
-    return vendors;
-  }
+ async getAllVendors(data) {
+  const page = parseInt(String(data?.page), 10) || 1;
+  const limit = parseInt(String(data?.limit), 10) || 10;
+  const skip = (page - 1) * limit;
+
+  const filter = {
+    roles: Roles.VENDOR_ROLE,
+  };
+
+  const [vendors, totalDocuments] = await Promise.all([
+    UserModel.find(filter, { password: 0 }).sort({ createdAt: -1 }).skip(skip).limit(limit),
+    UserModel.countDocuments(filter),
+  ]);
+
+  const totalPages = Math.ceil(totalDocuments / limit);
+
+  return {
+    metadata: {
+      totalResults: totalDocuments,
+      totalPages,
+      currentPage: page,
+      limit,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+    },
+    data: vendors,
+  };
+}
 
   /// get vendor by ID
 

@@ -5,7 +5,7 @@ import auth from "../middleware/auth.middleware.js"
 import roleBasedAuth from "../middleware/roleBase.middleware.js";
 import Roles from "../constants/userRoles.js";
 import schemaValidator from "../middleware/schemaValidator.middleware.js";
-import { addProductImage, createProduct, deleteProduct, deleteProductImage, getMyProducts, getMyProductsById, getProductByShop, getProductBySlug, getProductsById, productVideoUpload, updateProductImage, updateProductInfo, updateStatus } from "../controllers/product.controller.js";
+import { addProductImage, createProduct, deleteProduct, deleteProductImage, getAllFlashSalesProducts, getAllProductForPublic, getMyProducts, getMyProductsById, getProductByShop, getProductBySlug, getProductsById, onFlashSale, productVideoUpload, removeFromFlashSale, updateProductImage, updateProductInfo, updateStatus } from "../controllers/product.controller.js";
 import {productSchema, updateProductSchema} from "../libs/schema/product.schema.js";
 import { upload, videoUpload } from "../middleware/multer.middleware.js"
 
@@ -24,6 +24,8 @@ router.get("/product/:id", auth, roleBasedAuth(Roles.ADMIN_ROLE), getProductsByI
 
 // Get product by slug Public
 router.get("/product-slug/:slug", getProductBySlug);
+
+router.get("/products/public", getAllProductForPublic)
 
 // Get products by shop public
 router.get("/shop/products/:id", getProductByShop);
@@ -52,7 +54,14 @@ router.put("/product/video/:id", auth, roleBasedAuth(Roles.VENDOR_ROLE), videoUp
 // Delete product
 router.delete("/product/delete/:id", auth, roleBasedAuth(Roles.VENDOR_ROLE), deleteProduct);
 
+// add on flash sale
+router.patch("/product/flash-sale/:id", auth, roleBasedAuth(Roles.VENDOR_ROLE), onFlashSale);
 
+// remove from flash sale
+router.patch("/product/flash-sale/remove/:id", auth, roleBasedAuth(Roles.VENDOR_ROLE), removeFromFlashSale);
+
+// get all flash sale products for public
+router.get("/products/flash-sale", getAllFlashSalesProducts);
 
 export default router;
 

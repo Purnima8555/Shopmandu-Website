@@ -148,7 +148,10 @@ const getVendorById = async (req, res, next) => {
 const getAllVendors = async (req, res, next) => {
 
     try {
-        const vendors = await vendorService.getAllVendors();
+
+        
+
+        const vendors = await vendorService.getAllVendors({data: req.query});
 
         res.status(200).json({ ...vendors })
     } catch (error) {

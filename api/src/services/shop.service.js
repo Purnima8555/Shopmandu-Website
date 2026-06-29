@@ -5,7 +5,7 @@ import ShopModel from "../models/Shop.model.js";
 import vendorKycModel from "../models/VendorKYC.model.js";
 import { AppError, BadRequestError, ForbiddenError, NotFoundError } from "../utils/AppError.js"
 import CloudinaryUpload from "../utils/CloudinaryUpload.js";
-import {generateUniqueShopSlug} from "../utils/slug.utils.js";
+import { generateUniqueShopSlug } from "../utils/slug.utils.js";
 
 
 
@@ -48,7 +48,7 @@ class shopServices {
 
     //// public get shop data
     async getShopBySlug(slug) {
-        const shop = await ShopModel.findOne({ slugs: slug },{user_id: 0, _id: 0});
+        const shop = await ShopModel.findOne({ slugs: slug }, { user_id: 0, _id: 0 });
         if (!shop) {
             throw new NotFoundError("Shop not found. Invalid slug.");
         }
@@ -125,38 +125,87 @@ class shopServices {
     }
 
     //// shop Status change 
-    async updateShopStatus(vendorId, status){
-       const shop = await this.getMyShop(vendorId);
+    async updateShopStatus(vendorId, status) {
+        const shop = await this.getMyShop(vendorId);
         // vendor only can update ther few status
 
-        
 
-        if(![ShopStatus.ACTIVE_STATUS, ShopStatus.DEACTIVATED_STATUS, ShopStatus.CLOSED_STATUS].includes(status)){
-            throw new ForbiddenError( "You can only change status to ACTIVE, DEACTIVATED, or CLOSED.")
+
+        if (![ShopStatus.ACTIVE_STATUS, ShopStatus.DEACTIVATED_STATUS, ShopStatus.CLOSED_STATUS].includes(status)) {
+            throw new ForbiddenError("You can only change status to ACTIVE, DEACTIVATED, or CLOSED.")
         }
 
         // if admin alrady ther accound baned 
-         if([ShopStatus.PENDING_STATUS, ShopStatus.SUSPENDED_STATUS, ShopStatus.BANNED_STATUS ].includes(shop.ShopStatus)){
+        if ([ShopStatus.PENDING_STATUS, ShopStatus.SUSPENDED_STATUS, ShopStatus.BANNED_STATUS].includes(shop.ShopStatus)) {
             throw new ForbiddenError(`Your account is ${shop.shopStatus}, status update is not allowed.`)
         }
 
         shop.ShopStatus = status;
-         await shop.save()
+        await shop.save()
         return shop
     }
 
     /// update shop status by Admin
-        async updateShopStatusByAdmin(vendorId, status){
-       const shop = await this.getMyShop(vendorId);
+    async updateShopStatusByAdmin(vendorId, status) {
+        const shop = await this.getMyShop(vendorId);
         // vendor only can update ther few status
 
-        if(![ShopStatus.ACTIVE_STATUS, ShopStatus.DEACTIVATED_STATUS, ShopStatus.CLOSED_STATUS,  ShopStatus.PENDING_STATUS, ShopStatus.SUSPENDED_STATUS, ShopStatus.BANNED_STATUS ].includes(status)){
+        if (![ShopStatus.ACTIVE_STATUS, ShopStatus.DEACTIVATED_STATUS, ShopStatus.CLOSED_STATUS, ShopStatus.PENDING_STATUS, ShopStatus.SUSPENDED_STATUS, ShopStatus.BANNED_STATUS].includes(status)) {
             throw new ForbiddenError("Invalid shop status.")
         }
         shop.ShopStatus = status;
-         await shop.save()
+        await shop.save()
         return shop
     }
+
+
+    /// get all shop by name 
+    async searchShopForPublic(data) {
+
+        // console.log(data)
+
+        const page = parseInt(String(data?.page), 10) || 1;
+        const limit = parseInt(String(data?.limit), 10) || 10;
+        const skip = (page - 1) * limit;
+
+        const filter = {};
+
+        /// filter by shop name
+        if (data?.name) {
+            filter.shopName = {
+                $regex: data.name,
+                $options: "i",
+            };
+        }
+
+        /// filter by shop status
+        if (data?.shopStatus) {
+            filter.ShopStatus = data.shopStatus;
+        }
+
+        const [shops, totalDocuments] = await Promise.all([
+            ShopModel.find(filter)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+            ShopModel.countDocuments(filter),
+        ]);
+
+        const totalPages = Math.ceil(totalDocuments / limit);
+
+        return {
+            metadata: {
+                totalResults: totalDocuments,
+                totalPages,
+                currentPage: page,
+                limit,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
+            },
+            data: shops,
+        };
+    }
+
 
 }
 
