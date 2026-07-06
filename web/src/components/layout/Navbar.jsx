@@ -9,6 +9,7 @@ import useAuthStore from "../../store/authStore";
 import { PiShoppingCartSimple } from "react-icons/pi";
 import { FaRegUser } from "react-icons/fa";
 import { IoIosHeartEmpty } from "react-icons/io";
+// import Loader from "../common/Loader";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -18,8 +19,11 @@ const Navbar = () => {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   const { isAuthenticated } = useAuthStore();
-  // console.log(isAuthenticated);
-  // const isAuthenticated = true
+
+  // const { loading } = useAuthStore();
+
+
+
   return (
     <header className=" sticky top-0 z-50 bg-[var(--glass-bg  backdrop-blur-md  border-b border-border shadow-xs relative ">
       <nav className="container mx-auto px-6 h-18 flex items-center justify-between">

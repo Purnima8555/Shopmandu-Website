@@ -1,7 +1,13 @@
-
-
 import { create } from "zustand";
-import { loginApi, registerApi, verifyEmailApi, logoutApi, getMeApi,} from "../api/auth.api";
+
+import {
+  loginService,
+  registerUserService,
+  verifyEmailService,
+  getMeService,
+  logoutService,
+} from "../services/auth.service";
+import { updateProfile, updateVendorName } from "../api/vendor";
 
 const useAuthStore = create((set) => ({
   user: null,
@@ -10,87 +16,127 @@ const useAuthStore = create((set) => ({
   isAuthenticated: false,
   authChecked: false,
 
-  login: async (data) => {
+  login: async (credentials) => {
+    set({ loading: true });
+
     try {
-      set({ loading: true });
-      const res = await loginApi(data);
+      const { user, token } = await loginService(credentials);
+
       set({
-        user: {
-          _id: res._id,
-          email: res.email,
-          userName: res.userName,
-          roles: res.roles,
-          avatar: res.avatar,
-        },
-        token: res.token,
+        user,
+        token,
         isAuthenticated: true,
       });
-      //   localStorage.setItem("authToken", res.token);
-      return res;
-    } catch (error) {
-      throw error.response?.data || error;
+
+      return { user, token };
     } finally {
       set({ loading: false });
     }
   },
 
-  registerUser: async (data) => {
+  registerUser: async (userData) => {
+    set({ loading: true });
+
     try {
-      set({ loading: true });
-      const res = await registerApi(data);
-      return res;
-    } catch (error) {
-      throw error.response?.data || error;
+      return await registerUserService(userData);
     } finally {
       set({ loading: false });
     }
   },
 
   verifyEmail: async (otp) => {
+    set({ loading: true });
+
     try {
-      set({ loading: true });
-      const res = await verifyEmailApi({ otp });
-      return res;
-    } catch (error) {
-      throw error.response?.data || error;
+      return await verifyEmailService(otp);
     } finally {
       set({ loading: false });
     }
   },
 
   getMe: async () => {
+    set({ loading: true });
     try {
-      const user = await getMeApi();
-      // console.log("User:", user);
+      const user = await getMeService();
       set({
         user,
         isAuthenticated: true,
       });
-      // console.log("after set:", useAuthStore.getState());
-    } catch (error) {
-      console.log(error);
-      set({
-        user: null,
-        isAuthenticated: false,
-      });
-    } finally {
-      // runs whether getMe succeeded or failed — either way, "checking" is done
-      set({ authChecked: true });
-    }
-  },
-
-  logout: async () => {
-    try {
-      await logoutApi();
-    } finally {
-      //// localStorage.removeItem("token");
+      return user;
+    } catch {
       set({
         user: null,
         token: null,
         isAuthenticated: false,
       });
+    } finally {
+      set({
+        loading: false,
+        authChecked: true,
+      });
     }
   },
+
+  logout: async () => {
+    set({ loading: true });
+
+    try {
+      await logoutService();
+    } finally {
+      set({
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        loading: false,
+      });
+    }
+  },
+
+ //// Update User Name
+  updateVendorUserName: async (data) => {
+    try {
+      set({ loading: true });
+      const res = await updateVendorName(data);
+      const updatedData = res?.data;
+
+      set((state) => ({
+        user: {
+          ...state.user,         
+          userName: updatedData?.userName,
+          mobile: updatedData?.mobile || state.user.mobile,
+          avatar: updatedData?.avatar || state.user.avatar,
+        },
+        loading: false
+      }));
+      return res;
+    } finally  {
+      set({ loading: false });
+    }
+  },
+
+  //// Update Avatar
+  updateAvatar: async (image) => { 
+    try {
+      set({ loading: true });
+      const res = await updateProfile(image);
+      const updatedData = res?.data;
+
+      set((state) => ({
+        user: {
+          ...state.user,          
+          avatar: updatedData?.avatar,  
+        },
+        loading: false
+      }));
+      return res;
+    } finally {
+      set({ loading: false });
+    }
+  }
+
+
+
+
 }));
 
 export default useAuthStore;

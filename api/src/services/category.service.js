@@ -31,7 +31,7 @@ class CategoryService {
 
     /// get all category with filter/ pagination 
     getAllCategories = async ({ page = 1, limit = 10, search }) => {
-        const filter = {};
+        const filter = {isActive: true};
 
         /// category search by name.
         if (search) {
@@ -45,6 +45,7 @@ class CategoryService {
             CategoryModel.countDocuments(filter)
         ]);
         return {
+            success: true,
             categories,
             total,
             page,

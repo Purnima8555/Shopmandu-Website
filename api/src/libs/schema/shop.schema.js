@@ -4,7 +4,7 @@ import z from "zod"
 const timeregix = /^([01]\d|2[0-3]):([0-5]\d)$/
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-const shopSchema = z.object({
+const baseSchema = z.object({
 
     shopName: z.string().trim()
         .min(3, "Shop name must be at least 3 characters.")
@@ -55,8 +55,8 @@ const shopSchema = z.object({
             .regex(timeregix,"Closing time must be in HH:mm format."),
     }).optional()
 
-}).strict();
+});
 
-
-export default shopSchema;
+export const shopSchema = baseSchema.strict();
+export const updateShopSchema = baseSchema.partial().strict()
 

@@ -5,7 +5,7 @@ import auth from "../middleware/auth.middleware.js"
 import roleBasedAuth from "../middleware/roleBase.middleware.js";
 import Roles from "../constants/userRoles.js";
 import schemaValidator from "../middleware/schemaValidator.middleware.js";
-import { addProductImage, createProduct, deleteProduct, deleteProductImage, getAllFlashSalesProducts, getAllProductForPublic, getMyProducts, getMyProductsById, getProductByShop, getProductBySlug, getProductsById, onFlashSale, productVideoUpload, removeFromFlashSale, updateProductImage, updateProductInfo, updateStatus } from "../controllers/product.controller.js";
+import { addProductImage, createProduct, deleteProduct, deleteProductImage, getAllFlashSalesProducts, getAllProductForPublic, getMyProducts, getMyProductsById, getMyProductSummary, getProductByShop, getProductBySlug, getProductsById, onFlashSale, productVideoUpload, removeFromFlashSale, updateProductImage, updateProductInfo, updateStatus } from "../controllers/product.controller.js";
 import {productSchema, updateProductSchema} from "../libs/schema/product.schema.js";
 import { upload, videoUpload } from "../middleware/multer.middleware.js"
 
@@ -18,6 +18,7 @@ router.post("/product/create", auth, roleBasedAuth(Roles.VENDOR_ROLE), upload.ar
 
 // Get all vendor products
 router.get("/products", auth, roleBasedAuth(Roles.VENDOR_ROLE), getMyProducts);
+router.get("/products/summary", auth, roleBasedAuth(Roles.VENDOR_ROLE), getMyProductSummary);
 
 // Get single product by Id Admin
 router.get("/product/:id", auth, roleBasedAuth(Roles.ADMIN_ROLE), getProductsById);

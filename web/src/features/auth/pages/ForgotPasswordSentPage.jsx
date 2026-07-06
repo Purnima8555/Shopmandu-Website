@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
-import Button from "../../components/ui/Button";
+import Button from "../../../components/ui/Button";
+
 
 const ForgotPasswordSentPage = () => {
   const { state } = useLocation();

@@ -40,6 +40,14 @@
     --shadow-md: 0 4px 12px rgb(0 0 0 / 0.08);
 
     --glass-bg: rgba(255, 255, 255, 0.75);
+
+  --color-bg-main: #F8FAFC;
+  --color-bg-card: #FFFFFF;
+  --color-bg-surface: #F1F5F9;
+  --color-text-primary: #1F2937;
+  --color-text-secondary: #64748B;
+  --color-accent-orange: #F97316;
+
 }
 
 @layer base {

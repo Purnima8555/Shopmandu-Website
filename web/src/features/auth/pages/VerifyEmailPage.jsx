@@ -1,9 +1,11 @@
 import { useRef, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
-import Button from "../../components/ui/Button";
-import { resendEmailVerifyOtp, verifyEmailApi } from "../../api/auth.api";
-import { dismissToast, showError, showSuccess } from "../../utils/toast";
+import Button from "../../../components/ui/Button";
+import { resendEmailVerifyOtp } from "../../../api/auth.api";
+import { dismissToast, showSuccess } from "../../../utils/toast";
+import sendApiRequest from "../../../utils/sendApiRequest";
+import useAuthStore from "../../../store/authStore";
 
 const VerifyEmailPage = () => {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -31,6 +33,7 @@ const VerifyEmailPage = () => {
 
   // get email from parameter
   const { state } = useLocation();
+    const { verifyEmail } = useAuthStore();
 
   const email = state?.email;
 
@@ -40,39 +43,30 @@ const VerifyEmailPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    try {
-      const otpCode = otp.join("");
-      //   console.log(otpCode, email);
-      const res = await verifyEmailApi({
+    const otpCode = otp.join("");
+    const res = await sendApiRequest(() =>
+      verifyEmail({
         email,
         otp: otpCode,
-      });
+      }),
+    );
 
-      setOtp(["", "", "", "", "", ""]);
-      dismissToast()
-      showSuccess(res.message || "Email Verify succesfull. ");
+    if (!res) return;
 
-      navigate("/login");
+    setOtp(["", "", "", "", "", ""]);
+    dismissToast();
+    showSuccess(res.message || "Email verified successfully.");
 
-      console.log(res);
-    } catch (error) {
-        dismissToast()
-      showError(error?.response?.data?.message || "Something went wrong.");
-      console.error(error?.response?.data?.message || error.message);
-    }
+    navigate("/login");
   };
 
   const handleResendOtp = async () => {
-    try {
-      const res = await resendEmailVerifyOtp({ email });
-        dismissToast()
-      showSuccess(res.message || "resend Otp succesfull.")
-    } catch (error) {
-    dismissToast()
-      showError(error?.response?.data?.message || "Something went wrong.");
-      console.error(error?.response?.data?.message || error.message);
-    }
+    const res = await sendApiRequest(() => resendEmailVerifyOtp({ email }));
+
+    if (!res) return;
+
+    dismissToast();
+    showSuccess(res.message || "OTP resent successfully.");
   };
 
   return (

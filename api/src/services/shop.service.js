@@ -78,23 +78,36 @@ class shopServices {
             throw new BadRequestError("Vendor KYC verification is waiting for approval.");
         }
         /// try to add that data it delete by default. for save 
-        delete shopData.rating;
-        delete shopData.reviews;
-        delete shopData.user_id;
-        delete shopData.ShopStatus;
 
-        /// allow email only if provided
-        if (!shopData.businessEmail || shopData.businessEmail === "") {
-            delete shopData.businessEmail;
-        }
-        /// create shop
-        const shop = await ShopModel.findOneAndUpdate({ user_id: vendorId }, {
-            ...shopData,
-        }, {
-            returnDocument: "after"
+        const updateData = {};
+
+        Object.keys(shopData).forEach((key) => {
+            if (key !== "shopAddress" && key !== "openingHour") {
+                updateData[key] = shopData[key];
+            }
         });
-        return shop;
 
+        if (shopData.shopAddress) {
+            Object.entries(shopData.shopAddress).forEach(([key, value]) => {
+                updateData[`shopAddress.${key}`] = value;
+            });
+        }
+        if (shopData.openingHour) {
+            Object.entries(shopData.openingHour).forEach(([key, value]) => {
+                updateData[`openingHour.${key}`] = value;
+            });
+        }
+
+        const shop = await ShopModel.findOneAndUpdate(
+            { user_id: vendorId },
+            { $set: updateData },
+            {
+               returnDocument: "after",
+                runValidators: true,
+            }
+        );
+
+        return shop;
     }
 
 
@@ -142,7 +155,12 @@ class shopServices {
 
         shop.ShopStatus = status;
         await shop.save()
-        return shop
+        return {
+            shopName: shop.shopName,
+            businessEmail: shop.businessEmail,
+            shopStatus: shop.ShopStatus,
+            slugs: shop.slugs
+        }
     }
 
     /// update shop status by Admin

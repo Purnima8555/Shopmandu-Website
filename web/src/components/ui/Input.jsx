@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 
-const Input = forwardRef(({ className = "",  size = "default",  variant = "default",  type = "text",  label,  error,  helperText,  disabled = false,  ...props}, ref) => {
+const Input = forwardRef(({ className = "",  size = "default",  variant = "default",  type = "text",  label,  error,  helperText, placeholder="",  disabled = false,  ...props}, ref) => {
     const baseWrapper = "flex flex-col gap-1 w-full";
     const baseInput ="w-full outline-none transition-all duration-200 rounded-xl border bg-card text-foreground placeholder:text-muted-foreground disabled:opacity-50 disabled:cursor-not-allowed";
 
@@ -22,7 +22,7 @@ const Input = forwardRef(({ className = "",  size = "default",  variant = "defau
       <div className={`${baseWrapper} ${className}`}>
         {label && ( <label className="text-sm font-medium text-foreground">  {label} </label> )}
 
-        <input ref={ref} type={type} disabled={disabled}
+        <input ref={ref} type={type} disabled={disabled} placeholder={placeholder}
           className={`
             ${baseInput}
             ${variants[variant]}

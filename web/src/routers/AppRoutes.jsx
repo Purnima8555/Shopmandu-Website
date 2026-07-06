@@ -9,23 +9,23 @@ import ContactPage from "../pages/ContactPage";
 import ProductListPage from "../pages/ProductListPage";
 import ProductDetailPage from "../pages/ProductDetailPage";
 
-// auth Pages
-import LoginPage from "../pages/loginPages/LoginPage";
-import RegisterPage from "../pages/loginPages/RegisterPage";
-import ForgotPasswordPage from "../pages/loginPages/ForgotPasswordPage";
-import ForgotPasswordSentPage from "../pages/loginPages/ForgetPasswordSentPage";
-import ResetPasswordPage from "../pages/loginPages/ResetPasswordPage";
-import VerifyEmailPage from "../pages/loginPages/VerifyEmailPage";
+
 
 /// guards
 import AuthenticatedRoute from "./guards/AuthenticatedRoute";
 import RoleProtectedRoute from "./guards/RoleProtectedRoute";
 import Roles from "../constants/Rolebase";
 import CartPage from "../pages/CartPage";
-import VendorDashboardPage from "../pages/VendorDashboardPage";
-import AdminDashboardPage from "../pages/AdminDashboardPage";
+// import AdminDashboardPage from "../pages/AdminDashboardPage";
 import UnauthorizedPage from "../pages/UnauthorizedPage";
 import NotFoundPage from "../pages/NotFoundPage";
+import VendorDashboard from "../features/vendor/pages/VendorDashboard";
+import VerifyEmailPage from "../features/auth/pages/VerifyEmailPage";
+import LoginPage from "../features/auth/pages/LoginPage"
+import RegisterPage from "../features/auth/pages/RegisterPage"
+import ForgotPasswordPage from "../features/auth/pages/ForgotPasswordPage"
+import ForgotPasswordSentPage from "../features/auth/pages/ForgotPasswordSentPage"
+import ResetPasswordPage from "../features/auth/pages/ResetPasswordPage"
 
 export default function AppRoutes() {
   return (
@@ -60,12 +60,14 @@ export default function AppRoutes() {
           </Route>
         </Route>
 
+
+      </Route>
+
         {/*  vendor only  */}
         <Route element={<AuthenticatedRoute />}>
           
           <Route element={<RoleProtectedRoute roles={[Roles.VENDOR_ROLE]} />}>
-            
-            <Route path="vendor/dashboard" element={<VendorDashboardPage />} />
+            <Route path="vendor/dashboard" element={<VendorDashboard/>} />
           </Route>
         </Route>
 
@@ -74,13 +76,12 @@ export default function AppRoutes() {
           
           <Route element={<RoleProtectedRoute roles={[Roles.ADMIN_ROLE]} />}>
             
-            <Route path="admin/dashboard" element={<AdminDashboardPage />} />
+            {/* <Route path="admin/dashboard" element={<AdminDashboardPage />} /> */}
           </Route>
         </Route>
 
         {/*  404 Page Not Found  */}
         <Route path="*" element={<NotFoundPage />} />
-      </Route>
     </Routes>
   );
 }

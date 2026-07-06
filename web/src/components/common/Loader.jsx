@@ -13,7 +13,7 @@ const Loader = ({size = "default", text = "Loading...",fullScreen = false}) => {
         ${fullScreen ? "fixed inset-0 bg-[var(--glass-bg)] backdrop-blur-sm z-[999]" : "py-8"}
       `}
     >
-      <div className={` ${sizes[size]} rounded-full  border-border border-t-primaryanimate-spin-smooth `}/>
+      <div className={` ${sizes[size]} rounded-full  border-border border-t-primary animate-spin-smooth `}/>
       {text && (
         <p className="text-sm font-medium text-muted-foreground">
           {text}

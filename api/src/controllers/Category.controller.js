@@ -25,10 +25,7 @@ export const getAllProductCategories = async (req, res, next) => {
             req.query
         );
 
-        res.status(200).json({
-            success: true,
-            categories
-        });
+        res.status(200).json( categories);
     } catch (error) {
         next(error);
     }

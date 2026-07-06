@@ -1,13 +1,14 @@
 import { Link, useNavigate } from "react-router-dom";
 
-import Input from "../../components/ui/Input";
-import Button from "../../components/ui/Button";
+import Input from "../../../components/ui/Input";
+import Button from "../../../components/ui/Button";
 import { useForm } from "react-hook-form";
-import { forgetPasswordApi } from "../../api/auth.api";
-import { dismissToast, showError, showSuccess } from "../../utils/toast";
+import { forgetPasswordApi } from "../../../api/auth.api";
+import { showSuccess } from "../../../utils/toast";
+import sendApiRequest from "../../../utils/sendApiRequest";
 
 const ForgotPasswordPage = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -16,24 +17,22 @@ const ForgotPasswordPage = () => {
   } = useForm();
 
   const handleForgetFormSubmit = async (data) => {
-    try {
-      const res = await forgetPasswordApi({email: data.email});
-      reset();
-      dismissToast()
-      showSuccess(res.message || "If an account exists with this email, a password reset link has been sent.")
+    const res = await sendApiRequest(() =>
+      forgetPasswordApi({ email: data.email }),
+    );
+    if (!res) return;
 
-      navigate("/forgot-password/sent", {
-  state: {
-    email: data.email,
-  },
-});
+    reset();
+    showSuccess(
+      res.message ||
+        "If an account exists with this email, a password reset link has been sent.",
+    );
 
-    //   console.log(res);
-    } catch (error) {
-        dismissToast()
-        showError("Unable to process your request. Please try again later.")
-        console.error(error.message)
-    }
+    navigate("/forgot-password/sent", {
+      state: {
+        email: data.email,
+      },
+    });
   };
 
   return (
@@ -58,7 +57,9 @@ const ForgotPasswordPage = () => {
             {...register("email", { required: "Email is required" })}
           />
 
-          <Button className="w-full cursor-pointer " type="submit" >Send Reset Link</Button>
+          <Button className="w-full cursor-pointer " type="submit">
+            Send Reset Link
+          </Button>
         </form>
 
         <p className="text-center mt-6 text-sm">

@@ -1,0 +1,73 @@
+
+
+/// get my shop
+
+import api from "./axios";
+
+
+export const getMyShop = async () => {
+
+ 
+
+        const response = await api.get(`/api/vendor/my-shop`);
+        return response?.data
+
+
+}
+/// update shop logo
+
+
+/// update shop banner
+export const uploadShopBanner = async (banner) => {
+    
+        const res = await api.patch(`/api/shop/banner-update`, banner)
+
+        return res?.data
+ 
+}
+
+/// update shop banner
+export const uploadShopLogo = async (logo) => {
+  
+        const res = await api.patch(`/api/shop/logo-update`, logo)
+
+        return res?.data
+
+}
+
+/// get kyc status
+export const getKycStatus = async () => {
+
+
+
+        const response = await api.get(`/api/vendor/kyc/status`);
+        return response
+
+  
+}
+
+
+//// go online and selling product
+export const changeMyShopStatus = async (status) => {
+  
+
+        const changeShopStatus = await api.patch("/api/shop/status-update", status)
+        return changeShopStatus.data
+
+   
+}
+/// update shop information
+export const updateShopInfo = async (shopData) => {
+   
+        console.log(shopData)
+        const updatedShop = await api.put("/api/shop/update", shopData)
+        return updatedShop.data
+ 
+}
+
+
+
+/// vendor change shop status
+
+/// get shop by slug
+

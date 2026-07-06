@@ -1,17 +1,18 @@
 import { Link, Navigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
-import Input from "../../components/ui/Input";
-import Button from "../../components/ui/Button";
-import Selecter from "../../components/ui/Selecter";
-import PasswordInput from "../../components/ui/PasswordInput";
+import Input from "../../../components/ui/Input";
+import Button from "../../../components/ui/Button";
+import Selecter from "../../../components/ui/Selecter";
+import PasswordInput from "../components/PasswordInput";
 import { useForm } from "react-hook-form";
-import Loader from "../../components/common/Loader";
-import useAuthStore from "../../store/authStore";
+import Loader from "../../../components/common/Loader";
+import useAuthStore from "../../../store/authStore";
 import { useNavigate } from "react-router-dom";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { registerSchema } from "../../schemas/auth.validation";
-import { dismissToast, showError, showSuccess } from "../../utils/toast";
+import { registerSchema } from "../../../schemas/auth.validation";
+import {showSuccess } from "../../../utils/toast";
+import sendApiRequest from "../../../utils/sendApiRequest";
 
 const RegisterPage = () => {
   const { registerUser, loading, isAuthenticated } = useAuthStore();
@@ -31,7 +32,6 @@ const RegisterPage = () => {
   }
 
   const registerHandelSubmit = async (data) => {
-    try {
       const formData = new FormData();
 
       formData.append("userName", data.userName);
@@ -40,7 +40,9 @@ const RegisterPage = () => {
       formData.append("password", data.password);
       formData.append("roles", data.roles);
 
-      const res = await registerUser(formData);
+      const res = await sendApiRequest(()=>registerUser(formData));
+
+      if(!res) return;
 
       if (res?.success) {
         navigate(`/verify-email`, {
@@ -50,15 +52,9 @@ const RegisterPage = () => {
         });
       }
 
-      dismissToast();
       showSuccess(res.message || "Account Created.");
-
       reset();
-    } catch (error) {
-      dismissToast();
-      showError(error?.message || "Something went wrong");
-      console.error(error.message);
-    }
+  
   };
 
   if (loading) {
@@ -74,9 +70,7 @@ const RegisterPage = () => {
               Create Account
             </h1>
 
-            <p className="mt-1 text-muted-foreground">
-              Join ShopMandu today
-            </p>
+            <p className="mt-1 text-muted-foreground">Join ShopMandu today</p>
           </div>
 
           <form
@@ -130,9 +124,7 @@ const RegisterPage = () => {
           <div className="flex items-center gap-3 my-6">
             <div className="h-px flex-1 bg-border"></div>
 
-            <span className="text-sm text-muted-foreground">
-              OR
-            </span>
+            <span className="text-sm text-muted-foreground">OR</span>
 
             <div className="h-px flex-1 bg-border"></div>
           </div>
@@ -144,10 +136,7 @@ const RegisterPage = () => {
 
           <p className="text-center mt-6 text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link
-              to="/login"
-              className="text-primary font-medium underline"
-            >
+            <Link to="/login" className="text-primary font-medium underline">
               Sign In
             </Link>
           </p>
