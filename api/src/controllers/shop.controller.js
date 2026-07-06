@@ -183,24 +183,23 @@ const updateShopStatusByAdmin = async (req, res, next) => {
     } catch (error) {
         next(error)
     }
+
 }
 
-const getShopById = async (req, res, next) => {
+/// search shop by name 
+
+const searchShop = async (req, res, next) => { 
+    
     try {
+        
+        const result = await shopService.searchShopForPublic(req.query)
 
-        const shop = await shopService.getShopById(req.params.shopId);
+        res.status(200).json(result)
 
-        res.status(200).json({
-            success: true,
-            data: shop
-        });
-
-    } catch (err) {
-        next(err);
+    } catch (error) {
+        next(error)
     }
-};
-
-
+ }
 
 export {
     createShop,
@@ -211,6 +210,6 @@ export {
     myShop,
     updateShopStatusByAdmin,
     updateShopStatus,
-    getShopById,
+    searchShop,
 }
 

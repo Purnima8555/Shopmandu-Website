@@ -1,34 +1,24 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
-import CartPage from "./pages/CartPage";
-import PaymentSuccess from "./pages/PaymentSuccess";
+import { useEffect } from "react";
+import AppRoutes from "./routers/AppRoutes";
+import useAuthStore from "./store/authStore";
+import useProductStore from "./store/productStore";
 
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <HomePage />,
-  },
-
-  {
-    path: "/login",
-    element: <LoginPage />,
-  },
-
-  {
-    path: "/cart",
-    element: <CartPage />,
-  },
-
-  {
-    path: "/payment-success",
-    element: <PaymentSuccess/>
-  }
-]);
 
 function App() {
-  return <RouterProvider router={router} />;
+
+  /// get user when user reload.
+  const getMe = useAuthStore((state) => state.getMe);
+  const flashShale = useProductStore((state)=> state.flashShale)
+  useEffect(() => {
+    getMe();
+    flashShale({
+        page: 1,
+        limit: 10,
+      })
+  }, [getMe, flashShale]);
+
+  return <AppRoutes/>;
 }
 
 export default App;

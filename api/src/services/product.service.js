@@ -1,4 +1,6 @@
 
+
+
 import productStatus from "../constants/productStatus.js";
 import ShopStatus from "../constants/ShopStatus.js";
 import ProductModel from "../models/Product.model.js";
@@ -9,6 +11,7 @@ import { generateUniqueProductSlug } from "../utils/slug.utils.js"
 import categoryService from "./category.service.js";
 import promptAI from "../utils/ai.js";
 import buildProductPrompt from "../utils/promptMessage.js";
+
 
 
 class ProductService {
@@ -30,15 +33,16 @@ class ProductService {
 
         let category
         /// category used.
-        if(productData?.categoryId){
+        if (productData?.categoryId) {
             await categoryService.useCategory(productData?.categoryId);
             category = productData?.categoryId
+
         }
 
         /// generate slug
         const slug = await generateUniqueProductSlug(productData.slug || productData.name);
 
-        console.log("product Slug: ",slug)
+        console.log("product Slug: ", slug)
         /// upload images
         const uploadedProductImages = await CloudinaryUpload.uploadMultipleImage(images, "upload");
         const productImages = uploadedProductImages.map(img => img.secure_url);
@@ -57,6 +61,7 @@ class ProductService {
                     (productData.price * productData.discountPercent) / 100
                     : 0
         };
+
         /// create product
         const product = await ProductModel.create(productPayload);
         if (!productData.description || productData.description.trim() === "") {
@@ -83,17 +88,54 @@ class ProductService {
             })();
 
         }
-
         return product;
     }
 
     //// vendor can get their products
-    async getMyProducts(vendorId) {
-        const products = await ProductModel.find({
-            vendorId: vendorId
-        });
+    async getMyProducts(vendorId, data) {
 
-        return products;
+        const page = parseInt(data?.page, 10) || 1;
+        const limit = parseInt(data?.limit, 10) || 10;
+        const skip = (page - 1) * limit;
+
+        const filter = {
+            vendorId,
+        };
+
+        /// search by product name
+        if (data?.name) {
+            filter.name = {
+                $regex: data.name,
+                $options: "i",
+            };
+        }
+
+        //// filter by product status
+        if (data?.productStatus) {
+            filter.productStatus = data.productStatus;
+        }
+
+        const [products, totalDocuments] = await Promise.all([
+            ProductModel.find(filter)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+            ProductModel.countDocuments(filter),
+        ]);
+
+        const totalPages = Math.ceil(totalDocuments / limit);
+
+        return {
+            metadata: {
+                totalResults: totalDocuments,
+                totalPages,
+                currentPage: page,
+                limit,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
+            },
+            data: products,
+        };
     }
 
     /// get my product by id 
@@ -298,6 +340,143 @@ class ProductService {
         };
     }
 
+
+/// Get all products for public with pagination
+async getAllProduct(data) {
+    const page = parseInt(data?.page, 10) || 1;
+    const limit = parseInt(data?.limit, 10) || 10;
+    const skip = (page - 1) * limit;
+
+    const filter = {};
+
+    let sort = {
+        createdAt: -1,
+    };
+
+    /// search by product name
+    if (data?.name) {
+        filter.name = {
+            $regex: data.name,
+            $options: "i",
+        };
+    }
+
+    /// product status
+    if (data?.productStatus) {
+        filter.productStatus = data.productStatus;
+    }
+
+    /// best selling products
+    if (data?.bestSale) {
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+        filter.updatedAt = {
+            $gte: oneWeekAgo,
+        };
+
+        filter.releasedStock = {
+            $gt: 0,
+        };
+
+        sort = {
+            releasedStock: -1,
+            updatedAt: -1,
+        };
+    }
+
+    const [products, totalDocuments] = await Promise.all([
+      ProductModel.find(filter)
+        .populate("shopId", "shopName")
+        .populate("categoryId", "categoryName")
+        .sort(sort)
+        .skip(skip)
+        .limit(limit),
+
+      ProductModel.countDocuments(filter),
+    ]);
+
+    const totalPages = Math.ceil(totalDocuments / limit);
+
+    return {
+        metadata: {
+            totalResults: totalDocuments,
+            totalPages,
+            currentPage: page,
+            limit,
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1,
+        },
+        data: products,
+    };
+}
+
+    /// on flashSales for vendor product
+
+    async onFlashSales(vendorId, productId) {
+        const product = await this.getMyProductById(vendorId, productId);
+
+        product.flashSales = true;
+        await product.save();
+        
+        return {
+        message: "Product added to flash sales successfully",
+        product,
+        };
+        
+    }
+
+    async removeFromFlashSales(vendorId, productId) {
+        const product = await this.getMyProductById(vendorId, productId);
+
+        product.flashSales = false;
+        await product.save();
+
+        return {
+        message: "Product removed from flash sales successfully",
+        product,
+        };
+    }
+
+    /// get all flash sales products for public
+
+    async getAllFlashSalesProducts(data) {
+        const page = parseInt(data?.page, 10) || 1;
+        const limit = parseInt(data?.limit, 10) || 10;
+        const skip = (page - 1) * limit;
+
+        const filter = { flashSales: true };
+
+        if (data?.name) {
+        filter.name = {
+            $regex: data.name,
+            $options: "i",
+        };
+        }
+
+        const [products, totalDocuments] = await Promise.all([
+        ProductModel.find(filter)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit),
+        ProductModel.countDocuments(filter),
+        ]);
+
+        const totalPages = Math.ceil(totalDocuments / limit);
+
+        return {
+        metadata: {
+            totalResults: totalDocuments,
+            totalPages,
+            currentPage: page,
+            limit,
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1,
+        },
+        data: products,
+        };
+    }
+    
     /// Top selling products (Admin,customer)
     async getTopProducts(limit = 10) {
 

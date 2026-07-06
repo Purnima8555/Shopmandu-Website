@@ -8,7 +8,7 @@ import roleBasedAuth from "../middleware/roleBase.middleware.js";
 import Roles from "../constants/userRoles.js";
 import schemaValidator from "../middleware/schemaValidator.middleware.js";
 import shopSchema from "../libs/schema/shop.schema.js";
-import {createShop, getShopBySlug, myShop, updateShopBanner, updateShopInfo, updateShopLogo, updateShopStatus, updateShopStatusByAdmin, getShopById } from "../controllers/shop.controller.js";
+import { createShop, getShopBySlug, myShop, searchShop, updateShopBanner, updateShopInfo, updateShopLogo, updateShopStatus, updateShopStatusByAdmin } from "../controllers/shop.controller.js";
 
 const router = Router()
 
@@ -22,6 +22,8 @@ router.post("/shop/create", auth, roleBasedAuth(Roles.VENDOR_ROLE),
     createShop
 )
 
+/// search shop by name
+router.get("/shops/search", searchShop)
 
 /// get shop by slug
 router.get("/shop/:slug", getShopBySlug);
@@ -48,7 +50,6 @@ router.patch("/shop/status-update", auth, roleBasedAuth(Roles.VENDOR_ROLE), upda
 /// update shop status by admin
 router.patch("/admin/shops/:id/status", auth, roleBasedAuth(Roles.ADMIN_ROLE), updateShopStatusByAdmin)
 
-router.get("/id/:shopId", getShopById);
 export default router;
 
 

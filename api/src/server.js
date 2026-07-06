@@ -1,4 +1,3 @@
-import cors from "cors";
 import express from "express";
 import bodyParser from "body-parser";
 import connectDB from "./config/dbConnect.js";
@@ -6,7 +5,6 @@ import config from "./config/config.js";
 
 import authRouters from "./routes/auth.route.js";
 import vendorRouters from "./routes/vendor.routes.js"
-import userRouters from "./routes/user.route.js";
 import cloudinaryConnect from "./config/cloudinary.config.js";
 import shopRouters from "./routes/shop.routes.js"
 
@@ -15,7 +13,8 @@ import cartRouters from "./routes/cart.route.js"
 import wishlistRouters from "./routes/wishlist.route.js"
 import productRouters from "./routes/product.route.js"
 import orderRoutes from "./routes/order.route.js"
-import returnRouters from "./routes/return.route.js"
+import userRouters from "./routes/user.route.js";
+import returnRouters from "./routes/return.route.js";
 import aiRoutes from "./routes/ai.route.js";
 
 import { connectRedis } from "./config/redis.config.js"
@@ -26,6 +25,7 @@ import couponRouters from "./routes/coupon.route.js"
 import categoryRoters from "./routes/category.route.js"
 import { errorMiddleware, RouteNotFoundMiddleware } from "./middleware/error.middleware.js";
 import helmet from "helmet"
+import cors from "cors"
 
 
 const app = express();
@@ -36,43 +36,40 @@ app.use(bodyParser.json());
 app.use(express.json());
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: config.client_url,
     credentials: true,
-  }),
+  })
 );
-
-/// User Routes
-app.use("/api", userRouters);
-
 //// routes
 app.use("/api/auth", authRouters);
 /// vendor routes
 app.use("/api", vendorRouters)
 /// shop routers
 app.use("/api", shopRouters);
-/// address routers
+/// address routers 
 app.use("/api/address", addressRouters)
+
 /// cart routers
 app.use("/api/cart", cartRouters)
-/// wishlist route
 app.use("/api/wishlist", wishlistRouters)
-///ai route
-app.use("/api/ai", aiRoutes);
+
 /// product routers
 app.use("/api", productRouters)
 // order routers
 app.use("/api/order", orderRoutes)
 /// payment routes
 app.use("/api", paymentRouters)
-
 /// coupon Routers
 app.use("/api/coupon", couponRouters)
 
-/// returnrequest
-app.use("/api/return", returnRouters)
-
 /// category Routers
 app.use("/api/category", categoryRoters)
+/// User Routes
+app.use("/api", userRouters);
+/// AI routes
+app.use("/api/ai", aiRoutes);
+/// Return request routes
+app.use("/api/return", returnRouters);
 
 /// error handel
 app.use(RouteNotFoundMiddleware);

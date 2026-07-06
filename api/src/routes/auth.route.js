@@ -4,12 +4,16 @@
 import { Router } from "express";
 import authController from "../controllers/auth.controller.js";
 import schemaValidator from "../middleware/schemaValidator.middleware.js";
-import { loginSchema, registerSchema } from "../libs/schema/auth.schema.js";
+import { loginSchema, registerSchema } from "../libs/schema/auth.js";
 import { upload } from "../middleware/multer.middleware.js";
 import resetPasswordSchema from "../libs/schema/resetPassword.schema.js";
 import readLimiting from "../middleware/rateLimiting.middleware.js";
+import auth from "../middleware/auth.middleware.js";
 
 const router= Router()
+
+router.get("/me", auth, authController.getme);
+router.post("/logout", authController.logout)
 
 router.use(readLimiting)
 
@@ -17,6 +21,8 @@ router.post("/register", upload.single("avatar"), schemaValidator(registerSchema
 
 router.get("/register", authController.googleLoginLink)
 router.get("/register/google", authController.continueWithGoogle);
+
+
 
 router.post("/verify-email", authController.verifyEmail)
 router.post("/resent-otp", authController.resendOtp)

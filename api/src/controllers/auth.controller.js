@@ -56,7 +56,7 @@ const register = async (req, res, next) => {
         // const avatar = await CloudinaryUpload.uploadSingleImage(req.file, "upload")
         // userData.avatar = avatar.secure_url
 
-        const avatar = req.file
+        const avatar = req?.file
 
         const user = await authService.register(userData, avatar);
 
@@ -72,7 +72,7 @@ const register = async (req, res, next) => {
         //     maxAge: 86400 * 1000 /// valid for 1 day 
         // })
 
-        res.json({ user })
+        res.json( user )
 
 
     } catch (error) {
@@ -215,38 +215,8 @@ const forgetPasswordRequest = async (req, res, next) => {
 
         // create email body in html format 
 
-        const emailbody = (link) => {
-            return `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; line-height: 1.6; color: #333;">
-      <h2 style="color: #111;">Reset Your Password</h2>
-      <p>We received a request to reset your password.</p>
-      <p> Click the button below to create a new password.</p>
-      <a href="${link}"style="display: inline-block;padding: 12px 24px;background-color: #111;color: #fff;text-decoration: none;border-radius: 6px;font-weight: bold;margin: 15px 0;">
-        Reset Password
-      </a>
-      <p>Or use this link:</p>
-      <p>
-        <a href="${link}" style="color: #2563eb; text-decoration: underline;">
-          ${link}
-        </a>
-      </p>
-      <p style="font-style: italic; color: #666;">
-        This link will expire in 15 minutes.
-      </p>
-      <p style="margin-top: 30px;">
-        If you did not request a password reset, you can safely ignore this email.
-      </p>
-    </div>
-  `;
-        };
-
-        const result = await authService.forgetPassword(email, emailbody)
-
-        res.status(200).json({
-            success: true,
-            result
-        })
-
+        const result = await authService.forgetPassword(email)
+        res.status(200).json(result)
     } catch (error) {
         next(error)
     }
@@ -266,16 +236,47 @@ const resetPasswordRequest = async (req, res, next) => {
 
         const result = await authService.resetPassword(_id, newPassword, token)
 
-        res.status(200).json({
-            success: true,
-            result
-        })
+        res.status(200).json(result)
 
     } catch (error) {
         next(error)
     }
 
 }
+
+const getme = async (req, res, next) => { 
+    
+    try {
+
+        res.status(200).json(
+            req.user
+        )
+        
+    } catch (error) {
+        next(error)
+    }
+
+ }
+
+
+ /// logout function.
+const logout = async (req, res, next) => {
+    try {
+        res.clearCookie("authToken", {
+            httpOnly: true,
+            secure: config.node_env === "production",
+            sameSite: "lax",
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Logged out successfully."
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
 
 
 
@@ -290,5 +291,7 @@ export default {
     continueWithGoogle,
     googleLoginLink,
     forgetPasswordRequest,
-    resetPasswordRequest
+    resetPasswordRequest,
+    getme,
+    logout
 };

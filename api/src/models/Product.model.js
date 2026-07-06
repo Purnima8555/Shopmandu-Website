@@ -1,3 +1,6 @@
+
+
+
 import mongoose from "mongoose";
 import productStatus from "../constants/productStatus.js";
 
@@ -51,7 +54,7 @@ const productSchema = new mongoose.Schema(
     description: {
       type: String,
       trim: true,
-      default: "Generating AI description...",
+      default: "Generating description...",
     },
 
     shortDescription: {
@@ -159,6 +162,11 @@ const productSchema = new mongoose.Schema(
       min: 0,
     },
 
+    flashSales: {
+      type: Boolean,
+      default: false,
+    },
+
     totalSold: {
       type: Number,
       min: 0,
@@ -174,8 +182,6 @@ const productSchema = new mongoose.Schema(
 // productSchema.index({ slug: 1 });
 
 /// create model
-const ProductModel =
-    mongoose.models.Product ||
-    mongoose.model("Product", productSchema);
+const ProductModel = mongoose.models.Product || mongoose.model("Product", productSchema);
 
 export default ProductModel;

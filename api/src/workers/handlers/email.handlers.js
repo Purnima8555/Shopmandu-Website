@@ -34,7 +34,7 @@ export const emailHandlers = {
       .createHash("sha256")
       .update(user.token)
       .digest("hex");
-    const link = `http://localhost:${process.env.PORT}/api/auth/reset-password/?id=${user.userId}&token=${hashToken}`;
+    const link = `${process.env.CLIENT_URL}/reset-password/?id=${user.userId}&token=${hashToken}`;
     const body = ResetPasswordEmailbody(link);
 
     /// send reset password link email

@@ -34,19 +34,17 @@ const config = Object.freeze({
     web_uri: process.env.WEB_URI,
     khalti_lookup_uri: process.env.KHALTI_PAYMENT_LOOKUP_URI,
 
-    /// stripe credentials
-    stripe_secret_key: process.env.STRIPE_SECRET_KEY,
-    stripe_redirect_uri: process.env.STRIPE_REDIRECT_URI,
-    stripe_cancel_uri: process.env.STRIPE_CANCEL_URI,
-    
     encrypt_Key: process.env.ENCRYPT_KEY,
 
     /// stripe credentials
     stripe_secret_key: process.env.STRIPE_SECRET_KEY,
     stripe_publishable_key: process.env.STRIPE_PUBLIC_KEY,
 
+    client_url: process.env.CLIENT_URL,
+
     /// gemini key
     gemini_key: process.env.GEMINI_API_KEY,
 })
 
 export default config
+
