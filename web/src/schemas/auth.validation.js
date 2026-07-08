@@ -28,7 +28,7 @@ export const resetPasswordSchema = z
   .object({
     password: z.string().min(6, "Password must be at least 6 characters")
       .regex(
-      passwordRegex,"Password must contain uppercase, lowercase, number and special character"),
+        passwordRegex, "Password must contain uppercase, lowercase, number and special character"),
     confirmPassword: z.string(),
   })
   .refine(
@@ -38,3 +38,8 @@ export const resetPasswordSchema = z
       path: ["confirmPassword"],
     }
   );
+
+//// update username
+export const updateUserName = z.object({
+  userName: z.string().min(3, "User Name must be at least 3 characters.").max(80, "User Name is too long, max 80 characters allowed.")
+});

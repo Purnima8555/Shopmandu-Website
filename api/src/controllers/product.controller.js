@@ -366,6 +366,30 @@ const getAllFlashSalesProducts = async (req, res, next) => {
 };
 
 
+/// product summary 
+
+const getMyProductSummary = async (req, res, next) => { 
+  
+
+  try {
+
+    const summary = await productService.getProductsSummary(req.user._id)
+
+    res.status(200).json({
+      success: true,
+      message: "succesfully get product summary",
+      summary
+    })
+    
+  } catch (error) {
+    next(error)
+  }
+
+
+
+ }
+
+
 export {
   createProduct,
   getMyProducts,
@@ -387,4 +411,5 @@ export {
   getTopProductsPublic,
   getTopProducts,
   getTopProductsVendor,
+  getMyProductSummary,
 };

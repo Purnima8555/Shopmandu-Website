@@ -23,6 +23,7 @@ export const generateGoogleOauthUrl = async ()=>{
 
 //// verify email 
 export const verifyEmailApi = async (data) => {
+    console.log(data)
     const res = await api.post("api/auth/verify-email", data);
     return res.data;
 };
@@ -56,5 +57,5 @@ export const resendEmailVerifyOtp = async (data) => {
 
 export const getMeApi = async () => {
   const res = await api.get("/api/auth/me");
-  return res.data;
+  return res?.data;
 };

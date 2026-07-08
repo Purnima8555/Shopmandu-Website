@@ -4,6 +4,8 @@ import Roles from "../constants/userRoles.js";
 import vendorService from "../services/vendor.service.js"
 import { BadRequestError } from "../utils/AppError.js"
 import CloudinaryUpload from "../utils/CloudinaryUpload.js";
+import { signJwt } from "../utils/jwt.utils.js";
+import config from "../config/config.js";
 
 
 
@@ -128,20 +130,25 @@ const getVendorProfile = async (req, res, next) => {
 
 
 /// ##### ADMIN vendor controller function
+/// Get vendor details
 const getVendorById = async (req, res, next) => {
-    const vendorId = req.params.id
-
-    if (!vendorId) {
-        throw new BadRequestError("Vendor id is required.")
-    }
     try {
-        const vendor = await vendorService.getVendorById(vendorId)
-        res.status(200).json({ vendor });
-    } catch (error) {
-        next(error)
-    }
+        const vendorId = req.params.id;
 
-}
+        if (!vendorId) {
+        throw new BadRequestError("Vendor ID is required.");
+        }
+
+        const vendor = await vendorService.getVendorById(vendorId);
+
+        res.status(200).json({
+        success: true,
+        data: vendor,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
 
 
 /// get all vendors
@@ -149,9 +156,9 @@ const getAllVendors = async (req, res, next) => {
 
     try {
 
-        
 
-        const vendors = await vendorService.getAllVendors({data: req.query});
+
+        const vendors = await vendorService.getAllVendors({ data: req.query });
 
         res.status(200).json({ ...vendors })
     } catch (error) {
@@ -164,7 +171,7 @@ const getAllVendors = async (req, res, next) => {
 const filterVendors = async (req, res, next) => {
     try {
 
-        const { search, authProvider, sortBy, order, page, verified, limit} = req.query;
+        const { search, authProvider, sortBy, order, page, verified, limit } = req.query;
         const result = await vendorService.vendorFilter(search, authProvider, sortBy, order,
             Number(page) || 1,
             verified === "true",
@@ -241,6 +248,26 @@ const updateVendorName = async (req, res, next) => {
         const { userName } = req.body;
         const vendor = await vendorService.updateVendorName(userName, vendorId);
 
+        //// creatre jwt token
+        let payload = {
+            userName: vendor.userName,
+            _id: vendor._id,
+            email: vendor.email,
+            roles: vendor.roles,
+            authProvider: vendor.authProvider,
+            avatar: vendor.avatar,
+            mobile: vendor.mobile
+
+        }
+        const token = await signJwt(payload)
+
+        res.cookie("authToken", token, {
+            maxAge: 86400 * 1000, /// valid for 1 day 
+            httpOnly: true,
+            secure: config.node_env === "production",
+            sameSite: "lax",
+        })
+
         res.status(200).json({
             success: true,
             message: "Vendor name updated successfully",
@@ -261,6 +288,27 @@ const updateVendorAvatar = async (req, res, next) => {
             throw new BadRequestError("Vendor Avatar is required.")
         }
         const updatedVendor = await vendorService.updateVendorAvatar(file, vendorId);
+
+         //// creatre jwt token
+        let payload = {
+            userName: updatedVendor.userName,
+            _id: updatedVendor._id,
+            email: updatedVendor.email,
+            roles: updatedVendor.roles,
+            authProvider: updatedVendor.authProvider,
+            avatar: updatedVendor.avatar,
+            mobile: updatedVendor.mobile
+
+        }
+        const token = await signJwt(payload)
+
+        res.cookie("authToken", token, {
+            maxAge: 86400 * 1000, /// valid for 1 day 
+            httpOnly: true,
+            secure: config.node_env === "production",
+            sameSite: "lax",
+        })
+
         res.status(200).json({
             success: true,
             message: "Vendor profile image updated successfully",
@@ -277,7 +325,7 @@ export {
     getVendorProfile,
     getVendorById,
     getAllVendors,
-    
+
     filterVendors,
     getVendorKycVerifyDoc,
     approveVendorKyc,

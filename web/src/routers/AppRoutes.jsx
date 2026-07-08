@@ -10,33 +10,33 @@ import ContactPage from "../pages/ContactPage";
 import ProductListPage from "../pages/ProductListPage";
 import ProductDetailPage from "../pages/ProductDetailPage";
 
-// auth Pages
-import LoginPage from "../pages/loginPages/LoginPage";
-import RegisterPage from "../pages/loginPages/RegisterPage";
-import ForgotPasswordPage from "../pages/loginPages/ForgotPasswordPage";
-import ForgotPasswordSentPage from "../pages/loginPages/ForgetPasswordSentPage";
-import ResetPasswordPage from "../pages/loginPages/ResetPasswordPage";
-import VerifyEmailPage from "../pages/loginPages/VerifyEmailPage";
+
 
 /// guards
 import AuthenticatedRoute from "./guards/AuthenticatedRoute";
 import RoleProtectedRoute from "./guards/RoleProtectedRoute";
 import Roles from "../constants/Rolebase";
 import CartPage from "../pages/CartPage";
-import VendorDashboardPage from "../pages/VendorDashboardPage";
 import UnauthorizedPage from "../pages/UnauthorizedPage";
 import NotFoundPage from "../pages/NotFoundPage";
+import VendorDashboard from "../features/vendor/pages/VendorDashboard";
+import VerifyEmailPage from "../features/auth/pages/VerifyEmailPage";
+import LoginPage from "../features/auth/pages/LoginPage"
+import RegisterPage from "../features/auth/pages/RegisterPage"
+import ForgotPasswordPage from "../features/auth/pages/ForgotPasswordPage"
+import ForgotPasswordSentPage from "../features/auth/pages/ForgotPasswordSentPage"
+import ResetPasswordPage from "../features/auth/pages/ResetPasswordPage"
 
 // admin
-import AdminDashboardPage from "../pages/Admin/Overview";
-import CategoriesPage from "../pages/Admin/Category";
-import CouponsPage from "../pages/Admin/Coupons";
-import PayoutsPage from "../pages/Admin/Payout";
-import OrdersPage from "../pages/Admin/Orders";
-import ProductsPage from "../pages/Admin/Products";
-import ShopsPage from "../pages/Admin/Shops";
-import VendorsPage from "../pages/Admin/Vendors";
-import UsersPage from "../pages/Admin/Users";
+import AdminDashboardPage from "../features/admin/pages/Overview";
+import CategoriesPage from "../features/admin/pages/Category";
+import CouponsPage from "../features/admin/pages/Coupons";
+import PayoutsPage from "../features/admin/pages/Payout";
+import OrdersPage from "../features/admin/pages/Orders";
+import ProductsPage from "../features/admin/pages/Products";
+import ShopsPage from "../features/admin/pages/Shops";
+import VendorsPage from "../features/admin/pages/Vendors";
+import UsersPage from "../features/admin/pages/Users";
 
 export default function AppRoutes() {
   return (
@@ -71,18 +71,20 @@ export default function AppRoutes() {
           </Route>
         </Route>
 
+
+      </Route>
+
         {/*  vendor only  */}
         <Route element={<AuthenticatedRoute />}>
           
           <Route element={<RoleProtectedRoute roles={[Roles.VENDOR_ROLE]} />}>
-            
-            <Route path="vendor/dashboard" element={<VendorDashboardPage />} />
+            <Route path="vendor/dashboard" element={<VendorDashboard/>} />
           </Route>
         </Route>
 
         {/*  404 Page Not Found  */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Route>
+      <Route path="*" element={<NotFoundPage />} />
+      
 
       {/*  admin only  */}
       <Route element={<AuthenticatedRoute />}>

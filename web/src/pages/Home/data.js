@@ -1,7 +1,7 @@
 export const productData = {
   metadata: {
-    totalResults: 11,
-    totalPages: 2,
+    totalResults: 46,
+    totalPages: 5,
     currentPage: 1,
     limit: 10,
     hasNextPage: true,
@@ -9,455 +9,437 @@ export const productData = {
   },
   data: [
     {
-      _id: "6a4141231b1a9bc6dd65e120",
+      _id: "6a48e744abdb3eac9c0b8291",
       vendorId: "6a0ae79a45866cf20d1a5dae",
       shopId: "6a0aee0347a9b8bccc8a6eff",
-      categoryId: "6a341c71df4194b09823668b",
-      name: "MacBook Air M4",
-      slug: "macbook-air-m4-c2362cacc1bd34cc",
+      categoryId: "6a340912ecfacfe483950058",
+      name: "Bluetooth Headphone",
+      slug: "bluetooth-f166019ea8172123",
       productStatus: "ACTIVE",
-      description: "Ultra-thin Apple laptop powered by the M4 chip, featuring high performance, long battery life, and a stunning Liquid Retina display.",
-      shortDescription: "Lightweight Apple laptop.",
-      price: 189999,
-      discountPrice: 186199.02,
-      discountPercent: 2,
-      stock: 500,
+      description: "Hi-Res Audio: Hi-Res certification signifies the ability to deliver high-resolution audio, enabling you to enjoy all the thrill and excitement of pure, living sound directly to your ears\r\nQualcomm Chip: The world's leading Qualcomm chip provides the most stable Bluetooth connection, high-fidelity audio transmission and ultra-low power consumption for the Bluetooth headphones\r\nNoise Canceling: Built-in ANC microphones and digital active noise cancellation filter out up to most of low-frequency ambient sound, improves audio quality, and allows you to enjoy music and calls more attentively\r\nUltra-comfortable: Active noise cancelling headphones can be pressure-free worn all day thanks to their lightweight build and soft fit leather padded earcups and adjustable headband, even if you're wearing glasses",
+      shortDescription: "Bluetooth Headphones, Premium Active Noise Cancelling Wireless Headphones Over Ear, 50H Playtime, Hi-Res Audio, Deep Bass, Memory Foam Ear Cups for Travel, Home Office",
+      price: 3990,
+      discountPrice: 3950.1,
+      discountPercent: 1,
+      stock: 3,
       images: [
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1782661410/my_Images/hyyod4hjn66kwl3hpa5e.jpg",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1782661411/my_Images/ycmixrhqwgv7jegljl4c.jpg"
-      ],
-      videos: [],
-      colors: [
-        "Midnight",
-        "Starlight",
-        "Silver",
-        "Space Gray"
-      ],
-      sizes: [
-        "13-inch",
-        "15-inch"
-      ],
-      brand: "Apple",
-      productWeight: {
-        $numberDecimal: "2"
-      },
-      boxVolume: {
-        $numberDecimal: "18000"
-      },
-      rating: 0,
-      totalReviews: 0,
-      inReserve: 15,
-      releasedStock: 25,
-      flashSales: true,
-      totalSold: 0,
-      createdAt: "2026-06-28T15:43:31.983Z",
-      updatedAt: "2026-06-28T15:44:09.297Z",
-      __v: 0
-    },
-    {
-      _id: "6a342144df4194b09823668f",
-      vendorId: "6a0ae79a45866cf20d1a5dae",
-      shopId: "6a0aee0347a9b8bccc8a6eff",
-      categoryId: "6a341c71df4194b09823668b",
-      name: "MacBook Air M4",
-      slug: "macbook-air-m4-650ec2da996f224a",
-      productStatus: "ACTIVE",
-      description: "Ultra-thin Apple laptop powered by the M4 chip, featuring high performance, long battery life, and a stunning Liquid Retina display.",
-      shortDescription: "Lightweight Apple laptop.",
-      price: 189999,
-      discountPrice: 186199.02,
-      discountPercent: 2,
-      stock: 500,
-      images: [
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1781801282/my_Images/rlq6zsmfbfffpb4qp21g.jpg",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1781801282/my_Images/owewzsmtxrrlvymnmws4.jpg",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1781801283/my_Images/nvgi1kdece0huyppn673.jpg"
-      ],
-      videos: [],
-      colors: [
-        "Midnight",
-        "Starlight",
-        "Silver",
-        "Space Gray"
-      ],
-      sizes: [
-        "13-inch",
-        "15-inch"
-      ],
-      brand: "Apple",
-      productWeight: {
-        $numberDecimal: "2"
-      },
-      boxVolume: {
-        $numberDecimal: "18000"
-      },
-      rating: 4,
-      totalReviews: 23,
-      inReserve: 0,
-      releasedStock: 10,
-      totalSold: 0,
-      createdAt: "2026-06-18T16:48:04.377Z",
-      updatedAt: "2026-06-27T13:06:15.779Z",
-      __v: 0,
-      flashSales: true
-    },
-    {
-      flashSales: false,
-      _id: "6a34203cdf4194b09823668e",
-      vendorId: "6a0ae79a45866cf20d1a5dae",
-      shopId: "6a0aee0347a9b8bccc8a6eff",
-      name: "iPhone 17 Pro max",
-      slug: "iphone-17-pro-max-d9f386c206441d1b",
-      productStatus: "ACTIVE",
-      description: "Premium Apple smartphone featuring a powerful A-series chip, advanced camera system, ProMotion display, and all-day battery life.",
-      shortDescription: "Flagship Apple smartphone.",
-      price: 246899,
-      discountPrice: 241961.02,
-      discountPercent: 2,
-      stock: 100,
-      images: [
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1781801018/my_Images/ai0l4wbjzkyxtqhwqese.png",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1781801016/my_Images/ovdbqvl4qnkoy5nmxlgt.jpg",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1781801018/my_Images/q4d0svqsw6h3wt0w511l.png"
-      ],
-      videos: [],
-      colors: [
-        "Natural Titanium",
-        "Black Titanium",
-        "White Titanium",
-        "Desert Titanium"
-      ],
-      sizes: [
-        "256GB",
-        "512GB"
-      ],
-      brand: "Apple",
-      productWeight: {
-        $numberDecimal: "0.233"
-      },
-      boxVolume: {
-        $numberDecimal: "500"
-      },
-      rating: 0,
-      totalReviews: 0,
-      inReserve: 0,
-      releasedStock: 0,
-      totalSold: 0,
-      createdAt: "2026-06-18T16:43:40.100Z",
-      updatedAt: "2026-06-18T16:43:40.100Z",
-      __v: 0
-    },
-    {
-      _id: "6a341ebbdf4194b09823668d",
-      vendorId: "6a0ae79a45866cf20d1a5dae",
-      shopId: "6a0aee0347a9b8bccc8a6eff",
-      categoryId: "6a341c5edf4194b09823668a",
-      name: "iPhone 17 Pro",
-      slug: "iphone-17-pro-3c99a2616def3996",
-      productStatus: "ACTIVE",
-      description: "Premium Apple smartphone featuring a powerful A-series chip, advanced camera system, ProMotion display, and all-day battery life.",
-      shortDescription: "Flagship Apple smartphone.",
-      price: 236899,
-      discountPrice: 225054.05,
-      discountPercent: 5,
-      stock: 1000,
-      images: [
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1781800633/my_Images/gtbmhoxffpfminz5buqd.png",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1781800631/my_Images/xyzgkbbmnyat05tn41wl.jpg",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1781800633/my_Images/s78xgw5od8tujf5g7len.png"
-      ],
-      videos: [],
-      colors: [
-        "Natural Titanium",
-        "Black Titanium",
-        "White Titanium",
-        "Desert Titanium"
-      ],
-      sizes: [
-        "256GB",
-        "512GB",
-        "1TB"
-      ],
-      brand: "Apple",
-      productWeight: {
-        $numberDecimal: "0.233"
-      },
-      boxVolume: {
-        $numberDecimal: "500"
-      },
-      rating: 3,
-      totalReviews: 45,
-      inReserve: 6,
-      releasedStock: 30,
-      totalSold: 0,
-      createdAt: "2026-06-18T16:37:15.450Z",
-      updatedAt: "2026-06-27T13:07:08.801Z",
-      __v: 0,
-      flashSales: true
-    },
-    {
-      _id: "6a172e02095762a67639896c",
-      vendorId: "6a019ddebb804b03ab8d1059",
-      shopId: "6a172d3d3f97697b10795c52",
-      name: "Under Armour Curry Flow 10",
-      slug: "under-armour-curry-flow-10-6af6f303750bafd6",
-      productStatus: "ACTIVE",
-      description: "High-performance basketball shoes engineered for grip, speed, and explosive court movement.",
-      shortDescription: "Elite basketball shoes.",
-      price: 2000,
-      discountPrice: 0,
-      discountPercent: 0,
-      stock: 1000,
-      images: [
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779903999/my_Images/dqopuqpezyo4zfcrfkyh.avif",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779904000/my_Images/bldjweyfn6vmtgspinkg.avif",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779904001/my_Images/fb15gspa4t4ndeetvc2m.avif",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779904001/my_Images/j5vesbbc7xi42jz5gyzy.jpg"
+        "https://res.cloudinary.com/du1muxem8/image/upload/v1783162690/my_Images/n4qwsbscpfnxhxphahq7.jpg",
+        "https://res.cloudinary.com/du1muxem8/image/upload/v1783162691/my_Images/vdulqody0kap7xv9mgwv.jpg"
       ],
       videos: [],
       colors: [],
       sizes: [],
-      rating: 0,
-      totalReviews: 0,
-      totalSold: 0,
-      createdAt: "2026-05-27T17:46:42.453Z",
-      updatedAt: "2026-06-27T13:10:45.396Z",
-      __v: 0,
-      inReserve: 220,
-      releasedStock: 0,
-      boxVolume: {
-        $numberDecimal: "4000"
-      },
-      productWeight: {
-        $numberDecimal: "5"
-      },
-      flashSales: true
-    },
-    {
-      flashSales: false,
-      _id: "6a140d799bcc51390f8aaf31",
-      vendorId: "6a0ae79a45866cf20d1a5dae",
-      shopId: "6a0aee0347a9b8bccc8a6eff",
-      name: "IKEA Markus Chair",
-      slug: "ikea-markus-chair-412fa5c5cdaacbca",
-      productStatus: "ACTIVE",
-      description: "Ergonomic office chair with mesh back support and adjustable height for long working hours.",
-      shortDescription: "Ergonomic office chair.",
-      price: 2300,
-      discountPrice: 2116,
-      discountPercent: 8,
-      stock: 1000,
-      images: [
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779699065/my_Images/l6rwoteomc8kavyuhpa1.avif",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779699065/my_Images/gkcetvpnl1botcnwhl4m.avif",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779699065/my_Images/hurfoxebqnshf3eve2kq.avif",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779699065/my_Images/puctpzmmcmtkogb1mqhi.avif"
-      ],
-      videos: [],
-      colors: [
-        "Black",
-        "Gray"
-      ],
-      sizes: [
-        "Standard"
-      ],
-      rating: 0,
-      totalReviews: 0,
-      totalSold: 0,
-      createdAt: "2026-05-25T08:51:05.913Z",
-      updatedAt: "2026-05-25T08:51:05.913Z",
-      __v: 0,
-      inReserve: 0,
-      releasedStock: 0,
-      boxVolume: {
-        $numberDecimal: "800"
-      },
-      productWeight: {
-        $numberDecimal: "1"
-      }
-    },
-    {
-      _id: "6a140ce07a8bb94f451cc11b",
-      vendorId: "6a0ae79a45866cf20d1a5dae",
-      shopId: "6a0aee0347a9b8bccc8a6eff",
-      name: "IKEA Markus Chair",
-      slug: "ikea-markus-chair1",
-      productStatus: "ACTIVE",
-      description: "Ergonomic office chair with mesh back support and adjustable height for long working hours.",
-      shortDescription: "Ergonomic office chair.",
-      price: 2300,
-      discountPrice: 2116,
-      discountPercent: 8,
-      stock: 1000,
-      images: [
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779698912/my_Images/e9uxparjjsfickrdu257.avif",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779698912/my_Images/bmqvkb5b9ibx7mfxjxb8.avif",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779698912/my_Images/bp5wyalmipnsjljylmqs.avif",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779698912/my_Images/thhtn7qkyayhlssckjss.avif"
-      ],
-      videos: [],
-      colors: [
-        "Black",
-        "Gray"
-      ],
-      sizes: [
-        "Standard"
-      ],
-      rating: 4,
-      totalReviews: 69,
-      totalSold: 0,
-      createdAt: "2026-05-25T08:48:32.799Z",
-      updatedAt: "2026-06-27T13:07:22.007Z",
-      __v: 0,
-      inReserve: 0,
-      releasedStock: 0,
-      boxVolume: {
-        $numberDecimal: "600"
-      },
-      productWeight: {
-        $numberDecimal: "0.3"
-      },
-      flashSales: true
-    },
-    {
-      flashSales: false,
-      _id: "6a129efe5d66516cc1a220ba",
-      vendorId: "6a0ae79a45866cf20d1a5dae",
-      shopId: "6a0aee0347a9b8bccc8a6eff",
-      name: "IKEA Markus Chair 7",
-      slug: "ikea-markus-chair",
-      productStatus: "OUT_OF_STOCK",
-      description: "Ergonomic office chair with mesh back support and adjustable height for long working hours.",
-      shortDescription: "Ergonomic office chair.",
-      price: 8000,
-      discountPrice: 7200,
-      discountPercent: 10,
-      stock: 1000,
-      images: [
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779605525/my_Images/go511vx0qq9sid2esc6d.avif",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779605248/my_Images/evwgwscwlqh3mk8a2riy.avif",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779605248/my_Images/etxrpcdttvudx0qd4arp.avif",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779605249/my_Images/zsrg4inpebyjjqz08mvv.avif"
-      ],
-      videos: [
-        "https://res.cloudinary.com/du1muxem8/video/upload/v1779605607/my_Video/qhroxsmqiw4dppccc539.mp4"
-      ],
-      colors: [
-        "Black",
-        "Gray"
-      ],
-      sizes: [
-        "Standard"
-      ],
-      rating: 0,
-      totalReviews: 0,
-      totalSold: 0,
-      createdAt: "2026-05-24T06:47:26.142Z",
-      updatedAt: "2026-05-24T06:53:25.157Z",
-      __v: 1,
-      inReserve: 0,
-      releasedStock: 0,
-      boxVolume: {
-        $numberDecimal: "3000"
-      },
+      brand: "Bluedee",
       productWeight: {
         $numberDecimal: "0.2"
-      }
+      },
+      boxVolume: {
+        $numberDecimal: "1998"
+      },
+      rating: 0,
+      totalReviews: 0,
+      inReserve: 0,
+      releasedStock: 0,
+      flashSales: false,
+      totalSold: 0,
+      createdAt: "2026-07-04T10:58:12.230Z",
+      updatedAt: "2026-07-04T10:58:12.230Z",
+      __v: 0
     },
     {
-      _id: "6a1198725fa1456504474fd2",
+      _id: "6a476e03a857a55c83090aa4",
       vendorId: "6a0ae79a45866cf20d1a5dae",
       shopId: "6a0aee0347a9b8bccc8a6eff",
-      name: "Nike Revolution 7",
-      slug: "nike-revolution-7",
-      productStatus: "OUT_OF_STOCK",
-      description: "Lightweight running shoes designed with soft foam cushioning and breathable mesh upper for daily comfort.",
-      shortDescription: "Lightweight running shoes.",
-      price: 8000,
-      discountPrice: 7200,
-      discountPercent: 10,
-      stock: 3000,
+      categoryId: "6a340926ecfacfe48395005a",
+      name: "Blue Men Formal Pant, Chinos",
+      slug: "blue-men-formal-pant-chinos-bb82ab6a53974a6e",
+      productStatus: "ACTIVE",
+      description: "Blue Men's Formal Chinos Pant – Regular Fit Cotton Trousers\r\n\r\nUpgrade your wardrobe with these stylish Blue Men's Formal Chinos Pants, crafted from premium-quality cotton for superior comfort and durability. Designed with a regular fit, these chinos offer a clean and sophisticated look, making them perfect for office wear, business meetings, casual outings, and formal occasions. The breathable cotton fabric ensures all-day comfort, while the classic blue color pairs effortlessly with shirts, polos, and blazers. Available in multiple waist sizes, these trousers provide a comfortable and flattering fit for every body type.\r\n\r\nKey Features:\r\n\r\nPremium cotton fabric for comfort and breathability\r\nRegular fit for a classic, comfortable look\r\nElegant blue color suitable for formal and semi-formal occasions\r\nStylish chino design with a modern finish\r\nIdeal for office, business, parties, and casual wear\r\nAvailable waist",
+       sizes: [28, 30, 32, 34, 36, 38, 40],
+      shortDescription: "Premium Blue Men's Formal Chinos Pant made from soft cotton with a regular fit. Comfortable, stylish, and perfect for office, business, and casual wear. Available in waist sizes 28–40.",
+      price: 495,
+      discountPrice: 475.2,
+      discountPercent: 4,
+      stock: 30,
       images: [
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779594056/my_Images/lrqxvwyexlj4xkamucpa.jpg",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779538036/my_Images/tlsd4tnurp0eaii7i9oh.jpg",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779538036/my_Images/cj3m3sb94ubz54lby4g3.jpg",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779538036/my_Images/wsnju63vukvzpr75855z.jpg",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779594240/my_Images/xekwp6foehzphvqskmyw.jpg",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779594241/my_Images/pohqtyrgfhykjs1ey4fo.jpg"
+        "https://res.cloudinary.com/du1muxem8/image/upload/v1783066113/my_Images/ogb1pgfqwcvwmckozvs0.webp",
+        "https://res.cloudinary.com/du1muxem8/image/upload/v1783066115/my_Images/dzootigb3xjvqoek37j3.webp"
       ],
+      videos: [],
       colors: [
-        "light gray"
+        "Blue"
+      ],
+  
+      brand: "Pant",
+      productWeight: {
+        $numberDecimal: "0.5"
+      },
+      boxVolume: {
+        $numberDecimal: "999"
+      },
+      rating: 0,
+      totalReviews: 0,
+      inReserve: 0,
+      releasedStock: 0,
+      flashSales: false,
+      totalSold: 0,
+      createdAt: "2026-07-03T08:08:35.205Z",
+      updatedAt: "2026-07-03T08:08:35.205Z",
+      __v: 0
+    },
+    {
+      _id: "6a476b87a857a55c83090aa3",
+      vendorId: "6a0ae79a45866cf20d1a5dae",
+      shopId: "6a0aee0347a9b8bccc8a6eff",
+      categoryId: "6a34019fb4785a0b5f282121",
+      name: "New & Amazing Design RX Watch",
+      slug: "design-rx-watch-50db8f8c58f4d168",
+      productStatus: "ACTIVE",
+      description: "We ship quickly and offer exchanges in case of size issue, Breakin Rider will come and exchange the shoes at your doorstep.",
+      shortDescription: "We ship quickly and offer exchanges in case of size issue, Breakin Rider will come and exchange the shoes at your doorstep.",
+      price: 3400,
+      discountPrice: 3332,
+      discountPercent: 2,
+      stock: 10,
+      images: [
+        "https://res.cloudinary.com/du1muxem8/image/upload/v1783065479/my_Images/a3khkmfel3b4u6nsx2jc.webp",
+        "https://res.cloudinary.com/du1muxem8/image/upload/v1783065479/my_Images/oxkgt2eu3clhgnuykmfp.webp"
+      ],
+      videos: [],
+      colors: [
+        "Black"
       ],
       sizes: [
-        "35",
-        "38",
-        "37",
-        "34"
+        "42mm",
+        "46mm"
       ],
+      brand: "",
+      productWeight: {
+        $numberDecimal: "0.1"
+      },
+      boxVolume: {
+        $numberDecimal: "500"
+      },
       rating: 0,
       totalReviews: 0,
+      inReserve: 0,
+      releasedStock: 0,
+      flashSales: false,
       totalSold: 0,
-      createdAt: "2026-05-23T12:07:14.768Z",
-      updatedAt: "2026-06-28T07:07:08.137Z",
-      __v: 2,
-      inReserve: 15,
-      releasedStock: 26,
-      boxVolume: {
-        $numberDecimal: "2000"
-      },
-      productWeight: {
-        $numberDecimal: "1"
-      },
-      flashSales: true,
-      videos: []
+      createdAt: "2026-07-03T07:57:59.492Z",
+      updatedAt: "2026-07-03T07:57:59.492Z",
+      __v: 0
     },
     {
-      videos: [],
-      flashSales: false,
-      _id: "6a11936a6fffaba6a1a74f37",
+      _id: "6a476b03a857a55c83090aa2",
       vendorId: "6a0ae79a45866cf20d1a5dae",
       shopId: "6a0aee0347a9b8bccc8a6eff",
-      name: "Under Armour Curry Flow 10",
-      slug: "under-armour-curry-flow-10",
+      categoryId: "6a34019fb4785a0b5f282121",
+      name: "New & Amazing Design RX Watch",
+      slug: "design-rx-watch-52e8e81872f0fd25",
       productStatus: "ACTIVE",
-      description: "High-performance basketball shoes engineered for grip, speed, and explosive court movement.",
-      shortDescription: "Elite basketball shoes.",
-      price: 1000,
-      discountPrice: 0,
-      discountPercent: 0,
-      stock: 1000,
+      description: "We ship quickly and offer exchanges in case of size issue, Breakin Rider will come and exchange the shoes at your doorstep.",
+      shortDescription: "We ship quickly and offer exchanges in case of size issue, Breakin Rider will come and exchange the shoes at your doorstep.",
+      price: 3500,
+      discountPrice: 3430,
+      discountPercent: 2,
+      stock: 10,
       images: [
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779536749/my_Images/fnhudzdqhtmxpy73rzsm.avif",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779536749/my_Images/nulnsunaso4bvcfbx5di.avif",
-        "https://res.cloudinary.com/du1muxem8/image/upload/v1779536749/my_Images/d7xteujva1bexdwrfynz.avif"
+        "https://res.cloudinary.com/du1muxem8/image/upload/v1783065347/my_Images/ikiggtki9tfaitagdqoy.webp",
+        "https://res.cloudinary.com/du1muxem8/image/upload/v1783065347/my_Images/dj6cytbbucxeaj6e1n3p.webp"
       ],
-      colors: [],
-      sizes: [],
+      videos: [],
+      colors: [
+        "Black"
+      ],
+      sizes: [
+        "42mm",
+        "46mm"
+      ],
+      brand: "",
+      productWeight: {
+        $numberDecimal: "0.1"
+      },
+      boxVolume: {
+        $numberDecimal: "500"
+      },
       rating: 0,
       totalReviews: 0,
-      totalSold: 0,
-      createdAt: "2026-05-23T11:45:46.459Z",
-      updatedAt: "2026-06-21T06:30:27.783Z",
-      __v: 0,
-      inReserve: 113,
+      inReserve: 0,
       releasedStock: 0,
-      boxVolume: {
-        $numberDecimal: "5000"
-      },
+      flashSales: false,
+      totalSold: 0,
+      createdAt: "2026-07-03T07:55:47.411Z",
+      updatedAt: "2026-07-03T07:55:47.411Z",
+      __v: 0
+    },
+    {
+      _id: "6a476806a857a55c83090aa1",
+      vendorId: "6a0ae79a45866cf20d1a5dae",
+      shopId: "6a0aee0347a9b8bccc8a6eff",
+      categoryId: "6a34019fb4785a0b5f282121",
+      name: "Apple Watch Series 10",
+      slug: "apple-watch-10-9a01a3534cddde83",
+      productStatus: "ACTIVE",
+      description: "The Apple Watch Series 10 stands out with its thinnest-ever build, showcasing a sleek design that maintains Apple’s signature elegance. Available in standard aluminum (Jet Black, Rose Gold, and Silver) and premium titanium (Slate, Gold, and Natural), it is both IP6X and 5ATM rated, offering dust and water resistance for durability. The Series 10 is available in two sizes, 42mm and 46mm, featuring Retina LTPO3 displays with resolutions of 374 x 446 pixels and 416 x 496 pixels, respectively. The introduction of Wide-angle OLED ensures vibrant visuals, with brightness reaching up to 2,000 nits and dropping as low as 1 nit. For added protection, the aluminum model comes with Ion-X glass, while the titanium version uses a Sapphire crystal cover.",
+      shortDescription: "Apple Watch Series 10: Precision, Power, and Performance",
+      price: 155000,
+      discountPrice: 148800,
+      discountPercent: 4,
+      stock: 8,
+      images: [
+        "https://res.cloudinary.com/du1muxem8/image/upload/v1783064582/my_Images/ewzipkx03o67ayezpput.webp"
+      ],
+      videos: [],
+      colors: [
+        "Black",
+        "Orange"
+      ],
+      sizes: [
+        "42mm",
+        "46mm"
+      ],
+      brand: "Apple",
       productWeight: {
-        $numberDecimal: "5"
-      }
+        $numberDecimal: "0.2"
+      },
+      boxVolume: {
+        $numberDecimal: "500"
+      },
+      rating: 0,
+      totalReviews: 0,
+      inReserve: 0,
+      releasedStock: 0,
+      flashSales: false,
+      totalSold: 0,
+      createdAt: "2026-07-03T07:43:02.682Z",
+      updatedAt: "2026-07-03T07:43:02.682Z",
+      __v: 0
+    },
+    {
+      _id: "6a467954074cdda5eec84409",
+      vendorId: "6a0ae79a45866cf20d1a5dae",
+      shopId: "6a0aee0347a9b8bccc8a6eff",
+      categoryId: "6a340912ecfacfe483950058",
+      name: "Razer BlackWidow V4 Pro",
+      slug: "razer-blackwidow-v4-pro-d0168b07f325880a",
+      productStatus: "ACTIVE",
+      description: "Mechanical RGB gaming keyboard featuring Razer Green switches, customizable Chroma lighting, programmable macro keys, and premium wrist rest.",
+      shortDescription: "Mechanical RGB gaming keyboard.",
+      price: 32999,
+      discountPrice: 30689.07,
+      discountPercent: 7,
+      stock: 150,
+      images: [
+        "https://res.cloudinary.com/du1muxem8/image/upload/v1783003473/my_Images/vvruws4aqojym7c9wdyb.png",
+        "https://res.cloudinary.com/du1muxem8/image/upload/v1783003476/my_Images/muvelvtzujlukdgezdln.jpg"
+      ],
+      videos: [],
+      colors: [
+        "Black"
+      ],
+      sizes: [
+        "Full Size"
+      ],
+      brand: "Razer",
+      productWeight: {
+        $numberDecimal: "1.6"
+      },
+      boxVolume: {
+        $numberDecimal: "9800"
+      },
+      rating: 0,
+      totalReviews: 0,
+      inReserve: 0,
+      releasedStock: 0,
+      flashSales: false,
+      totalSold: 0,
+      createdAt: "2026-07-02T14:44:36.568Z",
+      updatedAt: "2026-07-02T14:44:36.568Z",
+      __v: 0
+    },
+    {
+      _id: "6a467931074cdda5eec84408",
+      vendorId: "6a0ae79a45866cf20d1a5dae",
+      shopId: "6a0aee0347a9b8bccc8a6eff",
+      categoryId: "6a340912ecfacfe483950058",
+      name: "Logitech G Pro X Superlight 2",
+      slug: "logitech-g-pro-x-superlight-2-7637bbc12b260cc3",
+      productStatus: "ACTIVE",
+      description: "Ultra-lightweight wireless gaming mouse featuring HERO 2 sensor, LIGHTSPEED wireless technology, and exceptional precision for esports players.",
+      shortDescription: "Wireless esports gaming mouse.",
+      price: 21999,
+      discountPrice: 19799.1,
+      discountPercent: 10,
+      stock: 260,
+      images: [
+        "https://res.cloudinary.com/du1muxem8/image/upload/v1783003440/my_Images/bxs3ydr4wx9sklb0chq8.jpg",
+        "https://res.cloudinary.com/du1muxem8/image/upload/v1783003440/my_Images/jtwzfsamhv17oqy4ftqz.png"
+      ],
+      videos: [],
+      colors: [
+        "Black",
+        "White",
+        "Magenta"
+      ],
+      sizes: [
+        "Standard"
+      ],
+      brand: "Logitech",
+      productWeight: {
+        $numberDecimal: "0.06"
+      },
+      boxVolume: {
+        $numberDecimal: "1800"
+      },
+      rating: 0,
+      totalReviews: 0,
+      inReserve: 0,
+      releasedStock: 0,
+      flashSales: false,
+      totalSold: 0,
+      createdAt: "2026-07-02T14:44:01.035Z",
+      updatedAt: "2026-07-02T14:44:01.035Z",
+      __v: 0
+    },
+    {
+      _id: "6a4678e9074cdda5eec84407",
+      vendorId: "6a0ae79a45866cf20d1a5dae",
+      shopId: "6a0aee0347a9b8bccc8a6eff",
+      categoryId: "6a340912ecfacfe483950058",
+      name: "Nintendo Switch OLED",
+      slug: "nintendo-switch-oled-2bf58fae789ebdcf",
+      productStatus: "ACTIVE",
+      description: "Portable gaming console with a vibrant 7-inch OLED display, detachable Joy-Con controllers, enhanced audio, and TV docking support.",
+      shortDescription: "Portable OLED gaming console.",
+      price: 48999,
+      discountPrice: 45079.08,
+      discountPercent: 8,
+      stock: 180,
+      images: [
+        "https://res.cloudinary.com/du1muxem8/image/upload/v1783003368/my_Images/val1onkz45bsassu8ppw.jpg",
+        "https://res.cloudinary.com/du1muxem8/image/upload/v1783003369/my_Images/wiaitvgygkbw0driudwl.avif"
+      ],
+      videos: [],
+      colors: [
+        "White",
+        "Neon Blue/Red"
+      ],
+      sizes: [
+        "64GB"
+      ],
+      brand: "Nintendo",
+      productWeight: {
+        $numberDecimal: "0.42"
+      },
+      boxVolume: {
+        $numberDecimal: "12000"
+      },
+      rating: 0,
+      totalReviews: 0,
+      inReserve: 0,
+      releasedStock: 0,
+      flashSales: false,
+      totalSold: 0,
+      createdAt: "2026-07-02T14:42:49.409Z",
+      updatedAt: "2026-07-02T14:42:49.409Z",
+      __v: 0
+    },
+    {
+      _id: "6a4678ca074cdda5eec84406",
+      vendorId: "6a0ae79a45866cf20d1a5dae",
+      shopId: "6a0aee0347a9b8bccc8a6eff",
+      categoryId: "6a340912ecfacfe483950058",
+      name: "Xbox Series X",
+      slug: "xbox-series-x-d5d1995cb1b78a8a",
+      productStatus: "ACTIVE",
+      description: "Microsoft's flagship gaming console delivering true 4K gaming, Quick Resume, ray tracing, and a powerful custom SSD for lightning-fast load times.",
+      shortDescription: "Microsoft flagship gaming console.",
+      price: 82999,
+      discountPrice: 78019.06,
+      discountPercent: 6,
+      stock: 120,
+      images: [
+        "https://res.cloudinary.com/du1muxem8/image/upload/v1783003337/my_Images/w2g942qr8izfywsnyncy.jpg",
+        "https://res.cloudinary.com/du1muxem8/image/upload/v1783003338/my_Images/cwhhgetka7gcibjqszvt.jpg"
+      ],
+      videos: [],
+      colors: [
+        "Black"
+      ],
+      sizes: [
+        "1TB"
+      ],
+      brand: "Microsoft",
+      productWeight: {
+        $numberDecimal: "4.45"
+      },
+      boxVolume: {
+        $numberDecimal: "45000"
+      },
+      rating: 0,
+      totalReviews: 0,
+      inReserve: 0,
+      releasedStock: 0,
+      flashSales: false,
+      totalSold: 0,
+      createdAt: "2026-07-02T14:42:18.540Z",
+      updatedAt: "2026-07-02T14:42:18.540Z",
+      __v: 0
+    },
+    {
+      _id: "6a4678a3074cdda5eec84405",
+      vendorId: "6a0ae79a45866cf20d1a5dae",
+      shopId: "6a0aee0347a9b8bccc8a6eff",
+      categoryId: "6a340912ecfacfe483950058",
+      name: "PlayStation 5 Slim",
+      slug: "playstation-5-slim-f8bd7ea9dc5ab511",
+      productStatus: "ACTIVE",
+      description: "Sony's latest gaming console featuring ultra-fast SSD storage, ray tracing, 4K gaming support, and the immersive DualSense wireless controller.",
+      shortDescription: "Next-generation PlayStation console.",
+      price: 84999,
+      discountPrice: 80749.05,
+      discountPercent: 5,
+      stock: 140,
+      images: [
+        "https://res.cloudinary.com/du1muxem8/image/upload/v1783003298/my_Images/df7mkdkopfkq6kolz27i.webp",
+        "https://res.cloudinary.com/du1muxem8/image/upload/v1783003298/my_Images/cpmgopu0zipuxubeqdre.webp"
+      ],
+      videos: [],
+      colors: [
+        "White",
+        "Black"
+      ],
+      sizes: [
+        "1TB"
+      ],
+      brand: "Sony",
+      productWeight: {
+        $numberDecimal: "3.2"
+      },
+      boxVolume: {
+        $numberDecimal: "42000"
+      },
+      rating: 0,
+      totalReviews: 0,
+      inReserve: 0,
+      releasedStock: 0,
+      flashSales: false,
+      totalSold: 0,
+      createdAt: "2026-07-02T14:41:39.211Z",
+      updatedAt: "2026-07-02T14:41:39.211Z",
+      __v: 0
     }
   ]
 }
 
 
 export const countdown = [
-        { label: "Days", value: "03" },
-        { label: "Hours", value: "23" },
-        { label: "Minutes", value: "19" },
-        { label: "Seconds", value: "56" },
-      ]
+  { label: "Days", value: "03" },
+  { label: "Hours", value: "23" },
+  { label: "Minutes", value: "19" },
+  { label: "Seconds", value: "56" },
+]
 
 export const sidebarCategories = [
   "Woman's Fashion",
@@ -484,7 +466,7 @@ export const categoryCards = [
 
 export const homeBannerSlider = [
 
-   {
+  {
     productDetail: {
       productType: "Feature Product",
       name: "iphone 17 pro Max",
@@ -492,7 +474,7 @@ export const homeBannerSlider = [
       image: "https://i.ytimg.com/vi/OP_Tz59Vcaw/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLDK3tfQSxHyfKm7WCLtvsKG-Y1O4g"
     }
   },
-  
+
   {
     productDetail: {
       productType: "Featured Product",

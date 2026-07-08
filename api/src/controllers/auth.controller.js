@@ -23,7 +23,9 @@ const logIn = async (req, res, next) => {
             _id: user._id,
             email: user.email,
             roles: user.roles,
-            authProvider: user.authProvider
+            authProvider: user.authProvider,
+            avatar: user.avatar,
+            mobile: user.mobile
 
         }
         const token = await signJwt(payload)
@@ -72,7 +74,7 @@ const register = async (req, res, next) => {
         //     maxAge: 86400 * 1000 /// valid for 1 day 
         // })
 
-        res.json( user )
+        res.json(user)
 
 
     } catch (error) {
@@ -132,12 +134,16 @@ const verifyEmail = async (req, res, next) => {
         const response = await authService.otpVerification(otp, email);
 
         // JWT payload
-        const payload = {
-            userName: response.user.userName,
-            _id: response.user._id,
-            email: response.user.email,
-            roles: response.roles
-        };
+        let payload = {
+            userName: response.userName,
+            _id: response._id,
+            email: response.email,
+            roles: response.roles,
+            authProvider: response.authProvider,
+            avatar: response.avatar,
+            mobile: response.mobile
+
+        }
 
         // Generate token
         const token = await signJwt(payload);
@@ -236,6 +242,12 @@ const resetPasswordRequest = async (req, res, next) => {
 
         const result = await authService.resetPassword(_id, newPassword, token)
 
+        res.clearCookie("authToken", {
+            httpOnly: true,
+            secure: config.node_env === "production",
+            sameSite: "lax",
+        });
+
         res.status(200).json(result)
 
     } catch (error) {
@@ -244,22 +256,22 @@ const resetPasswordRequest = async (req, res, next) => {
 
 }
 
-const getme = async (req, res, next) => { 
-    
+const getme = async (req, res, next) => {
+
     try {
 
         res.status(200).json(
             req.user
         )
-        
+
     } catch (error) {
         next(error)
     }
 
- }
+}
 
 
- /// logout function.
+/// logout function.
 const logout = async (req, res, next) => {
     try {
         res.clearCookie("authToken", {

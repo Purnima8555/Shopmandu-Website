@@ -4,6 +4,7 @@ import useProductStore from "../../store/productStore";
 import { useEffect } from "react";
 import FlashSaleCard from "../../components/ui/FlashSaleCard";
 import Loader from "../../components/common/Loader";
+import { useNavigate } from "react-router-dom";
 // import Loader from "../../components/common/Loader";
 
 
@@ -12,6 +13,8 @@ export default function ExploreProducts() {
 const getProducts = useProductStore((state) => state.getProducts);
 const products = useProductStore((state) => state.products);
 const loading = useProductStore((state) => state.loading);
+
+  const navigate = useNavigate();
 
   useEffect(  () => {
     getProducts({ page: 1, limit: 10})
@@ -55,6 +58,7 @@ const loading = useProductStore((state) => state.loading);
           icon={GoArrowRight}
           iconPosition="right"
           iconsize={24}
+          onClick={()=>navigate("/products")}
         >
           View All Products
         </Button>

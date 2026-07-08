@@ -11,7 +11,7 @@ import { generateUniqueShopSlug } from "../utils/slug.utils.js";
 
 class shopServices {
 
-    /// creat shop 
+    /// create shop 
     async createShop(shopData, vendorId, files) {
 
         /// check vendor KYC is verified
@@ -78,23 +78,36 @@ class shopServices {
             throw new BadRequestError("Vendor KYC verification is waiting for approval.");
         }
         /// try to add that data it delete by default. for save 
-        delete shopData.rating;
-        delete shopData.reviews;
-        delete shopData.user_id;
-        delete shopData.ShopStatus;
 
-        /// allow email only if provided
-        if (!shopData.businessEmail || shopData.businessEmail === "") {
-            delete shopData.businessEmail;
-        }
-        /// create shop
-        const shop = await ShopModel.findOneAndUpdate({ user_id: vendorId }, {
-            ...shopData,
-        }, {
-            returnDocument: "after"
+        const updateData = {};
+
+        Object.keys(shopData).forEach((key) => {
+            if (key !== "shopAddress" && key !== "openingHour") {
+                updateData[key] = shopData[key];
+            }
         });
-        return shop;
 
+        if (shopData.shopAddress) {
+            Object.entries(shopData.shopAddress).forEach(([key, value]) => {
+                updateData[`shopAddress.${key}`] = value;
+            });
+        }
+        if (shopData.openingHour) {
+            Object.entries(shopData.openingHour).forEach(([key, value]) => {
+                updateData[`openingHour.${key}`] = value;
+            });
+        }
+
+        const shop = await ShopModel.findOneAndUpdate(
+            { user_id: vendorId },
+            { $set: updateData },
+            {
+                returnDocument: "after",
+                runValidators: true,
+            }
+        );
+
+        return shop;
     }
 
 
@@ -142,20 +155,36 @@ class shopServices {
 
         shop.ShopStatus = status;
         await shop.save()
-        return shop
+        return {
+            shopName: shop.shopName,
+            businessEmail: shop.businessEmail,
+            shopStatus: shop.ShopStatus,
+            slugs: shop.slugs
+        }
     }
 
     /// update shop status by Admin
-    async updateShopStatusByAdmin(vendorId, status) {
-        const shop = await this.getMyShop(vendorId);
-        // vendor only can update ther few status
+    async updateShopStatusByAdmin(shopId, status) {
+        const shop = await ShopModel.findById(shopId);
 
-        if (![ShopStatus.ACTIVE_STATUS, ShopStatus.DEACTIVATED_STATUS, ShopStatus.CLOSED_STATUS, ShopStatus.PENDING_STATUS, ShopStatus.SUSPENDED_STATUS, ShopStatus.BANNED_STATUS].includes(status)) {
-            throw new ForbiddenError("Invalid shop status.")
+        if (!shop) {
+            throw new NotFoundError("Shop not found.");
         }
+
+        const ADMIN_ALLOWED_STATUSES = [
+            ShopStatus.ACTIVE_STATUS,
+            ShopStatus.BANNED_STATUS,
+        ];
+
+        if (!ADMIN_ALLOWED_STATUSES.includes(status)) {
+            throw new ForbiddenError(
+                "Admin can only ban or unban a shop."
+            );
+        }
+
         shop.ShopStatus = status;
-        await shop.save()
-        return shop
+        await shop.save();
+        return shop;
     }
 
 

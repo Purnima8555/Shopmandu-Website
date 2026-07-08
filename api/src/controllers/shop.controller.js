@@ -1,6 +1,6 @@
 
 
-
+import ShopStatus from "../constants/shopStatus.js";
 import shopService from "../services/shop.service.js";
 import { BadRequestError } from "../utils/AppError.js";
 
@@ -162,29 +162,31 @@ const updateShopStatus = async (req, res, next) => {
 /// update shop Status by Admin
 
 const updateShopStatusByAdmin = async (req, res, next) => {
-
     try {
+        const shopId = req.params.id;
+        const { status } = req.body;
 
-        const vendorId = req.params?.id
-        const { status } = req.body
-
-        if(!vendorId){
-            throw new BadRequestError("Vendor id is required")
+        if (!shopId) {
+            throw new BadRequestError("Shop id is required.");
         }
 
-        const updatedShopStatus = await shopService.updateShopStatusByAdmin(vendorId,status);
+        const updatedShop = await shopService.updateShopStatusByAdmin(
+            shopId,
+            status
+        );
 
         res.status(200).json({
             success: true,
-            message: "Shop status updated successfully.",
-            data: updatedShopStatus
+            message:
+                status === ShopStatus.BANNED_STATUS
+                    ? "Shop banned successfully."
+                    : "Shop unbanned successfully.",
+            data: updatedShop,
         });
-
     } catch (error) {
-        next(error)
+        next(error);
     }
-
-}
+};
 
 /// search shop by name 
 

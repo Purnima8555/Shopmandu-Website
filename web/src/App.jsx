@@ -3,20 +3,34 @@ import { useEffect } from "react";
 import AppRoutes from "./routers/AppRoutes";
 import useAuthStore from "./store/authStore";
 import useProductStore from "./store/productStore";
+import Loader from "./components/common/Loader";
+import sendApiRequest from "./utils/sendApiRequest";
 
 
 function App() {
 
   /// get user when user reload.
   const getMe = useAuthStore((state) => state.getMe);
+  const {authChecked } = useAuthStore();
   const flashShale = useProductStore((state)=> state.flashShale)
-  useEffect(() => {
+  const getAllCategories = useProductStore(state=> state.getAllCategories)
+
+ useEffect(() => {
     getMe();
-    flashShale({
+
+    sendApiRequest(() =>
+      flashShale({
         page: 1,
         limit: 10,
       })
-  }, [getMe, flashShale]);
+    );
+
+    sendApiRequest(() => getAllCategories());
+  }, [getMe, flashShale, getAllCategories]);
+  
+    if(!authChecked){
+    return <Loader  fullScreen={true}/>
+  }
 
   return <AppRoutes/>;
 }

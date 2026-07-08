@@ -32,7 +32,6 @@ const HomeSlider = () => {
     
       useEffect(() => {
         startAutoSlide();
-    
         return () => clearTimeout(timerRef.current);
       }, []);
 

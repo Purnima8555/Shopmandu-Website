@@ -459,6 +459,13 @@ class OrderServices {
     // admin stausUpdate
     async adminUpdateOrderStatus(orderId, status) {
 
+        const ADMIN_ALLOWED_STATUSES = [
+            orderStatus.PROCESSING,
+            orderStatus.OUT_FOR_DELIVERY,
+            orderStatus.DELIVERED,
+            orderStatus.RETURNED,
+        ];
+
         const order = await OrderModel.findById(orderId);
         if (!order) throw new NotFoundError("Order not found");
 
@@ -471,6 +478,7 @@ class OrderServices {
 
         order.orderStatus = status;
 
+        if (status === "PROCESSING") order.deliveredAt = new Date();
         if (status === "DELIVERED") order.deliveredAt = new Date();
         if (status === "OUT_FOR_DELIVERY") order.shippedAt = new Date();
         if (status === "RETURNED") order.returnedAt = new Date();
@@ -709,6 +717,95 @@ class OrderServices {
                 summary.deliveredOrders > 0
                     ? Number((grossSales / summary.deliveredOrders).toFixed(2))
                     : 0
+        };
+    }
+
+
+    /// Admin dashboard sales trend (weekly revenue)
+    async getAdminSalesTrend(query = {}) {
+
+        const { filter: dateFilter, period } = buildDateFilter(query);
+
+        // Only delivered orders generate revenue
+        const deliveredOrders = await OrderModel.find({
+            ...dateFilter,
+            orderStatus: orderStatus.DELIVERED,
+        }).lean();
+
+        // Always return 5 weeks
+        const weeklyRevenue = Array.from({ length: 5 }, (_, index) => ({
+            label: `Week ${index + 1}`,
+            revenue: 0,
+        }));
+
+        for (const order of deliveredOrders) {
+
+            const day = new Date(order.createdAt).getDate();
+
+            // Day 1-7 => Week 1
+            // Day 8-14 => Week 2
+            // Day 15-21 => Week 3
+            // Day 22-28 => Week 4
+            // Day 29-31 => Week 5
+            const weekIndex = Math.ceil(day / 7) - 1;
+
+            weeklyRevenue[weekIndex].revenue += order.totalAmount;
+        }
+
+        const totalRevenue = weeklyRevenue.reduce(
+            (sum, week) => sum + week.revenue,
+            0
+        );
+
+        return {
+            period,
+            totalRevenue,
+            chart: weeklyRevenue,
+        };
+    }
+
+
+    /// Vendor dashboard sales trend (weekly revenue)
+    async getVendorSalesTrend(vendorId, query = {}) {
+
+        const { filter: dateFilter, period } = buildDateFilter(query);
+
+        // Only delivered order items generate revenue
+        const deliveredOrders = await OrderItemsModel.find({
+            vendorId,
+            ...dateFilter,
+            orderItemsStatus: orderStatus.DELIVERED,
+        }).lean();
+
+        // Always return 5 weeks
+        const weeklyRevenue = Array.from({ length: 5 }, (_, index) => ({
+            label: `Week ${index + 1}`,
+            revenue: 0,
+        }));
+
+        for (const order of deliveredOrders) {
+
+            const day = new Date(order.createdAt).getDate();
+
+            // Day 1-7 => Week 1
+            // Day 8-14 => Week 2
+            // Day 15-21 => Week 3
+            // Day 22-28 => Week 4
+            // Day 29-31 => Week 5
+            const weekIndex = Math.ceil(day / 7) - 1;
+
+            weeklyRevenue[weekIndex].revenue += order.totalPrice;
+        }
+
+        const totalRevenue = weeklyRevenue.reduce(
+            (sum, week) => sum + week.revenue,
+            0
+        );
+
+        return {
+            period,
+            totalRevenue,
+            chart: weeklyRevenue,
         };
     }
 }

@@ -1,6 +1,5 @@
 
-
-
+import mongoose from "mongoose";
 import productStatus from "../constants/productStatus.js";
 import ShopStatus from "../constants/ShopStatus.js";
 import ProductModel from "../models/Product.model.js";
@@ -9,8 +8,7 @@ import { BadRequestError, NotFoundError } from "../utils/AppError.js";
 import CloudinaryUpload from "../utils/CloudinaryUpload.js";
 import { generateUniqueProductSlug } from "../utils/slug.utils.js"
 import categoryService from "./category.service.js";
-import promptAI from "../utils/ai.js";
-import buildProductPrompt from "../utils/promptMessage.js";
+import CategoryModel from "../models/Category.model.js";
 
 
 
@@ -42,7 +40,7 @@ class ProductService {
         /// generate slug
         const slug = await generateUniqueProductSlug(productData.slug || productData.name);
 
-        console.log("product Slug: ", slug)
+        // console.log("product Slug: ", slug)
         /// upload images
         const uploadedProductImages = await CloudinaryUpload.uploadMultipleImage(images, "upload");
         const productImages = uploadedProductImages.map(img => img.secure_url);
@@ -61,65 +59,129 @@ class ProductService {
                     (productData.price * productData.discountPercent) / 100
                     : 0
         };
-
         /// create product
         const product = await ProductModel.create(productPayload);
-        if (!productData.description || productData.description.trim() === "") {
 
-            (async () => {
-                try {
-
-                    const prompt = buildProductPrompt({
-                        name: product.name,
-                        brand: product.brand,
-                        category: category || "",
-                        price: product.price,
-                    });
-
-                    const aiDescription = await promptAI(prompt);
-                    await ProductModel.findByIdAndUpdate(
-                        product._id,
-                        { description: aiDescription }
-                    );
-
-                } catch (err) {
-                    console.error("AI description generation failed:", err.message);
-                }
-            })();
-
-        }
         return product;
     }
 
     //// vendor can get their products
-    async getMyProducts(vendorId, data) {
+    async getMyProducts(vendorId, query) {
 
-        const page = parseInt(data?.page, 10) || 1;
-        const limit = parseInt(data?.limit, 10) || 10;
+        const page = parseInt(query.page, 10) || 1;
+        const limit = parseInt(query.limit, 10) || 10;
         const skip = (page - 1) * limit;
 
         const filter = {
             vendorId,
         };
 
-        /// search by product name
-        if (data?.name) {
+
+        if (query.search?.trim()) {
             filter.name = {
-                $regex: data.name,
+                $regex: query.search.trim(),
                 $options: "i",
             };
         }
 
-        //// filter by product status
-        if (data?.productStatus) {
-            filter.productStatus = data.productStatus;
+        if (query.category && query.category !== "ALL") {
+
+            const category = await CategoryModel.findOne({
+                $or: [
+                    { name: query.category },
+                    { slug: query.category.toLowerCase() },
+                ],
+            }).select("_id");
+
+            if (!category) {
+                return {
+                    metadata: {
+                        totalResults: 0,
+                        totalPages: 0,
+                        currentPage: page,
+                        limit,
+                        hasNextPage: false,
+                        hasPrevPage: false,
+                    },
+                    data: [],
+                };
+            }
+
+            filter.categoryId = category._id;
+        }
+
+
+        if (query.status && query.status !== "ALL") {
+            filter.productStatus = query.status;
+        }
+
+        if (query.stock && query.stock !== "ALL") {
+
+            switch (query.stock) {
+
+                case "IN_STOCK":
+                    filter.stock = { $gte: 6 };
+                    break;
+
+                case "LOW_STOCK":
+                    filter.stock = {
+                        $gte: 1,
+                        $lte: 5,
+                    };
+                    break;
+
+                case "OUT_OF_STOCK":
+                    filter.stock = 0;
+                    break;
+            }
+        }
+
+        let sort = {
+            createdAt: -1,
+        };
+
+        switch (query.sortBy) {
+
+            case "NEWEST":
+                sort = { createdAt: -1 };
+                break;
+
+            case "OLDEST":
+                sort = { createdAt: 1 };
+                break;
+
+            case "PRICE_ASC":
+                sort = { price: 1 };
+                break;
+
+            case "PRICE_DESC":
+                sort = { price: -1 };
+                break;
+
+            case "STOCK_ASC":
+                sort = { stock: 1 };
+                break;
+
+            case "STOCK_DESC":
+                sort = { stock: -1 };
+                break;
+
+            case "NAME_ASC":
+                sort = { name: 1 };
+                break;
+
+            case "NAME_DESC":
+                sort = { name: -1 };
+                break;
         }
 
         const [products, totalDocuments] = await Promise.all([
             ProductModel.find(filter)
-                .sort({ createdAt: -1 })
+                .populate("categoryId", "name slug isActive")
+                .sort(sort)
                 .skip(skip)
                 .limit(limit),
+
             ProductModel.countDocuments(filter),
         ]);
 
@@ -341,75 +403,118 @@ class ProductService {
     }
 
 
-/// Get all products for public with pagination
-async getAllProduct(data) {
-    const page = parseInt(data?.page, 10) || 1;
-    const limit = parseInt(data?.limit, 10) || 10;
-    const skip = (page - 1) * limit;
+    /// Get all products for public with pagination
+    async getAllProduct(data) {
+        const page = parseInt(data?.page, 10) || 1;
+        const limit = parseInt(data?.limit, 10) || 10;
+        const skip = (page - 1) * limit;
 
-    const filter = {};
+        const filter = {};
 
-    let sort = {
-        createdAt: -1,
-    };
+        let sort = {
+            createdAt: -1,
+        };
 
-    /// search by product name
-    if (data?.name) {
-        filter.name = {
-            $regex: data.name,
-            $options: "i",
+        /// search by product name
+        if (data?.name || data?.search) {
+            const searchTerm = data.name || data.search;
+            filter.name = {
+                $regex: searchTerm,
+                $options: "i",
+            };
+        }
+
+        /// multiple brands filter
+        if (data?.brand) {
+            // We split string into array: "Apple,Samsung" -> ["Apple", "Samsung"]
+            const brandArray = Array.isArray(data.brand)
+                ? data.brand
+                : data.brand.split(",").filter(Boolean);
+
+            if (brandArray.length > 0) {
+                filter.brand = { $in: brandArray };
+            }
+        }
+
+        /// multiple categories filter 
+        if (data?.category) {
+            const categoryArray = Array.isArray(data.category)
+                ? data.category
+                : data.category.split(",").filter(Boolean);
+
+            if (categoryArray.length > 0) {
+                // First: find the Category IDs based on the names provided from frontend
+                const categoryDocs = await CategoryModel.find({
+                    name: { $in: categoryArray }
+                }).select("_id");
+
+                const categoryIds = categoryDocs.map(cat => cat._id);
+                filter.categoryId = { $in: categoryIds };
+            }
+        }
+
+        /// price range filter
+        if (data?.minPrice || data?.maxPrice) {
+            filter.discountPrice = {};
+            if (data.minPrice) filter.discountPrice.$gte = parseFloat(data.minPrice);
+            if (data.maxPrice) filter.discountPrice.$lte = parseFloat(data.maxPrice);
+        }
+
+        /// sort order
+        if (data?.sort) {
+            if (data.sort === "price_asc") sort = { discountPrice: 1 };
+            if (data.sort === "price_desc") sort = { discountPrice: -1 };
+        }
+
+        /// product status
+        if (data?.productStatus) {
+            filter.productStatus = data.productStatus;
+        }
+
+        /// best selling products
+        if (data?.bestSale) {
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+            filter.updatedAt = {
+                $gte: oneWeekAgo,
+            };
+
+            filter.releasedStock = {
+                $gt: 0,
+            };
+
+            sort = {
+                releasedStock: -1,
+                updatedAt: -1,
+            };
+        }
+
+        const [products, totalDocuments] = await Promise.all([
+            ProductModel.find(filter)
+                .sort(sort)
+                .skip(skip)
+                .limit(limit)
+                .populate("categoryId", "name slug isActive")
+                .populate("shopId", "shopName"),
+
+            ProductModel.countDocuments(filter),
+        ]);
+
+        const totalPages = Math.ceil(totalDocuments / limit);
+
+        return {
+            metadata: {
+                totalResults: totalDocuments,
+                totalPages,
+                currentPage: page,
+                limit,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
+            },
+            data: products,
         };
     }
-
-    /// product status
-    if (data?.productStatus) {
-        filter.productStatus = data.productStatus;
-    }
-
-    /// best selling products
-    if (data?.bestSale) {
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-
-        filter.updatedAt = {
-            $gte: oneWeekAgo,
-        };
-
-        filter.releasedStock = {
-            $gt: 0,
-        };
-
-        sort = {
-            releasedStock: -1,
-            updatedAt: -1,
-        };
-    }
-
-    const [products, totalDocuments] = await Promise.all([
-      ProductModel.find(filter)
-        .populate("shopId", "shopName")
-        .populate("categoryId", "categoryName")
-        .sort(sort)
-        .skip(skip)
-        .limit(limit),
-
-      ProductModel.countDocuments(filter),
-    ]);
-
-    const totalPages = Math.ceil(totalDocuments / limit);
-
-    return {
-        metadata: {
-            totalResults: totalDocuments,
-            totalPages,
-            currentPage: page,
-            limit,
-            hasNextPage: page < totalPages,
-            hasPrevPage: page > 1,
-        },
-        data: products,
-    };
-}
 
     /// on flashSales for vendor product
 
@@ -418,12 +523,12 @@ async getAllProduct(data) {
 
         product.flashSales = true;
         await product.save();
-        
+
         return {
-        message: "Product added to flash sales successfully",
-        product,
+            message: "Product added to flash sales successfully",
+            product,
         };
-        
+
     }
 
     async removeFromFlashSales(vendorId, productId) {
@@ -433,8 +538,8 @@ async getAllProduct(data) {
         await product.save();
 
         return {
-        message: "Product removed from flash sales successfully",
-        product,
+            message: "Product removed from flash sales successfully",
+            product,
         };
     }
 
@@ -448,35 +553,92 @@ async getAllProduct(data) {
         const filter = { flashSales: true };
 
         if (data?.name) {
-        filter.name = {
-            $regex: data.name,
-            $options: "i",
-        };
+            filter.name = {
+                $regex: data.name,
+                $options: "i",
+            };
         }
 
         const [products, totalDocuments] = await Promise.all([
-        ProductModel.find(filter)
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit),
-        ProductModel.countDocuments(filter),
+            ProductModel.find(filter)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+            ProductModel.countDocuments(filter),
         ]);
 
         const totalPages = Math.ceil(totalDocuments / limit);
 
         return {
-        metadata: {
-            totalResults: totalDocuments,
-            totalPages,
-            currentPage: page,
-            limit,
-            hasNextPage: page < totalPages,
-            hasPrevPage: page > 1,
-        },
-        data: products,
+            metadata: {
+                totalResults: totalDocuments,
+                totalPages,
+                currentPage: page,
+                limit,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
+            },
+            data: products,
         };
     }
-    
+
+    //// get product summary
+
+    async getProductsSummary(vendorId) {
+        const summary = await ProductModel.aggregate([
+            {
+                $match: {
+                    vendorId: new mongoose.Types.ObjectId(vendorId),
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalProducts: { $sum: 1 },
+
+                    activeProducts: {
+                        $sum: {
+                            $cond: [
+                                { $eq: ["$productStatus", productStatus.ACTIVE] },
+                                1,
+                                0,
+                            ],
+                        },
+                    },
+
+                    inactiveProducts: {
+                        $sum: {
+                            $cond: [
+                                { $eq: ["$productStatus", productStatus.INACTIVE] },
+                                1,
+                                0,
+                            ],
+                        },
+                    },
+
+                    outOfStockProducts: {
+                        $sum: {
+                            $cond: [
+                                { $eq: ["$productStatus", productStatus.OUT_OF_STOCK] },
+                                1,
+                                0,
+                            ],
+                        },
+                    },
+                },
+            },
+        ]);
+
+        return (
+            summary[0] ?? {
+                totalProducts: 0,
+                activeProducts: 0,
+                inactiveProducts: 0,
+                outOfStockProducts: 0,
+            }
+        );
+    }
+
     /// Top selling products (Admin,customer)
     async getTopProducts(limit = 10) {
 
@@ -513,6 +675,7 @@ async getAllProduct(data) {
 
         return products;
     }
+
 
 }
 

@@ -42,19 +42,15 @@ const productSchema = new mongoose.Schema(
 
     productStatus: {
       type: String,
-      enum: [
-        productStatus.ACTIVE,
-        productStatus.INACTIVE,
-        productStatus.OUT_OF_STOCK,
-      ],
+      enum: [productStatus.ACTIVE, productStatus.INACTIVE, productStatus.OUT_OF_STOCK],
       default: productStatus.INACTIVE,
-      required: [true, "product status is required."],
+      required: [true, "product status is required."]
     },
 
     description: {
       type: String,
       trim: true,
-      default: "Generating description...",
+      required: [true, "Product description is required"],
     },
 
     shortDescription: {
@@ -134,7 +130,7 @@ const productSchema = new mongoose.Schema(
     boxVolume: {
       type: mongoose.Schema.Types.Decimal128,
       required: [true, "Product volume is required."],
-      default: 0,
+      default: 0
     },
 
     rating: {
@@ -153,15 +149,15 @@ const productSchema = new mongoose.Schema(
     inReserve: {
       type: Number,
       default: 0,
-      min: 0,
+      min: 0
     },
 
     releasedStock: {
       type: Number,
       default: 0,
-      min: 0,
+      min: 0
     },
-
+    
     flashSales: {
       type: Boolean,
       default: false,
@@ -175,7 +171,7 @@ const productSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 /// indexes

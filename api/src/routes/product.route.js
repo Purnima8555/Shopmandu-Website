@@ -7,9 +7,9 @@ import Roles from "../constants/userRoles.js";
 import schemaValidator from "../middleware/schemaValidator.middleware.js";
 import {
     addProductImage, createProduct, deleteProduct, deleteProductImage, getAllFlashSalesProducts, getAllProductForPublic, getMyProducts,
-    getMyProductsById, getProductByShop, getProductBySlug, getProductsById, onFlashSale, productVideoUpload, removeFromFlashSale,
-    updateProductImage, updateProductInfo, updateStatus, getTopProductsPublic, getTopProducts, getTopProductsVendor
-    } from "../controllers/product.controller.js";
+    getMyProductsById, getMyProductSummary, getProductByShop, getProductBySlug, getProductsById, onFlashSale, productVideoUpload,
+    removeFromFlashSale, updateProductImage, updateProductInfo, updateStatus, getTopProductsPublic, getTopProducts, getTopProductsVendor
+} from "../controllers/product.controller.js";
 import {productSchema, updateProductSchema} from "../libs/schema/product.schema.js";
 import { upload, videoUpload } from "../middleware/multer.middleware.js"
 
@@ -22,6 +22,7 @@ router.post("/product/create", auth, roleBasedAuth(Roles.VENDOR_ROLE), upload.ar
 
 // Get all vendor products
 router.get("/products", auth, roleBasedAuth(Roles.VENDOR_ROLE), getMyProducts);
+router.get("/products/summary", auth, roleBasedAuth(Roles.VENDOR_ROLE), getMyProductSummary);
 
 // get top products
 router.get("/products/top", auth, roleBasedAuth(Roles.USER_ROLE), getTopProductsPublic);

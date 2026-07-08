@@ -185,6 +185,7 @@ const adminUpdateOrderStatus = async (req, res, next) => {
         });
 
     } catch (error) {
+         console.error(error);
         next(error);
     }
 };
@@ -256,8 +257,44 @@ const getAdminSalesSummary = async (req, res, next) => {
     }
 };
 
+// Admin Sales Trend
+const getAdminSalesTrend = async (req, res, next) => {
+    try {
+        const data = await orderService.getAdminSalesTrend(req.query);
+
+        res.status(200).json({
+            success: true,
+            message: "Admin sales trend fetched successfully.",
+            data,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+const getVendorSalesTrend = async (req, res, next) => {
+    try {
+
+        const vendorId = req.user.userId;
+
+        const data = await orderService.getVendorSalesTrend(
+            vendorId,
+            req.query
+        );
+
+        res.status(200).json({
+            success: true,
+            message: "Vendor sales trend fetched successfully.",
+            data,
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};
+
 export {
-    orderPlace, cancelOrder, getOrderHistory, adminGetOrderById, updateOrderItemStatus, getAllOrders,
+    orderPlace, cancelOrder, getOrderHistory, adminGetOrderById, updateOrderItemStatus, getAllOrders, getAdminSalesTrend, getVendorSalesTrend,
     getOrdersByStatus, adminUpdateOrderStatus, getOrderDetail, customerInvoice, vendorInvoice, getVendorSalesSummary, getAdminSalesSummary
 };
 

@@ -97,3 +97,20 @@ export const refundRequest = async (req, res, next) => {
         next(err);
     }
 };
+
+export const getAllReturnRequests = async (req, res, next) => {
+    try {
+
+        const result = await returnService.getAllReturnRequests(
+            req.query
+        );
+
+        res.status(200).json({
+            success: true,
+            data: result,
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};

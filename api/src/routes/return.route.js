@@ -6,13 +6,16 @@ import { upload } from "../middleware/multer.middleware.js";
 import createReturnRequestSchema from "../libs/schema/return.schema.js";
 import schemaValidator from "../middleware/schemaValidator.middleware.js";
 import { createReturnRequest, getCustomerRequests, getVendorRequests, approveRequest,
-        rejectRequest, refundRequest } from "../controllers/return.controller.js";
+        rejectRequest, refundRequest , getAllReturnRequests} from "../controllers/return.controller.js";
 
 const router = Router();
 
 // customer
 router.post("/", auth, roleBasedAuth(Roles.USER_ROLE), upload.array("images", 4), schemaValidator(createReturnRequestSchema), createReturnRequest);
 router.get("/customer", auth, roleBasedAuth(Roles.USER_ROLE), getCustomerRequests);
+
+// admin
+router.get("/admin", auth, roleBasedAuth(Roles.ADMIN_ROLE), getAllReturnRequests);
 
 // vendor
 router.get("/vendor", auth, roleBasedAuth(Roles.VENDOR_ROLE), getVendorRequests);

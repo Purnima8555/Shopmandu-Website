@@ -9,13 +9,15 @@ import { categoryschema, updateCategorySchema } from "../libs/schema/category.sc
 
 const router = Router()
 
+//// get all categorys
+router.get("/", getAllProductCategories);
+
 router.use(auth)
 
 /// create category
 router.post("/", roleBasedAuth(Roles.ADMIN_ROLE), schemaValidator(categoryschema), createProductCategory);
 
-//// get all categorys
-router.get("/", getAllProductCategories);
+
 
 //// get active categories 
 router.get("/active", getActiveProductCategories);

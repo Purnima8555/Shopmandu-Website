@@ -121,6 +121,7 @@ class ReturnService {
             ReturnRequestModel.find(filter)
                 .populate("orderId", "orderNumber totalAmount orderStatus")
                 .populate("orderItemId", "orderItemsStatus totalPrice")
+                .populate("productId","name images")
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit)
@@ -224,6 +225,49 @@ class ReturnService {
             refundAmount: request.refundAmount,
             quantity: request.quantity,
             unitPrice: request.unitPrice
+        };
+    }
+
+    /// ADMIN - get all return requests
+    async getAllReturnRequests(query = {}) {
+
+        const page = parseInt(query.page, 10) || 1;
+        const limit = parseInt(query.limit, 10) || 10;
+        const skip = (page - 1) * limit;
+
+        const filter = {};
+
+        if (query.status) {
+            filter.status = query.status;
+        }
+
+        const [data, total] = await Promise.all([
+
+            ReturnRequestModel.find(filter)
+                .populate("customerId", "userName email")
+                .populate("vendorId", "userName email")
+                .populate("orderId", "orderNumber")
+                .populate("productId","name images")
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+
+            ReturnRequestModel.countDocuments(filter)
+
+        ]);
+
+        return {
+            metadata: {
+                totalResults: total,
+                totalPages: Math.ceil(total / limit),
+                currentPage: page,
+                limit,
+                hasNextPage: page * limit < total,
+                hasPrevPage: page > 1,
+            },
+
+            data,
         };
     }
 }
