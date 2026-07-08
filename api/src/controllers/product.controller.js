@@ -1,5 +1,6 @@
 import productService from "../services/product.service.js";
 import { BadRequestError } from "../utils/AppError.js";
+import AIService from "../services/ai.service.js";
 
 /// create product
 const createProduct = async (req, res, next) => {
@@ -385,9 +386,24 @@ const getMyProductSummary = async (req, res, next) => {
     next(error)
   }
 
+}
 
 
- }
+const generateProductDescription = async (req, res, next) => {
+  try {
+    const description = await AIService.generateProductDescription(req.body);
+
+    res.status(200).json({
+      success: true,
+      message: "Description generated successfully.",
+      data: {
+        description,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 
 export {
@@ -412,4 +428,5 @@ export {
   getTopProducts,
   getTopProductsVendor,
   getMyProductSummary,
+  generateProductDescription,
 };

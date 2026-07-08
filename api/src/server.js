@@ -16,6 +16,7 @@ import orderRoutes from "./routes/order.route.js"
 import userRouters from "./routes/user.route.js";
 import returnRouters from "./routes/return.route.js";
 import aiRoutes from "./routes/ai.route.js";
+import reviewRouters from "./routes/review.route.js";
 
 import { connectRedis } from "./config/redis.config.js"
 import client from "./config/redis.config.js"
@@ -70,6 +71,8 @@ app.use("/api", userRouters);
 app.use("/api/ai", aiRoutes);
 /// Return request routes
 app.use("/api/return", returnRouters);
+/// review routes
+app.use("/api/reviews", reviewRouters);
 
 /// error handel
 app.use(RouteNotFoundMiddleware);

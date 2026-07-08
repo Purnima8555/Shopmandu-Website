@@ -8,8 +8,8 @@ import schemaValidator from "../middleware/schemaValidator.middleware.js";
 import {
     addProductImage, createProduct, deleteProduct, deleteProductImage, getAllFlashSalesProducts, getAllProductForPublic, getMyProducts,
     getMyProductsById, getMyProductSummary, getProductByShop, getProductBySlug, getProductsById, onFlashSale, productVideoUpload,
-    removeFromFlashSale, updateProductImage, updateProductInfo, updateStatus, getTopProductsPublic, getTopProducts, getTopProductsVendor
-} from "../controllers/product.controller.js";
+    removeFromFlashSale, updateProductImage, updateProductInfo, updateStatus, getTopProductsPublic, getTopProducts, getTopProductsVendor,
+    generateProductDescription } from "../controllers/product.controller.js";
 import {productSchema, updateProductSchema} from "../libs/schema/product.schema.js";
 import { upload, videoUpload } from "../middleware/multer.middleware.js"
 
@@ -36,6 +36,8 @@ router.get("/product/:id", auth, roleBasedAuth(Roles.ADMIN_ROLE), getProductsByI
 router.get("/product-slug/:slug", getProductBySlug);
 
 router.get("/products/public", getAllProductForPublic)
+
+router.post("/ai-description", auth, roleBasedAuth(Roles.VENDOR_ROLE), generateProductDescription);
 
 // Get products by shop public
 router.get("/shop/products/:id", getProductByShop);
