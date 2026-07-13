@@ -1,0 +1,22 @@
+import { Router } from "express";
+import auth from "../middleware/auth.middleware.js";
+import roleBasedAuth from "../middleware/roleBase.middleware.js";
+import Roles from "../constants/userRoles.js";
+import { upload } from "../middleware/multer.middleware.js"
+import { deleteUser, getAllUsers, getUserById, updateUser } from "../controllers/user.controller.js";
+
+const router = Router();
+
+// GET ALL USERS
+router.get("/users/all", auth, roleBasedAuth(Roles.ADMIN_ROLE), getAllUsers);
+
+// GET USER BY ID
+router.get("/users/:id", auth, getUserById);
+
+// UPDATE USER
+router.put("/users/", auth, upload.single("avatar"), updateUser);
+
+// DELETE USER
+router.delete("/users/", auth, deleteUser);
+
+export default router;

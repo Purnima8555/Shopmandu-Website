@@ -1,0 +1,205 @@
+@import "tailwindcss";
+
+@theme {
+    --color-background: #f8fafc;
+    --color-foreground: #1f2937;
+
+    /* Surfaces */
+    --color-card: #ffffff;
+    --color-surface: #f1f5f9;
+
+    /* Brand Color */
+    --color-primary: #6a89a7;
+    --color-primary-base: #6a89a7;
+    --color-primary-hover: #5b7a97;
+    --color-primary-light: #d7e3ee;
+    --color-primary-foreground: #ffffff;
+
+    /* Secondary */
+    --color-secondary: #e2e8f0;
+    --color-secondary-foreground: #475569;
+
+    /* Muted */
+    --color-muted: #f1f5f9;
+    --color-muted-foreground: #64748b;
+
+    /* Borders */
+    --color-border: #dbe4ec;
+
+    /* Marketplace Accent */
+    --color-highlight: #f97316;
+
+    /* Status */
+    --color-success: #22c55e;
+    --color-warning: #f59e0b;
+    --color-danger: #ef4444;
+
+    /* UI */
+    --radius: 0.75rem;
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 12px rgb(0 0 0 / 0.08);
+
+    --glass-bg: rgba(255, 255, 255, 0.75);
+
+  --color-bg-main: #F8FAFC;
+  --color-bg-card: #FFFFFF;
+  --color-bg-surface: #F1F5F9;
+  --color-text-primary: #1F2937;
+  --color-text-secondary: #64748B;
+  --color-accent-orange: #F97316;
+
+}
+
+@layer base {
+    :root {
+        --color-background: #f8fafc;
+        --color-foreground: #1f2937;
+
+        /* surfaces */
+        --color-card: #ffffff;
+        --color-surface: #f1f5f9;
+
+        /* brand color */
+        --color-primary: #6a89a7;
+        --color-primary-base: #6a89a7;
+        --color-primary-hover: #5b7a97;
+        --color-primary-light: #d7e3ee;
+        --color-primary-foreground: #ffffff;
+
+        /* secondary */
+        --color-secondary: #e2e8f0;
+        --color-secondary-foreground: #475569;
+
+        /* muted */
+        --color-muted: #f1f5f9;
+        --color-muted-foreground: #64748b;
+
+        /* borders */
+        --color-border: #dbe4ec;
+
+        /* marketplace accent */
+        --color-highlight: #f97316;
+
+        /* status */
+        --color-success: #22c55e;
+        --color-warning: #f59e0b;
+        --color-danger: #ef4444;
+
+        /* UI */
+        --radius: 0.75rem;
+        --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 12px rgb(0 0 0 / 0.08);
+
+        --glass-bg: rgba(255, 255, 255, 0.75);
+    }
+}
+
+@layer utilities {
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+            filter: blur(10);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0px);
+            filter: blur(0);
+        }
+    }
+
+    .animation-fade-in {
+        animation: fade-in 0.5s ease-out both;
+    }
+
+    @keyframes spin-smooth {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* spinner for loder */
+    .animate-spin-smooth {
+        animation: spin-smooth 0.8s linear infinite;
+    }
+
+    /* Smooth reusable bounce animations */
+    @keyframes bounce {
+        0%,
+        100% {
+            transform: translateY(0);
+            animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+        }
+
+        50% {
+            transform: translateY(-12px);
+            animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+        }
+    }
+
+    .animate-bounce-slow {
+        animation: bounce 3s infinite;
+    }
+
+    .animate-bounce {
+        animation: bounce 2.5s infinite;
+    }
+
+    .animate-bounce-fast {
+        animation: bounce 1s infinite;
+    }
+
+    @keyframes slow-drift {
+        0%,
+        100% {
+            transform: translate(0, 0);
+        }
+        25% {
+            transform: translate(20px, -30px);
+        }
+
+        50% {
+            transform: translate(-15px, -20px);
+        }
+        75% {
+            transform: translate(30px, 10px);
+        }
+    }
+
+    @keyframes float {
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+    .animate-fload {
+        animation: float 4s ease-in-out infinite;
+    }
+
+    .animation-delay-200 {
+        animation-delay: 200ms;
+    }
+    .animation-delay-300 {
+        animation-delay: 300ms;
+    }
+
+    .animation-delay-400 {
+        animation-delay: 400ms;
+    }
+
+    .animation-delay-500 {
+        animation-delay: 500ms;
+    }
+    .animation-delay-600 {
+        animation-delay: 600ms;
+    }
+    .animation-delay-700 {
+        animation-delay: 700ms;
+    }
+    .animation-delay-800 {
+        animation-delay: 800ms;
+    }
+}
