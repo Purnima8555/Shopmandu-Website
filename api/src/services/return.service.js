@@ -147,6 +147,8 @@ class ReturnService {
     async getVendorRequests(vendorId) {
         return await ReturnRequestModel.find({ vendorId })
             .populate("customerId", "userName email")
+            .populate("productId", "name images")
+            .populate("orderId", "orderNumber")
             .sort({ createdAt: -1 })
             .lean();
     }

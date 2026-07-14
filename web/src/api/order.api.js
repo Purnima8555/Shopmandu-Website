@@ -12,7 +12,7 @@ export const getAllOrdersApi = async (params) => {
     return res.data;
 };
 
-// Get order details
+// Get admin order details
 export const getOrderByIdApi = async (orderId) => {
     const res = await api.get(`/api/order/admin/${orderId}`);
 
@@ -40,6 +40,46 @@ export const getAdminSalesTrendApi = async (params) => {
     const res = await api.get("/api/order/admin/sales-trend", {
         params,
     });
+
+    return res.data;
+};
+
+// order history
+export const getCustomerOrderHistoryApi = async (params = {}) => {
+    const res = await api.get("/api/order/history", {
+        params,
+    });
+
+    return res.data;
+};
+
+// Customer order detail
+export const getCustomerOrderDetailApi = async (orderId) => {
+    const res = await api.get(`/api/order/detail/${orderId}`);
+
+    return res.data;
+};
+
+/// Vendor Sales Summary
+export const getVendorSalesSummaryApi = async (params = {}) => {
+    const res = await api.get(
+        "/api/order/vendor/sales-summary",
+        {
+            params,
+        }
+    );
+
+    return res.data;
+};
+
+/// Vendor Sales Trend
+export const getVendorSalesTrendApi = async (params = {}) => {
+    const res = await api.get(
+        "/api/order/vendor/sales-trend",
+        {
+            params,
+        }
+    );
 
     return res.data;
 };

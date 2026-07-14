@@ -37,6 +37,8 @@ import ProductsPage from "../features/admin/pages/Products";
 import ShopsPage from "../features/admin/pages/Shops";
 import VendorsPage from "../features/admin/pages/Vendors";
 import UsersPage from "../features/admin/pages/Users";
+import ProfilePage from "../features/profile/pages/MyProfile";
+import Settings from "../features/admin/pages/Settings";
 
 export default function AppRoutes() {
   return (
@@ -63,11 +65,12 @@ export default function AppRoutes() {
         {/*  any authenticated user  */}
         <Route element={<AuthenticatedRoute />}>
           <Route path="cart" element={<CartPage />} />
+          <Route path="profile" element={<ProfilePage />}>
           {/* USER only route, nested one level deeper for the role check */}
           <Route element={<RoleProtectedRoute roles={[Roles.USER_ROLE]} />}>
             <Route path="user/dashboard" element={<div>User dashboard</div>} />
 
-            
+            </Route>
           </Route>
         </Route>
 
@@ -98,12 +101,11 @@ export default function AppRoutes() {
             <Route path="admin/orders" element={<OrdersPage />} />
             <Route path="admin/payouts" element={<PayoutsPage />} />
             <Route path="admin/coupons" element={<CouponsPage />} />
-            <Route path="admin/users" element={<UsersPage/>} >
+            <Route path="admin/users" element={<UsersPage />} />
+            <Route path="admin/settings" element={<Settings />} />
             </Route>
           </Route>
         </Route>
-      </Route>
-
     </Routes>
   );
 }

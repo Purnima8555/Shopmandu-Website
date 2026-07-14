@@ -46,5 +46,7 @@ const config = Object.freeze({
     gemini_key: process.env.GEMINI_API_KEY,
 })
 
+console.log("Mongo URL:", process.env.MONGODB_URL);
+
 export default config
 

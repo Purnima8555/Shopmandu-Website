@@ -8,6 +8,7 @@ import {
   logoutService,
 } from "../services/auth.service";
 import { updateProfile, updateVendorName } from "../api/vendor";
+import { updateUserAvatarApi, updateUserNameApi } from "../api/user.api";
 
 const useAuthStore = create((set) => ({
   user: null,
@@ -92,7 +93,7 @@ const useAuthStore = create((set) => ({
     }
   },
 
- //// Update User Name
+  //// Update User Name
   updateVendorUserName: async (data) => {
     try {
       set({ loading: true });
@@ -101,21 +102,21 @@ const useAuthStore = create((set) => ({
 
       set((state) => ({
         user: {
-          ...state.user,         
+          ...state.user,
           userName: updatedData?.userName,
           mobile: updatedData?.mobile || state.user.mobile,
           avatar: updatedData?.avatar || state.user.avatar,
         },
-        loading: false
+        loading: false,
       }));
       return res;
-    } finally  {
+    } finally {
       set({ loading: false });
     }
   },
 
   //// Update Avatar
-  updateAvatar: async (image) => { 
+  updateAvatar: async (image) => {
     try {
       set({ loading: true });
       const res = await updateProfile(image);
@@ -123,20 +124,59 @@ const useAuthStore = create((set) => ({
 
       set((state) => ({
         user: {
-          ...state.user,          
-          avatar: updatedData?.avatar,  
+          ...state.user,
+          avatar: updatedData?.avatar,
         },
-        loading: false
+        loading: false,
       }));
       return res;
     } finally {
       set({ loading: false });
     }
-  }
+  },
 
+  // Update User Avatar
+  updateUserAvatar: async (image) => {
+    try {
+      set({ loading: true });
 
+      const res = await updateUserAvatarApi(image);
 
+      set((state) => ({
+        user: {
+          ...state.user,
+          avatar: res.data.avatar,
+        },
+      }));
 
+      return res;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  // Update User Name
+  updateUserName: async (data) => {
+    try {
+      set({ loading: true });
+
+      const res = await updateUserNameApi(data);
+      const updatedData = res?.data;
+
+      set((state) => ({
+        user: {
+          ...state.user,
+          userName: updatedData?.userName,
+          mobile: updatedData?.mobile || state.user.mobile,
+          avatar: updatedData?.avatar || state.user.avatar,
+        },
+      }));
+
+      return res;
+    } finally {
+      set({ loading: false });
+    }
+  },
 }));
 
 export default useAuthStore;

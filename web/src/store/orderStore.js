@@ -5,7 +5,11 @@ import {
     getOrderByIdApi,
     updateOrderStatusApi,
     getAdminSalesSummaryApi,
-    getAdminSalesTrendApi
+    getAdminSalesTrendApi,
+    getCustomerOrderHistoryApi,
+    getCustomerOrderDetailApi,
+    getVendorSalesSummaryApi,
+    getVendorSalesTrendApi,
 } from "../api/order.api";
 
 const useOrderStore = create((set, get) => ({
@@ -18,6 +22,9 @@ const useOrderStore = create((set, get) => ({
 
     salesSummary: null,
     salesTrend: null,
+
+    vendorSalesSummary: null,
+    vendorSalesTrend: null,
 
   // Get all orders
     getAllOrders: async (params = {}) => {
@@ -64,8 +71,6 @@ const useOrderStore = create((set, get) => ({
         });
 
         return res;
-        } catch (error) {
-        throw error.response?.data || error;
         } finally {
         set({ loading: false });
         }
@@ -84,8 +89,6 @@ const useOrderStore = create((set, get) => ({
         await get().getAllOrders();
 
         return res;
-        } catch (error) {
-        throw error.response?.data || error;
         } finally {
         set({ loading: false });
         }
@@ -103,8 +106,6 @@ const useOrderStore = create((set, get) => ({
             });
 
             return res;
-        } catch (error) {
-            throw error.response?.data || error;
         } finally {
             set({ loading: false });
         }
@@ -122,12 +123,80 @@ const useOrderStore = create((set, get) => ({
             });
 
             return res;
-        } catch (error) {
-            throw error.response?.data || error;
         } finally {
             set({ loading: false });
         }
     },
+
+    // customer history
+    getCustomerOrderHistory: async (params = {}) => {
+        try {
+            set({ loading: true });
+
+            const res = await getCustomerOrderHistoryApi(params);
+
+            set({
+            orders: res.orders?.data || [],
+            metadata: res.orders?.metadata || null,
+            });
+
+            return res;
+        } finally {
+            set({ loading: false });
+        }
+    },
+
+    // Customer Order Detail
+    getCustomerOrderDetail: async (orderId) => {
+        try {
+            set({ loading: true });
+
+            const res = await getCustomerOrderDetailApi(orderId);
+
+            set({
+                customerSelectedOrder: res.data,
+            });
+
+            return res;
+        } finally {
+            set({ loading: false });
+        }
+    },
+
+    // Vendor Sales Summary
+getVendorSalesSummary: async (params = {}) => {
+        try {
+            set({ loading: true });
+
+            const res = await getVendorSalesSummaryApi(params);
+
+            set({
+                vendorSalesSummary: res.data,
+            });
+
+            return res;
+        } finally {
+            set({ loading: false });
+        }
+    },
+
+    // Vendor Sales Trend
+    getVendorSalesTrend: async (params = {}) => {
+        try {
+            set({ loading: true });
+
+            const res = await getVendorSalesTrendApi(params);
+
+            set({
+                vendorSalesTrend: res.data,
+            });
+
+            return res;
+        } finally {
+            set({ loading: false });
+        }
+    },
+    
 }));
 
 export default useOrderStore;

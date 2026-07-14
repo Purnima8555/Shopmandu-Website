@@ -170,7 +170,7 @@ class OrderServices {
             const page = parseInt(data.page, 10) || 1;
             const limit = parseInt(data.limit, 10) || 10;
             const skip = (page - 1) * limit; // Number of items to skip
-            const filter = { userId }
+            const filter = { customerId: userId };
 
             /// apply filter, paginated, get order with filter.
             if (data.paymentStatus) {
@@ -217,27 +217,73 @@ class OrderServices {
     /// customer order detail
     async orderDetail(userId, orderId) {
 
-            //// get order.
-            const [order, orderItems] = await Promise.all([
-                OrderModel.findOne({ _id: orderId, customerId: userId }).populate("paymentId").lean(),
-                OrderItemsModel.find({
-                    orderId
-                }).populate("vendorId", "userName")
-                    .populate({
-                        path: "products.productId",
-                        select: "productName slug images"
-                    }).lean()
-            ]);
+        // Get order and items
+        const [order, orderItems] = await Promise.all([
+            OrderModel.findOne({
+                _id: orderId,
+                customerId: userId,
+            })
+                .populate("paymentId")
+                .lean(),
 
-            if (!order) {
-                throw new NotFoundError("Order not found.");
-            }
+            OrderItemsModel.find({
+                orderId,
+            })
+                .populate("vendorId", "userName")
+                .populate({
+                    path: "products.productId",
+                    select: "productName slug images",
+                })
+                .lean(),
+        ]);
+
+        if (!order) {
+            throw new NotFoundError("Order not found.");
+        }
+
+        // Fetch every return request belonging to this order
+        const returnRequests = await ReturnRequestModel.find({
+            orderId,
+        }).lean();
+
+        // Attach return request information to every product
+        const updatedOrderItems = orderItems.map((orderItem) => {
+
+            const products = orderItem.products.map((product) => {
+
+                const request = returnRequests.find((item) =>
+                    item.orderItemId.toString() === orderItem._id.toString() &&
+                    item.productId.toString() === product.productId._id.toString()
+                );
+
+                return {
+                    ...product,
+
+                    hasReturnRequest: !!request,
+
+                    returnRequest: request
+                        ? {
+                            _id: request._id,
+                            status: request.status,
+                            quantity: request.quantity,
+                            reason: request.reason,
+                            createdAt: request.createdAt,
+                        }
+                        : null,
+                };
+            });
 
             return {
-                order,
-                orderItems
+                ...orderItem,
+                products,
             };
-        }
+        });
+
+        return {
+            order,
+            orderItems: updatedOrderItems,
+        };
+    }
 
     //// order cancels
     async orderCancel(userId, orderId) {

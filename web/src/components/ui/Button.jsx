@@ -2,7 +2,7 @@
 
 const Button = ({ className = "", size = "default", variant = "primary", type = "button", disabled = false, onClick, children = "Button", icon: Icon, iconPosition = "right", iconsize=24, ...props}) => {
   /// base class for each button
-  const baseClasses = `relative overflow-hidden transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2 group `;
+  const baseClasses = `relative overflow-hidden cursor-pointer transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2 group `;
 
   /// variants, default primary
   const variants = {

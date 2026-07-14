@@ -237,12 +237,6 @@ const AdminDashboardPage = () => {
                   {MONTHS.find((m) => m.value === month)?.label} {year}
                 </p>
               </div>
-
-              <ButtonRounded
-                variant="ghost"
-                size="default"
-                icon={MoreHorizontal}
-              />
             </div>
 
             {/* Revenue Summary */}

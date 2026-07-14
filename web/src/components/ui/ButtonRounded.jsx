@@ -1,7 +1,7 @@
 
 const ButtonRounded = ({className = "", variant = "primary", size = "default", icon: Icon, iconPosition = "center", iconSize=20, children, onClick, type = "button", disabled = false, ...props}) => {
   const base =
-    "relative inline-flex items-center justify-center transition-all duration-300 active:scale-95 font-medium select-none disabled:opacity-50 disabled:cursor-not-allowed";
+    "relative inline-flex items-center justify-center cursor-pointer transition-all duration-300 active:scale-95 font-medium select-none disabled:opacity-50 disabled:cursor-not-allowed";
 
   const variants = {
     primary: ` bg-primary text-primary-foreground hover:brightness-95 shadow-md `,

@@ -38,7 +38,8 @@ const ResetPasswordPage = () => {
       if(!res) return;
 
       dismissToast();
-      showSuccess(res?.message || "Password Reset succesfull");
+    showSuccess(res?.message || "Password Reset succesfull");
+    navigate("/login");
       reset();
     };
 
@@ -67,7 +68,7 @@ const ResetPasswordPage = () => {
           />
           <Button
             className="w-full cursor-pointer"
-            onClick={() => navigate("/login")}
+            // onClick={() => navigate("/login")}
             type="submit"
           >
             Update Password

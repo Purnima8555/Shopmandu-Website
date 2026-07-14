@@ -25,7 +25,7 @@ const Modal = ({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg p-2 text-muted-foreground transition hover:bg-surface-hover"
+              className="rounded-lg p-2 text-muted-foreground cursor-pointer transition hover:bg-surface-hover"
             >
               <X className="h-4 w-4" />
             </button>
