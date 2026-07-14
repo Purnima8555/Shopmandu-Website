@@ -5,6 +5,24 @@
 import api from "./axios";
 
 
+// router.post("/shop/create", auth, roleBasedAuth(Roles.VENDOR_ROLE), 
+//     upload.fields([
+//       {name: 'logo', maxCount: 1},
+//       {name: 'banner', maxCount: 1}
+//     ]),
+//     schemaValidator(shopSchema),
+//     createShop
+// )
+
+export const createShop = async (shopData) => {
+//     const formData = objectToFormData(shopData);
+
+    const response = await api.post("/api/shop/create", shopData);
+
+    return response.data;
+};
+
+
 export const getMyShop = async () => {
 
  
@@ -70,4 +88,17 @@ export const updateShopInfo = async (shopData) => {
 /// vendor change shop status
 
 /// get shop by slug
+export const searchShopsApi = async (params) => {
+        const res = await api.get("/api/shops/search", {
+        params,
+        });
 
+        return res.data;
+};
+
+// admin Update shop status
+export const updateShopStatusApi = async (shopId, data) => {
+        const res = await api.patch(`/api/admin/shops/${shopId}/status`, data);
+
+        return res.data;
+};

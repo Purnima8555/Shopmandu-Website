@@ -142,6 +142,25 @@ export async function removeOrderCancellationJob(orderId) {
   return true;
 }
 
+export async function welcomeEmailNotification(user) {
+  await emailQueue.add(
+    "welcome-email",
+    {
+      userName: user.userName,
+      email: user.email,
+      appUrl: "http://localhost:5173",
+    },
+    {
+      attempts: 3,
+      backoff: {
+        type: "exponential",
+        delay: 1000,
+      },
+      removeOnComplete: 2000,
+      removeOnFail: 5000,
+    },
+  );
+}
 
 // const counts = await emailQueue.getJobCounts();
 // console.log(counts);

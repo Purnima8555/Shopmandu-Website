@@ -3,14 +3,22 @@ import ButtonRounded from "./ButtonRounded";
 import { IoIosHeartEmpty } from "react-icons/io";
 import { FaStar } from "react-icons/fa";
 import { FiShoppingCart } from "react-icons/fi";
+import { useNavigate } from "react-router-dom"; 
 
-const ProductCard = ({title = "Products",price = 0,discountPrice = 0,rating = 1,image,tag = "New",totalReviews = 0,flashSale = false,discountPersent = 0,}) => {
+const ProductCard = ({name = "Products",price = 0,discountPrice = 0,rating = 1,images,tag = "New",totalReviews = 0,flashSale = false,discountPersent = 0, slug=""}) => {
+
+    const navigate = useNavigate(); 
+
+
+  const handleCardClick = (productSlug) => {
+    navigate(`/products/${productSlug}`); 
+  };
 
   return (
-    <div className="group bg-card rounded-sm border border-border shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden">
+    <div onClick={()=>handleCardClick(slug)} className="group bg-card rounded-sm border border-border shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden">
       {/* image */}
       <div className="relative bg-surface p-3 h-72 overflow-hidden">
-        <img src={image} alt={title} className="w-full h-full rounded-sm object-cover transition duration-300 group-hover:scale-102"/>
+        <img src={images[0]} alt={name} className="w-full h-full rounded-sm object-cover transition duration-300 group-hover:scale-102"/>
 
         {/* badge */}
         <span
@@ -37,7 +45,7 @@ const ProductCard = ({title = "Products",price = 0,discountPrice = 0,rating = 1,
 
       {/* info */}
       <div className="p-4">
-        <h3 className="font-semibold text-md text-foreground line-clamp-2 min-h-[40px]">{title}</h3>
+        <h3 className="font-semibold text-md text-foreground line-clamp-2 min-h-[40px]">{name}</h3>
 
         <div className="flex items-center gap-2 mt-2">
           <span className="text-xl font-bold text-primary">

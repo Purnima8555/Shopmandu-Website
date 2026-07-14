@@ -1,6 +1,3 @@
-
-
-
 import mongoose from "mongoose";
 import ShopStatus from "../constants/ShopStatus.js";
 
@@ -94,7 +91,7 @@ const shopSchema = new mongoose.Schema({
     logo: {
         type: String,
     },
-    discription: {
+    description: {
         type: String,
     },
     banner: {

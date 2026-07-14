@@ -1,9 +1,22 @@
 
 import DashbordHomeHead from "../ui/DashbordHomeHead";
 import SummaryCard from "../ui/SummaryCardDashbord";
-import { dashboardSummary } from "../data";
+import { getDashboardSummary } from "../data";
+import useOrderStore from "../../../store/orderStore";
+import useShopStore from "../../../store/shop";
 
 const DashboardHome = () => {
+    const {vendorSalesSummary} = useOrderStore();
+    console.log(vendorSalesSummary)
+
+  const { productsSummary } =
+    useShopStore();
+
+    console.log(productsSummary)
+const dashboardSummary = getDashboardSummary(
+    vendorSalesSummary,
+   productsSummary
+);
   return (
     <div className="space-y-4">
         {/* Header, welcome */}

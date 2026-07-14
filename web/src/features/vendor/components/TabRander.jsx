@@ -3,7 +3,10 @@
 import AccountSetting from './AccountSetting';
 import AddProduct from './AddProduct';
 import DashbordHome from './DashbordHome';
+import KycVerifiaction from './KycVerifiaction';
 import ListAllProducts from './ListAllProducts';
+import OrderList from './OrderList';
+import { ReturnList } from './ReturnList';
 import ShopProfile from './ShopProfile';
 
 const TabRander = ({currentTab, setCurrentTab}) => {
@@ -36,6 +39,19 @@ const TabRander = ({currentTab, setCurrentTab}) => {
         case 'settings':
             return (
                 <AccountSetting />
+            );
+        case 'all-orders':
+            return(
+                <OrderList />
+            )
+        case 'returns': 
+        return(
+            <ReturnList />
+        )
+
+        case 'kyc-verification':
+            return (
+                <KycVerifiaction />
             )
 
 

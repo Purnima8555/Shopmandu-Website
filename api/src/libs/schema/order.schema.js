@@ -1,9 +1,12 @@
 
-
 import { z } from "zod";
 import {paymentMethod} from "../../constants/paymentMethod.js"
 import addressSchema from "./address.schema.js"
 
+
+//
+// CREATE ORDER SCHEMA
+//
 const createOrderSchema = z.object({
 
     products: z.array(

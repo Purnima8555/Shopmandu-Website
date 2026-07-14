@@ -8,7 +8,8 @@ import UserModel from "../../models/user.model.js";
 import { ResetPasswordEmailbody } from "../../messaging/email/templates/resetPassword.template.js";
 import { orderEmailForSeller } from "../../messaging/email/templates/vendorNewOrder.template.js";
 import { orderConfirmationEmail } from "../../messaging/email/templates/orderConfirmation.template.js";
-
+import { welcomeEmailTemplate } from "../../messaging/email/templates/welcome.template.js";
+import { customerPaymentSuccessTemplate, vendorPaymentSuccessTemplate } from "../../messaging/email/templates/paymentSuccess.template.js";
 
 import { notifyVendor, restoreProductStock } from "../../utils/Order.utils.js";
 import { orderConfermationNotifaction } from "../../utils/EmailQueue.js";
@@ -25,12 +26,14 @@ export const emailHandlers = {
 
   //// generate reset password link and send email.
   "reset-password-email": async function resetPassword(job) {
-
     // const body = decrypt(job.data.body);
     /// get token from database and send to the user
     const user = await ResetForgetPassword.findOne({ userId: job.data.userId });
 
-    const hashToken = crypto.createHash("sha256").update(user.token).digest("hex");
+    const hashToken = crypto
+      .createHash("sha256")
+      .update(user.token)
+      .digest("hex");
     const link = `${process.env.CLIENT_URL}/reset-password/?id=${user.userId}&token=${hashToken}`;
     const body = ResetPasswordEmailbody(link);
 
@@ -39,32 +42,33 @@ export const emailHandlers = {
   },
 
   ///// When new order conform then notify vendor.
-  "orderNotifaction": async function orderNotification(job) {
-
+  orderNotifaction: async function orderNotification(job) {
     /// email body create
     const body = orderEmailForSeller(job.data);
 
     /// send email
-    await sendEmail(job.data.vendorEmail, `New Order ${job.data.orderNumber}`, body);
+    await sendEmail(
+      job.data.vendorEmail,
+      `New Order ${job.data.orderNumber}`,
+      body,
+    );
   },
-
 
   //// after a few minutes place the COD order confirm  and queue the email notification job
   "cod-order-confirmation": async function codOrderConfirmation(job) {
-
     /// get order with update unpaid and confirmed.
     const order = await OrderModel.findOneAndUpdate(
       { _id: job.data.orderId, orderStatus: orderStatus.PENDING },
       {
         $set: {
           orderStatus: orderStatus.CONFIRMED,
-          paymentStatus: paymentStatus.UNPAID
-        }
+          paymentStatus: paymentStatus.UNPAID,
+        },
       },
       {
         // new: true
-        returnDocument: "after"
-      }
+        returnDocument: "after",
+      },
     ).populate("customerId", "userName email");
 
     /// when order not found and come, safely return
@@ -76,38 +80,36 @@ export const emailHandlers = {
       {
         $set: {
           orderItemsStatus: orderStatus.CONFIRMED,
-          paymentStatus: paymentStatus.UNPAID
-        }
-      }
+          paymentStatus: paymentStatus.UNPAID,
+        },
+      },
     );
 
     /// get commondata for email notifaction and job add.
     const commonData = {
       orderNumber: order.orderNumber,
-      shippingAddress: order.shippingAddress.toObject()
+      shippingAddress: order.shippingAddress.toObject(),
     };
 
     /// notify vendor
     await notifyVendor(order, commonData);
 
-    // notify customer 
+    // notify customer
     await orderConfermationNotifaction(order);
   },
 
-
   //// automatically cancel the payment if the order is not paid within the allowed time
   "cancel-unpaid-order": async function cancelUnpaidOrder(job) {
-
     /// update order when payment time is expired
     const order = await OrderModel.findOneAndUpdate(
       { _id: job.data.orderId, orderStatus: orderStatus.PENDING },
       {
         $set: {
           orderStatus: orderStatus.CANCELLED,
-          paymentStatus: paymentStatus.EXPIRED
-        }
+          paymentStatus: paymentStatus.EXPIRED,
+        },
       },
-      { returnDocument: "after" }
+      { returnDocument: "after" },
     );
 
     /// return when order not found or not update
@@ -122,17 +124,16 @@ export const emailHandlers = {
       {
         $set: {
           orderItemsStatus: orderStatus.CANCELLED,
-          paymentStatus: paymentStatus.EXPIRED
-        }
-      }
+          paymentStatus: paymentStatus.EXPIRED,
+        },
+      },
     );
 
     /// update payment
     await PaymentModel.updateOne(
       { orderId: order._id },
-      { $set: { status: paymentStatus.EXPIRED } }
+      { $set: { status: paymentStatus.EXPIRED } },
     );
-
   },
 
   //// notify the customer when the order is confirmed
@@ -143,8 +144,23 @@ export const emailHandlers = {
     const body = orderConfirmationEmail(job.data);
 
     /// send email when order conformed
-    await sendEmail(job.data.email,`Order ${job.data.orderNumber} Confirmed`,body);
-  }
+    await sendEmail(
+      job.data.email,
+      `Order ${job.data.orderNumber} Confirmed`,
+      body,
+    );
+  },
+
+  "welcome-email": async function welcomeEmail(job) {
+    const body = welcomeEmailTemplate(job.data);
+
+    await sendEmail(
+      job.data.email,
+      `Welcome to SHOPMANDU, ${job.data.userName}!`,
+      body,
+    );
+  },
+  
 };
 
 

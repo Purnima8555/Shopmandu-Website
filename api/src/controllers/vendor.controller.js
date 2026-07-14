@@ -94,7 +94,7 @@ const getVendorKyc = async (req, res, next) => {
         const vendorKycStatusDetail = await vendorService.getVendorKyc(vendorId);
 
         res.status(200).json({
-            ...vendorKycStatusDetail._doc
+            ...vendorKycStatusDetail
         })
     } catch (error) {
         next(error)
@@ -130,32 +130,33 @@ const getVendorProfile = async (req, res, next) => {
 
 
 /// ##### ADMIN vendor controller function
+/// Get vendor details
 const getVendorById = async (req, res, next) => {
-    const vendorId = req.params.id
-
-    if (!vendorId) {
-        throw new BadRequestError("Vendor id is required.")
-    }
     try {
-        const vendor = await vendorService.getVendorById(vendorId)
-        res.status(200).json({ vendor });
-    } catch (error) {
-        next(error)
-    }
+        const vendorId = req.params.id;
 
-}
+        if (!vendorId) {
+        throw new BadRequestError("Vendor ID is required.");
+        }
+
+        const vendor = await vendorService.getVendorById(vendorId);
+
+        res.status(200).json({
+        success: true,
+        data: vendor,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
 
 
 /// get all vendors
 const getAllVendors = async (req, res, next) => {
 
     try {
-
-
-
-        const vendors = await vendorService.getAllVendors({ data: req.query });
-
-        res.status(200).json({ ...vendors })
+        const vendors = await vendorService.getAllVendors(req.query);
+        res.status(200).json( vendors )
     } catch (error) {
         next(error)
     }

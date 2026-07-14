@@ -45,9 +45,9 @@ const baseSchema = z.object({
             landmark: z.string().trim().optional(),
         }),
 
-    discription: z.string().trim()
-        .min(3, "Shop discription must be at least 3 characters.")
-        .max(200, "Shop discription must not exceed 200 characters.").optional(),
+    description: z.string().trim()
+        .min(3, "Shop description must be at least 3 characters.")
+        .max(200, "Shop description must not exceed 200 characters.").optional(),
 
     openingHour: z.object({
         open: z.string()

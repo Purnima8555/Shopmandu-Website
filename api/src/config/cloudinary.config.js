@@ -7,15 +7,15 @@ import { BadRequestError, UnauthorizedError } from "../utils/AppError.js"
 
 //// cloudinary configuraction.
 
-const cloudinaryConnect = ()=>{
-    cloudinary.config({
-            cloud_name: config.cloud_name,
-            api_key: config.cloudinaryAPI_KEY,
-            api_secret: config.cloudinaryAPI_SECRET
-        });
-        console.log("Cloudinary configured.");
-        verifyConnection();
-}
+const cloudinaryConnect = () => {
+  cloudinary.config({
+    cloud_name: config.cloud_name,
+    api_key: config.cloudinaryAPI_KEY,
+    api_secret: config.cloudinaryAPI_SECRET,
+  });
+
+  console.log("Cloudinary configured");
+};
 
 /// checked cloudinary connection verifactions.
    const verifyConnection= async () => {

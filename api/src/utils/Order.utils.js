@@ -1,3 +1,4 @@
+import productStatus from "../constants/productStatus.js";
 import OrderItemsModel from "../models/OrderItem.model.js";
 import ProductModel from "../models/Product.model.js";
 import { BadRequestError, NotFoundError } from "./AppError.js";
@@ -186,6 +187,11 @@ const groupByVendorItems = async (items) => {
             throw new BadRequestError(`${product.name} has insufficient stock`);
          }
 
+
+         /// if product status is inactive then also not order that product 
+         // if(product.productStatus === productStatus.INACTIVE){
+         //    throw new BadRequestError(`${product.name} Inactive product can't order.`)
+         // }
 
          // console.log(product)
          const vendorId = product?.vendorId?._id.toString() || product?.vendorId?.toString()

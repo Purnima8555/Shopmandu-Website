@@ -22,7 +22,6 @@ router.get("/payment/history", auth, roleBasedAuth(Roles.USER_ROLE), getMyPaymen
 
 router.get("/payment/:id", auth, roleBasedAuth(Roles.USER_ROLE), getPaymentById);
 
-
 router.get("/admin/payments", auth, roleBasedAuth(Roles.ADMIN_ROLE), getAllPayments)
 
 export default router;

@@ -5,7 +5,11 @@ import auth from "../middleware/auth.middleware.js"
 import roleBasedAuth from "../middleware/roleBase.middleware.js";
 import Roles from "../constants/userRoles.js";
 import schemaValidator from "../middleware/schemaValidator.middleware.js";
-import { addProductImage, createProduct, deleteProduct, deleteProductImage, getAllFlashSalesProducts, getAllProductForPublic, getMyProducts, getMyProductsById, getMyProductSummary, getProductByShop, getProductBySlug, getProductsById, onFlashSale, productVideoUpload, removeFromFlashSale, updateProductImage, updateProductInfo, updateStatus } from "../controllers/product.controller.js";
+import {
+    addProductImage, createProduct, deleteProduct, deleteProductImage, getAllFlashSalesProducts, getAllProductForPublic, getMyProducts,
+    getMyProductsById, getMyProductSummary, getProductByShop, getProductBySlug, getProductsById, onFlashSale, productVideoUpload,
+    removeFromFlashSale, updateProductImage, updateProductInfo, updateStatus, getTopProductsPublic, getTopProducts, getTopProductsVendor,
+    generateProductDescription } from "../controllers/product.controller.js";
 import {productSchema, updateProductSchema} from "../libs/schema/product.schema.js";
 import { upload, videoUpload } from "../middleware/multer.middleware.js"
 
@@ -20,6 +24,11 @@ router.post("/product/create", auth, roleBasedAuth(Roles.VENDOR_ROLE), upload.ar
 router.get("/products", auth, roleBasedAuth(Roles.VENDOR_ROLE), getMyProducts);
 router.get("/products/summary", auth, roleBasedAuth(Roles.VENDOR_ROLE), getMyProductSummary);
 
+// get top products
+router.get("/products/top", auth, roleBasedAuth(Roles.USER_ROLE), getTopProductsPublic);
+router.get("/products/vendortop", auth, roleBasedAuth(Roles.VENDOR_ROLE), getTopProductsVendor);
+router.get("/products/admintop", auth, roleBasedAuth(Roles.ADMIN_ROLE), getTopProducts);
+
 // Get single product by Id Admin
 router.get("/product/:id", auth, roleBasedAuth(Roles.ADMIN_ROLE), getProductsById);
 
@@ -27,6 +36,8 @@ router.get("/product/:id", auth, roleBasedAuth(Roles.ADMIN_ROLE), getProductsByI
 router.get("/product-slug/:slug", getProductBySlug);
 
 router.get("/products/public", getAllProductForPublic)
+
+router.post("/ai-description", auth, roleBasedAuth(Roles.VENDOR_ROLE), generateProductDescription);
 
 // Get products by shop public
 router.get("/shop/products/:id", getProductByShop);
@@ -45,7 +56,7 @@ router.patch("/product/image/:id", auth, roleBasedAuth(Roles.VENDOR_ROLE), uploa
 router.patch("/product/images/:id", auth, roleBasedAuth(Roles.VENDOR_ROLE), upload.array("images", 4), addProductImage);
 
 // Delete product image
-router.delete("/product/delete/image/:id", auth, roleBasedAuth(Roles.VENDOR_ROLE), deleteProductImage);
+router.patch("/product/delete/image/:id", auth, roleBasedAuth(Roles.VENDOR_ROLE), deleteProductImage);
 
 /// product video upload 
 

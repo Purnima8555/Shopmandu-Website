@@ -1,6 +1,12 @@
 import { useRef, useState, useEffect } from "react";
 import useShopStore from "../../../store/shop";
-import { Save, Upload, Image as ImageIcon, Loader2 } from "lucide-react";
+import {
+  Save,
+  Upload,
+  Image as ImageIcon,
+  Loader2,
+  PlusCircle,
+} from "lucide-react";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import { dismissToast, showSuccess } from "../../../utils/toast";
@@ -10,6 +16,16 @@ import { shopSchema } from "../../../schemas/shop.validation";
 import { getFormDetails } from "../util/shopProfile.helper";
 import sendApiRequest from "../../../utils/sendApiRequest";
 
+import CreateShopDrawer from "../ui/CreateShopDrawer";
+import useVendorStore from "../../../store/vendorStore";
+
+const KYC_STATUS = Object.freeze({
+  APPROVED: "APPROVE",
+  PENDING: "PENDING",
+  REJECTED: "REJECT",
+  NOT_SUBMITTED: null,
+});
+
 const ShopProfile = () => {
   const {
     shop,
@@ -18,6 +34,11 @@ const ShopProfile = () => {
     updateShopInfo,
     updateShopStatus,
   } = useShopStore();
+
+  const { vendorKycStatus } = useVendorStore();
+
+  const kycStatus = vendorKycStatus?.kycStatus ?? null;
+  const isFormLocked = kycStatus !== KYC_STATUS.APPROVED || !shop?._id;
 
   const bannerRef = useRef(null);
   const logoRef = useRef(null);
@@ -33,6 +54,9 @@ const ShopProfile = () => {
     info: false,
   });
 
+  const [createShopOpen, setCreateShopOpen] = useState(false);
+  //
+
   const {
     register,
     handleSubmit,
@@ -44,8 +68,9 @@ const ShopProfile = () => {
   });
 
   useEffect(() => {
+    // console.log(shop);
+
     if (shop?._id) {
-      // Only reset if we actually have shop data
       const filteredData = getFormDetails(shop);
       reset(filteredData);
     }
@@ -64,12 +89,10 @@ const ShopProfile = () => {
     setIsUploading((prev) => ({ ...prev, logo: true }));
     const formData = new FormData();
     formData.append("logo", selectedLogo);
-
     const res = await sendApiRequest(() => updateShopLogo(formData));
-
     setIsUploading((prev) => ({ ...prev, logo: false }));
     if (!res) return;
-    dismissToast()
+    dismissToast();
     showSuccess("Logo updated!");
     setSelectedLogo(null);
     setLogoPreview(null);
@@ -86,58 +109,77 @@ const ShopProfile = () => {
   const submitBanner = async () => {
     if (!selectedBanner) return;
     setIsUploading((prev) => ({ ...prev, banner: true }));
-
     const formData = new FormData();
     formData.append("banner", selectedBanner);
     const res = await sendApiRequest(() => updateShopBanner(formData));
     setIsUploading((prev) => ({ ...prev, banner: false }));
     if (!res) return;
-    dismissToast()
+    dismissToast();
     showSuccess("Banner updated!");
     setSelectedBanner(null);
     setBannerPreview(null);
   };
 
-  // --- STATUS UPDATE (FIXED TOGGLE) ---
   const handleToggleStatus = async () => {
     if (isUpdatingStatus) return;
     setIsUpdatingStatus(true);
-
-    // We expect "ACTIVE" or "CLOSED"
     const newStatus = shop.ShopStatus === "ACTIVE" ? "CLOSED" : "ACTIVE";
-    const res =  await sendApiRequest(()=>updateShopStatus({ status: newStatus }));
-       setIsUpdatingStatus(false);
-       if (!res) return;
-       dismissToast()
-      showSuccess(`Store is now ${newStatus}`);
-    
+    const res = await sendApiRequest(() =>
+      updateShopStatus({ status: newStatus }),
+    );
+    setIsUpdatingStatus(false);
+    if (!res) return;
+    dismissToast();
+    showSuccess(`Store is now ${newStatus}`);
   };
 
   const onInfoSubmit = async (data) => {
     setIsUploading((prev) => ({ ...prev, info: true }));
-      const res = await updateShopInfo(data);
-      setIsUploading((prev) => ({ ...prev, info: false }));
-      if(!res) return;
-      if (res?.data) {
-        reset(getFormDetails(res.data)); // Keep form clean after update
-      }
-      dismissToast()
-      showSuccess("Shop details updated!");
-   
+
+    const payload = {
+      ...data,
+      description: data.description,
+    };
+
+    const res = await sendApiRequest(() => updateShopInfo(payload));
+    setIsUploading((prev) => ({ ...prev, info: false }));
+    if (!res) return;
+
+    if (res?.data) {
+      reset(getFormDetails(res.data));
+    }
+    dismissToast();
+    showSuccess("Shop details updated!");
   };
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto animation-fade-in animation-delay-200 pb-10">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-[#1F2937]">
-          Shop Profile
-        </h1>
-        <p className="text-sm text-[#64748B] mt-1">
-          Configure your public storefront banner, logo, and details.
-        </p>
+    <div className="space-y-8 max-w-4xl mx-auto pb-10">
+      {/* ── Page Header ── */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-[#1F2937]">
+            Shop Profile
+          </h1>
+          <p className="text-sm text-[#64748B] mt-1">
+            Configure your public storefront banner, logo, and details.
+          </p>
+        </div>
+
+        {!shop?._id && (
+          <Button
+            type="button"
+            icon={PlusCircle}
+            iconPosition="left"
+            iconsize={18}
+            onClick={() => setCreateShopOpen(true)}
+            className="cursor-pointer flex-shrink-0"
+          >
+            Create Shop
+          </Button>
+        )}
       </div>
 
-      {/* Banner & Logo section (FormData) */}
+      {/* Banner & Logo section */}
       <div className="bg-white rounded-2xl border border-[#DBE4EC] overflow-hidden shadow-sm">
         <div className="relative h-72 bg-slate-100 group">
           <img
@@ -145,6 +187,7 @@ const ShopProfile = () => {
               bannerPreview || shop?.banner || "https://placehold.co/1200x400"
             }
             className="w-full h-full object-cover"
+            alt="Shop banner"
           />
           <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-3">
             <button
@@ -183,6 +226,7 @@ const ShopProfile = () => {
               <img
                 src={logoPreview || shop?.logo}
                 className="w-full h-full object-cover rounded-xl"
+                alt="Shop logo"
               />
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
                 <button
@@ -216,7 +260,7 @@ const ShopProfile = () => {
             </div>
           </div>
 
-          {/* Toggle Status - Corrected Logic */}
+          {/* Status toggle */}
           <div className="flex items-center gap-4 rounded-xl border border-[#DBE4EC] bg-[#F1F5F9] p-4">
             <div>
               <span className="block text-[10px] font-bold uppercase text-[#64748B]">
@@ -224,10 +268,18 @@ const ShopProfile = () => {
               </span>
               <div className="flex items-center gap-2">
                 <span
-                  className={`h-2 w-2 rounded-full ${shop?.ShopStatus === "ACTIVE" ? "bg-emerald-500 animate-pulse" : "bg-red-500"}`}
+                  className={`h-2 w-2 rounded-full ${
+                    shop?.ShopStatus === "ACTIVE"
+                      ? "bg-emerald-500 animate-pulse"
+                      : "bg-red-500"
+                  }`}
                 />
                 <span
-                  className={`text-sm font-bold ${shop?.ShopStatus === "ACTIVE" ? "text-emerald-600" : "text-red-600"}`}
+                  className={`text-sm font-bold ${
+                    shop?.ShopStatus === "ACTIVE"
+                      ? "text-emerald-600"
+                      : "text-red-600"
+                  }`}
                 >
                   {shop?.ShopStatus}
                 </span>
@@ -253,7 +305,7 @@ const ShopProfile = () => {
         </div>
       </div>
 
-      {/* Main Info Form - Corrected Validation path */}
+      {/* Business Info form */}
       <form
         onSubmit={handleSubmit(onInfoSubmit)}
         className="bg-white p-6 rounded-2xl border border-[#DBE4EC] shadow-sm space-y-8"
@@ -268,21 +320,41 @@ const ShopProfile = () => {
           </p>
         </div>
 
+        {/* KYC lock notice — only visible when form is locked */}
+        {isFormLocked && (
+          <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <span className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-amber-400 mt-1.5" />
+            <p className="text-xs text-amber-800 leading-relaxed">
+              <span className="font-bold">Editing is disabled.</span>{" "}
+              {kycStatus === KYC_STATUS.APPROVED && !shop?._id
+                ? "Your KYC is approved. Create your shop first to unlock profile editing."
+                : kycStatus === KYC_STATUS.PENDING
+                  ? "Your KYC is currently under review. You can edit shop details once your verification is approved."
+                  : kycStatus === KYC_STATUS.REJECTED
+                    ? "Your KYC was rejected. Please resubmit your documents before editing shop details."
+                    : "Complete KYC verification to unlock shop profile editing."}
+            </p>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <Input
             label="Shop Name"
             {...register("shopName")}
             error={errors.shopName?.message}
+            disabled={isFormLocked}
           />
           <Input
             label="Support Email"
             {...register("businessEmail")}
             error={errors.businessEmail?.message}
+            disabled={isFormLocked}
           />
           <Input
             label="Business Mobile"
             {...register("businessMobile")}
             error={errors.businessMobile?.message}
+            disabled={isFormLocked}
           />
 
           <div className="grid grid-cols-2 gap-4">
@@ -290,11 +362,13 @@ const ShopProfile = () => {
               type="time"
               label="Opens At"
               {...register("openingHour.open")}
+              disabled={isFormLocked}
             />
             <Input
               type="time"
               label="Closes At"
               {...register("openingHour.close")}
+              disabled={isFormLocked}
             />
           </div>
 
@@ -303,31 +377,48 @@ const ShopProfile = () => {
               label="Address"
               {...register("shopAddress.location")}
               error={errors.shopAddress?.location?.message}
+              disabled={isFormLocked}
             />
           </div>
 
-          <Input label="City" {...register("shopAddress.city")} />
-          <Input label="Province/State" {...register("shopAddress.state")} />
-          <Input label="Postal Code" {...register("shopAddress.pincode")} />
-          <Input label="Landmark" {...register("shopAddress.landmark")} />
+          <Input
+            label="City"
+            {...register("shopAddress.city")}
+            disabled={isFormLocked}
+          />
+          <Input
+            label="Province/State"
+            {...register("shopAddress.state")}
+            disabled={isFormLocked}
+          />
+          <Input
+            label="Postal Code"
+            {...register("shopAddress.pincode")}
+            disabled={isFormLocked}
+          />
+          <Input
+            label="Landmark"
+            {...register("shopAddress.landmark")}
+            disabled={isFormLocked}
+          />
 
           <div className="md:col-span-2">
             <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#64748B]">
               Shop Description
             </label>
             <textarea
-              {...register("discription")}
+              {...register("description")}
               rows={4}
+              disabled={isFormLocked}
               placeholder="Tell your customers about your shop..."
-              className={`w-full rounded-xl border bg-white px-4 py-3 text-sm transition-all outline-none ${
-                errors.discription
-                  ? "border-red-500"
-                  : "border-[#DBE4EC] focus:border-[#6A89A7]"
-              }`}
+              className={`w-full rounded-xl border bg-white px-4 py-3 text-sm transition-all outline-none resize-none
+                ${isFormLocked ? "opacity-50 cursor-not-allowed bg-slate-50" : ""}
+                ${errors.description ? "border-red-500" : "border-[#DBE4EC] focus:border-[#6A89A7]"}
+              `}
             />
-            {errors.discription && (
+            {errors.description && (
               <span className="text-[10px] text-red-500">
-                {errors.discription.message}
+                {errors.description.message}
               </span>
             )}
           </div>
@@ -335,15 +426,20 @@ const ShopProfile = () => {
 
         <div className="flex justify-end pt-4">
           <Button
-            disabled={isUploading.info}
+            disabled={isUploading.info || isFormLocked}
             icon={Save}
             type="submit"
-            className="cursor-pointer min-w-[150px]"
+            className={`min-w-[150px] ${isFormLocked ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
           >
             {isUploading.info ? "Processing..." : "Save Changes"}
           </Button>
         </div>
       </form>
+
+      <CreateShopDrawer
+        isOpen={createShopOpen}
+        onClose={() => setCreateShopOpen(false)}
+      />
     </div>
   );
 };

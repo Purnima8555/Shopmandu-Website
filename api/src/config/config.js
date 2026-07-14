@@ -41,6 +41,9 @@ const config = Object.freeze({
     stripe_publishable_key: process.env.STRIPE_PUBLIC_KEY,
 
     client_url: process.env.CLIENT_URL,
+
+    /// gemini key
+    gemini_key: process.env.GEMINI_API_KEY,
 })
 
 export default config

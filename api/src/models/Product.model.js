@@ -178,6 +178,6 @@ const productSchema = new mongoose.Schema(
 // productSchema.index({ slug: 1 });
 
 /// create model
-const ProductModel = mongoose.model("Product", productSchema);
+const ProductModel = mongoose.models.Product || mongoose.model("Product", productSchema);
 
 export default ProductModel;

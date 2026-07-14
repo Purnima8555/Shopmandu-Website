@@ -1,6 +1,6 @@
 
 
-import { ArrowLeftRight, BarChart3, CheckCircle2, LayoutDashboard, Package, PlusCircle, SettingsIcon, ShoppingBag, Store, DollarSign, ShoppingCart, RotateCcw, TrendingUp, AlertCircle, } from "lucide-react"
+import { ArrowLeftRight, CheckCircle2, LayoutDashboard, Package, PlusCircle, SettingsIcon, ShoppingBag, Store, DollarSign, ShoppingCart, RotateCcw, TrendingUp, AlertCircle, } from "lucide-react"
 
 export const navItems = [
   {
@@ -38,11 +38,11 @@ export const navItems = [
       { id: 'returns', label: 'Returns', icon: ArrowLeftRight }
     ]
   },
-  {
-    id: 'analytics',
-    label: 'Analytics',
-    icon: BarChart3,
-  },
+  // {
+  //   id: 'analytics',
+  //   label: 'Analytics',
+  //   icon: BarChart3,
+  // },
   {
     id: 'settings',
     label: 'Settings',
@@ -51,34 +51,15 @@ export const navItems = [
 ];
 
 
-export const INITIAL_SHOP_PROFILE = {
-  name: 'Aetheris Handcrafted Essentials',
-  description: 'Meticulously crafted leather goods, artisanal ceramics, premium electronics workspace peripherals, and lifestyle accessories for conscious professionals and design enthusiasts.',
-  email: 'partner@aetheris.co',
-  phone: '+1 (800) 555-8743',
-  address: '100 Artisan Way, Industrial District, Portland, OR 97201',
-  logo: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=60&ixlib=rb-4.0.3', // Elegant abstract shape
-  banner: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=1200&auto=format&fit=crop&q=80&ixlib=rb-4.0.3', // Minimalist interior
-  businessHours: '09:00 AM - 06:00 PM (Monday - Friday)',
-  socialLinks: {
-    website: 'https://aetheris.co',
-    instagram: 'https://instagram.com/aetheris.co',
-    facebook: 'https://facebook.com/aetheris.co',
-    twitter: 'https://twitter.com/aetherisco'
-  },
-  isActive: true,
-  kycStatus: 'Pending'
-};
 
-
-export const dashboardSummary = [
+export const getDashboardSummary = (summary, productsSummary) => [
   {
     title: "Total Revenue",
     icon: DollarSign,
-    summary: "500.50",
-    prefix: "$",
-    tag: "+14.2%",
-    slogan: "vs last 30 days",
+    summary: summary?.totalRevenue ?? 0,
+    prefix: "Rs. ",
+    tag: `${summary?.averageOrderValue ?? 0}`,
+    slogan: "Average order value",
     tagIcon: TrendingUp,
     iconBackground: "bg-primary-light",
     iconColor: "text-primary",
@@ -89,9 +70,9 @@ export const dashboardSummary = [
   {
     title: "Total Orders",
     icon: ShoppingCart,
-    summary: 5,
-    tag: "+8.4%",
-    slogan: "vs last 30 days",
+    summary: summary?.totalOrders ?? 0,
+    tag: `${summary?.confirmedOrders ?? 0} Confirmed`,
+    slogan: `${summary?.pendingOrders ?? 0} Pending`,
     tagIcon: TrendingUp,
     iconBackground: "bg-primary-light",
     iconColor: "text-primary",
@@ -100,11 +81,11 @@ export const dashboardSummary = [
   },
 
   {
-    title: "Total Products",
+    title: "Products",
     icon: Package,
-    summary: 8,
-    tag: "6 Active",
-    slogan: "2 non-active",
+    summary: productsSummary.totalProducts,
+    tag: `${summary?.processingOrders ?? 0} Processing`,
+    slogan: `${summary?.partiallyShippedOrders ?? 0} Partially Shipped`,
     tagIcon: Package,
     iconBackground: "bg-highlight/10",
     iconColor: "text-highlight",
@@ -113,11 +94,11 @@ export const dashboardSummary = [
   },
 
   {
-    title: "Return Requests",
+    title: "Cancelled Orders",
     icon: RotateCcw,
-    summary: 1,
-    tag: "Requires Review",
-    slogan: "Pending decisions",
+    summary: summary?.cancelledOrders ?? 0,
+    tag: `${summary?.deliveredOrders ?? 0} Delivered`,
+    slogan: `${summary?.outForDeliveryOrders ?? 0} Out for delivery`,
     tagIcon: AlertCircle,
     iconBackground: "bg-danger/10",
     iconColor: "text-danger",
@@ -153,3 +134,17 @@ export const filterOptions = {
     { label: "Name: Z → A", value: "NAME_DESC" },
   ],
 };
+
+export const filterOrders = [
+  { label: "All Orders", value: "", },
+  { label: "Pending", value: "PENDING", },
+  { label: "Confirmed", value: "CONFIRMED", },
+  { label: "Processing", value: "PROCESSING", },
+  { label: "Partially Shipped", value: "PARTIALLY_SHIPPED", },
+  { label: "Out for Delivery", value: "OUT_FOR_DELIVERY", },
+  { label: "Delivered", value: "DELIVERED", },
+  { label: "Cancelled", value: "CANCELLED", },
+  { label: "Return Requested", value: "RETURN_REQUESTED", },
+  { label: "Returned", value: "RETURNED", },
+  { label: "Failed", value: "FAILED", },
+];

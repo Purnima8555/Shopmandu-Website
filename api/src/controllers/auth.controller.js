@@ -186,22 +186,34 @@ const continueWithGoogle = async (req, res, next) => {
         const code = req.query.code;
         const user = await googleLogin(code)
 
-        //// creatre jwt token
+
+        // JWT payload
         let payload = {
             userName: user.userName,
             _id: user._id,
             email: user.email,
             roles: user.roles,
-            authProvider: user.authProvider
+            authProvider: user.authProvider,
+            avatar: user.avatar,
+            mobile: user.mobile
 
         }
-        const token = await signJwt(payload)
 
+        // Generate token
+        const token = await signJwt(payload);
+
+        // Set cookie
         res.cookie("authToken", token, {
-            maxAge: 86400 * 1000 /// valid for 1 day 
+            maxAge: 86400 * 1000, /// valid for 1 day 
+            httpOnly: true,
+            secure: config.node_env === "production",
+            sameSite: "lax",
         })
 
-        res.json({ ...user, token })
+        res.redirect(config.client_url);
+
+
+        // res.json({ ...user, token })
 
     } catch (error) {
         next(error)

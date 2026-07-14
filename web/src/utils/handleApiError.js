@@ -6,22 +6,28 @@ import { dismissToast, showError } from "./toast";
 /// for error handle
 const handleApiError = (error) => {
 
-    if (!axios.isAxiosError(error)) {
+    console.log(error)
+
+     if (!axios.isAxiosError(error)) {
         dismissToast();
-        showError("something went wrong.");
-        return
+        showError("Something went wrong.");
+        return;
     }
-    const status = error.response.status;
-    const data = error.response.data
 
-    // console.error("Error Data is : ",data)
+    if (!error.response) {
+        dismissToast();
+        showError("Network error. Please check your connection.");
+        return;
+    }
 
-    /// if alrady have message then show toast with that message.
+    const { status, data } = error.response;
+
     if (data?.message) {
         dismissToast();
-        showError(data.message)
-        return
+        showError(data.message);
+        return;
     }
+
     switch (status) {
         case 400:
             dismissToast();

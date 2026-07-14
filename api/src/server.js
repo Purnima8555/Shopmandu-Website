@@ -13,6 +13,10 @@ import cartRouters from "./routes/cart.route.js"
 import wishlistRouters from "./routes/wishlist.route.js"
 import productRouters from "./routes/product.route.js"
 import orderRoutes from "./routes/order.route.js"
+import userRouters from "./routes/user.route.js";
+import returnRouters from "./routes/return.route.js";
+import aiRoutes from "./routes/ai.route.js";
+import reviewRouters from "./routes/review.route.js";
 
 import { connectRedis } from "./config/redis.config.js"
 import client from "./config/redis.config.js"
@@ -61,7 +65,14 @@ app.use("/api/coupon", couponRouters)
 
 /// category Routers
 app.use("/api/category", categoryRoters)
-
+/// User Routes
+app.use("/api", userRouters);
+/// AI routes
+app.use("/api/ai", aiRoutes);
+/// Return request routes
+app.use("/api/return", returnRouters);
+/// review routes
+app.use("/api/reviews", reviewRouters);
 
 /// error handel
 app.use(RouteNotFoundMiddleware);

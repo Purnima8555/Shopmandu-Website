@@ -11,7 +11,7 @@ import { generateUniqueShopSlug } from "../utils/slug.utils.js";
 
 class shopServices {
 
-    /// creat shop 
+    /// create shop 
     async createShop(shopData, vendorId, files) {
 
         /// check vendor KYC is verified
@@ -102,7 +102,7 @@ class shopServices {
             { user_id: vendorId },
             { $set: updateData },
             {
-               returnDocument: "after",
+                returnDocument: "after",
                 runValidators: true,
             }
         );
@@ -164,16 +164,27 @@ class shopServices {
     }
 
     /// update shop status by Admin
-    async updateShopStatusByAdmin(vendorId, status) {
-        const shop = await this.getMyShop(vendorId);
-        // vendor only can update ther few status
+    async updateShopStatusByAdmin(shopId, status) {
+        const shop = await ShopModel.findById(shopId);
 
-        if (![ShopStatus.ACTIVE_STATUS, ShopStatus.DEACTIVATED_STATUS, ShopStatus.CLOSED_STATUS, ShopStatus.PENDING_STATUS, ShopStatus.SUSPENDED_STATUS, ShopStatus.BANNED_STATUS].includes(status)) {
-            throw new ForbiddenError("Invalid shop status.")
+        if (!shop) {
+            throw new NotFoundError("Shop not found.");
         }
+
+        const ADMIN_ALLOWED_STATUSES = [
+            ShopStatus.ACTIVE_STATUS,
+            ShopStatus.BANNED_STATUS,
+        ];
+
+        if (!ADMIN_ALLOWED_STATUSES.includes(status)) {
+            throw new ForbiddenError(
+                "Admin can only ban or unban a shop."
+            );
+        }
+
         shop.ShopStatus = status;
-        await shop.save()
-        return shop
+        await shop.save();
+        return shop;
     }
 
 

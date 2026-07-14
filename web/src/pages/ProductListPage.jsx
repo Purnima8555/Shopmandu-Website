@@ -127,9 +127,9 @@ const ProductListPage = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Smartphones</h1>
+            <h1 className="text-2xl font-bold text-foreground">Shopmandu</h1>
             <p className="text-sm mt-1 text-foreground/60">
-              Browse the latest devices ({totalResults} results found)
+              Browse the latest products ({totalResults} results found)
             </p>
           </div>
           <Button

@@ -185,7 +185,6 @@ class PaymentService {
         }
     }
 
-
     //// customer payment history
     async paymentHistory(userId, data) {
         /// filter and pagination
@@ -255,6 +254,13 @@ class PaymentService {
             filter.paymentMethod = query.paymentMethod.toString().toUpperCase()
         }
 
+        if (query.search?.trim()) {
+            filter.orderNumber = {
+                $regex: query.search.trim(),
+                $options: "i",
+            };
+        }
+
         if (query.status) {
             filter.status = query.status.toString().toUpperCase()
         }
@@ -283,7 +289,8 @@ class PaymentService {
         };
     }
 
-    /// request for refunt
+
+    /// request for refund
 
 }
 

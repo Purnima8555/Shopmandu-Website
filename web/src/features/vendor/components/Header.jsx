@@ -12,10 +12,11 @@ export default function Header({ onAddProductClick, searchQuery,setSearchQuery,o
   
     const {loading} = useShopStore()
     const {shop} = useShopStore()
-    const {user} = useAuthStore()
+    const {user, logout} = useAuthStore()
     // console.log("My shop is : ",user)
     // console.log(loading)
 
+    
 
     
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
@@ -66,10 +67,10 @@ export default function Header({ onAddProductClick, searchQuery,setSearchQuery,o
             <ProfileMenuButton icon={SettingsIcon} title='Account Settings' onClick={() => {onNavigateToTab('settings');setShowProfileDropdown(false)}}/>
               <div className="border-t border-border my-1"></div>
               <button
-                onClick={() =>{ alert('Log out. '); setShowProfileDropdown(false)}}
+                onClick={async ()=>{ await logout(); setShowProfileDropdown(false)}}
                 className="w-full text-left px-4 py-2 text-sm text-danger hover:bg-red-50 transition-all flex items-center gap-2.5"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut  className="w-4 h-4" />
                 <span>Sign Out</span>
               </button>
             </div>

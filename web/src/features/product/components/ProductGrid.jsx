@@ -1,4 +1,5 @@
-import FlashSaleCard from "../../../components/ui/FlashSaleCard";
+
+import ProductCard from "../../../components/ui/ProductCard";
 
 export const ProductGrid = ({ products }) => {
   if (products.length === 0) {
@@ -12,7 +13,7 @@ export const ProductGrid = ({ products }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {products.map((item, idx) => (
-        <FlashSaleCard
+        <ProductCard
           key={`${item.name}-${idx}`}
           name={item.name}
           price={item.price}
@@ -23,6 +24,7 @@ export const ProductGrid = ({ products }) => {
           flashSales={item.flashSales}
           discountPercent={item.discountPercent}
           tag={item.flashSales ? `-${item.discountPercent}%` : "Active"}
+          slug={item?.slug}
         />
       ))}
     </div>

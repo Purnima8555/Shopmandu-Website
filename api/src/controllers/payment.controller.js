@@ -11,7 +11,7 @@ const payOrder = async (req, res, next) => {
         const userId = req.user._id
         const { orderId, gateway } = req.body
 
-        const paymentOrder = await paymentService.orderPay(userId, orderId, gateway)
+        const paymentOrder = await paymentService.orderPay(userId, orderId, gateway);
         res.status(200).json({
             paymentOrder
         })

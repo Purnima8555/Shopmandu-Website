@@ -1,5 +1,3 @@
-
-
 import { useRef, useState, useEffect } from "react";
 import useAuthStore from "../../../store/authStore";
 import { Save, Shield, User, Camera, Loader2 } from "lucide-react";
@@ -14,7 +12,9 @@ import { updateUserName } from "../../../schemas/auth.validation";
 
 const AccountSetting = () => {
   const { user, loading } = useAuthStore();
-  const updateVendorUserName = useAuthStore((state) => state.updateVendorUserName);
+  const updateVendorUserName = useAuthStore(
+    (state) => state.updateVendorUserName,
+  );
   const updateAvatar = useAuthStore((state) => state.updateAvatar);
 
   const fileInputRef = useRef(null);
@@ -22,7 +22,12 @@ const AccountSetting = () => {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  const { register, handleSubmit, reset,  formState: { errors } } = useForm({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
     resolver: zodResolver(updateUserName),
     defaultValues: {
       userName: user?.userName || "",
@@ -41,47 +46,42 @@ const AccountSetting = () => {
     const file = e.target.files[0];
     if (file) {
       setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file)); 
+      setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
-  // Handle Avatar Upload
+  //// Handle Avatar Upload
   const handleAvatarSubmit = async () => {
     if (!selectedFile) return;
     setIsUploading(true);
 
-      const formData = new FormData();
-      formData.append("avatar", selectedFile);
-     const res= await sendApiRequest(()=>updateAvatar(formData));
-      setIsUploading(false);
-      if(!res) return;
-      showSuccess("Profile picture updated successfully!");
-      setSelectedFile(null); 
-      setPreviewUrl(null); // Clear preview to show updated store image
-  
+    const formData = new FormData();
+    formData.append("avatar", selectedFile);
+    const res = await sendApiRequest(() => updateAvatar(formData));/// send request to backend.
+    setIsUploading(false);
+    if (!res) return; /// if no any response then we just return it.
+    showSuccess("Profile picture updated successfully!"); //// if response then display the tost message.
+    setSelectedFile(null);
+    setPreviewUrl(null); // Clear preview to show updated store image
   };
 
   //  Handle Name Update to reflect changes immediately
   const onNameSubmit = async (data) => {
-  
-      const res = await sendApiRequest(()=>updateVendorUserName(data));
+    const res = await sendApiRequest(() => updateVendorUserName(data));
 
-      if(!res) return;
+    if (!res) return;
 
-      if (res?.data?.userName) {
-        reset({ userName: res?.data?.userName });
-      }
-      showSuccess("Profile name updated!");
-  
+    if (res?.data?.userName) {
+      reset({ userName: res?.data?.userName });
+    }
+    showSuccess("Profile name updated!");
   };
 
   const handleForgetFormSubmit = async (email) => {
-    
-      const res = await sendApiRequest(()=>forgetPasswordApi({ email }));
-      if(!res) return;
-      dismissToast();
-      showSuccess(res.message || "Password reset link sent.");
-  
+    const res = await sendApiRequest(() => forgetPasswordApi({ email }));
+    if (!res) return;
+    dismissToast();
+    showSuccess(res.message || "Password reset link sent.");
   };
 
   return (
@@ -109,14 +109,16 @@ const AccountSetting = () => {
               className="relative w-28 h-28 cursor-pointer overflow-hidden rounded-xl border-4 border-white shadow-md ring-1 ring-[#DBE4EC]"
             >
               <img
-                key={user?.avatar} // Adding key forces re-render when URL changes
+                key={user?.avatar}
                 src={previewUrl || user?.avatar}
                 alt="Avatar Profile"
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <Camera className="text-white w-6 h-6" />
-                <span className="text-white text-[10px] font-medium mt-1">CHANGE</span>
+                <span className="text-white text-[10px] font-medium mt-1">
+                  CHANGE
+                </span>
               </div>
             </div>
 
@@ -131,19 +133,32 @@ const AccountSetting = () => {
 
           <div className="flex flex-col items-center sm:items-start gap-3">
             <div>
-              <h4 className="font-bold text-[#1F2937] text-lg">Profile Image</h4>
-              <p className="text-xs text-[#64748B]">JPG, PNG, WEBP or AVIF. Max 5MB</p>
+              <h4 className="font-bold text-[#1F2937] text-lg">
+                Profile Image
+              </h4>
+              <p className="text-xs text-[#64748B]">
+                JPG, PNG, WEBP or AVIF. Max 5MB
+              </p>
             </div>
 
             {selectedFile && (
               <div className="flex gap-2">
-                <Button onClick={handleAvatarSubmit} disabled={isUploading} className="py-2 px-4 text-xs h-9">
-                  {isUploading ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : null}
+                <Button
+                  onClick={handleAvatarSubmit}
+                  disabled={isUploading}
+                  className="py-2 px-4 text-xs h-9"
+                >
+                  {isUploading ? (
+                    <Loader2 className="w-3 h-3 animate-spin mr-2" />
+                  ) : null}
                   Update Avatar
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => { setSelectedFile(null); setPreviewUrl(null); }}
+                  onClick={() => {
+                    setSelectedFile(null);
+                    setPreviewUrl(null);
+                  }}
                   className="py-2 px-4 text-xs h-9 border-[#DBE4EC] text-gray-500"
                 >
                   Cancel
@@ -155,12 +170,34 @@ const AccountSetting = () => {
 
         <form onSubmit={handleSubmit(onNameSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Input label="Full Name" {...register("userName")} error={errors.userName?.message} type="text" />
-            <Input label="Email Address" value={user?.email ?? ""} type="email" disabled={true} />
-            <Input label="Phone Number" value={user?.mobile ?? ""} type="tel" disabled={true} />
+            <Input
+              label="Full Name"
+              {...register("userName")}
+              error={errors.userName?.message}
+              type="text"
+            />
+            <Input
+              label="Email Address"
+              value={user?.email ?? ""}
+              type="email"
+              disabled={true}
+            />
+            <Input
+              label="Phone Number"
+              value={user?.mobile ?? ""}
+              type="tel"
+              disabled={true}
+            />
           </div>
           <div className="flex justify-end pt-4 border-t border-slate-50">
-            <Button type="submit" disabled={loading} icon={Save} iconPosition="left" iconsize={18} className="cursor-pointer">
+            <Button
+              type="submit"
+              disabled={loading}
+              icon={Save}
+              iconPosition="left"
+              iconsize={18}
+              className="cursor-pointer"
+            >
               {loading ? "Saving Name..." : "Save Name Change"}
             </Button>
           </div>
@@ -173,8 +210,17 @@ const AccountSetting = () => {
           Security Credentials
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 items-center">
-          <Input label="Current Password" value="••••••••" type="password" disabled={true} />
-          <Button type="button" className="cursor-pointer whitespace-nowrap" onClick={() => handleForgetFormSubmit(user.email)}>
+          <Input
+            label="Current Password"
+            value="••••••••"
+            type="password"
+            disabled={true}
+          />
+          <Button
+            type="button"
+            className="cursor-pointer whitespace-nowrap"
+            onClick={() => handleForgetFormSubmit(user.email)}
+          >
             Reset Password
           </Button>
         </div>

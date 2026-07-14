@@ -1,4 +1,5 @@
-// Status Badge Helper
+
+
 export const KycStatusTag = ({ kycStatus }) => {
   const baseClass =
     "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium";
@@ -34,7 +35,7 @@ export const KycStatusTag = ({ kycStatus }) => {
   return (
     <span className={`${baseClass} ${status.badge}`}>
       <span className={`${dotClass} ${status.dot}`}></span>
-      {status.label}
+      {status.label} 
     </span>
   );
 };

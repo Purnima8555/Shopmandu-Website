@@ -1,5 +1,6 @@
 import productService from "../services/product.service.js";
 import { BadRequestError } from "../utils/AppError.js";
+import AIService from "../services/ai.service.js";
 
 /// create product
 const createProduct = async (req, res, next) => {
@@ -210,17 +211,14 @@ const deleteProductImage = async (req, res, next) => {
   try {
     const vendorId = req.user._id;
     const productId = req.params.id;
-    const { imageIndex } = req.body;
-    const deleteProduct = await productService.updateProductImage(
+    const { imageUrl } = req.body;
+    const deleteProduct = await productService.deleteProductImage(
       vendorId,
       productId,
-      imageIndex,
+      imageUrl,
     );
 
-    res.status(200).json({
-      success: true,
-      data: deleteProduct,
-    });
+    res.status(200).json( deleteProduct);
   } catch (error) {
     next(error);
   }
@@ -247,16 +245,69 @@ const getAllProductForPublic = async (req, res, next) => {
   try {
     const data = req.query;
     const products = await productService.getAllProduct(data);
-    res.status(200).json({
-      success: true,
-      data: products,
-    });
+    res.status(200).json(products);
   } catch (error) {
     next(error);
   }
 };
 
 /// vendor on product flash shale
+
+const getTopProductsPublic = async (req, res, next) => {
+    try {
+
+        const limit = Math.min(Number(req.query.limit) || 10, 20);
+
+        const result = await productService.getTopProducts(limit);
+
+        res.status(200).json({
+            success: true,
+            data: result,
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+const getTopProducts = async (req, res, next) => {
+    try {
+
+        const limit = Math.min(Number(req.query.limit) || 10, 20);
+
+        const result = await productService.getTopProducts(limit);
+
+        res.status(200).json({
+            success: true,
+            data: result
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+
+const getTopProductsVendor = async (req, res, next) => {
+    try {
+
+        const limit = Math.min(Number(req.query.limit) || 10, 20);
+
+        const result = await productService.getTopProductsVendor(
+            req.user._id,
+            limit
+        );
+
+        res.status(200).json({
+            success: true,
+            data: result
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};
+
 
 const onFlashSale = async (req, res, next) => {
   try {
@@ -329,9 +380,24 @@ const getMyProductSummary = async (req, res, next) => {
     next(error)
   }
 
+}
 
 
- }
+const generateProductDescription = async (req, res, next) => {
+  try {
+    const description = await AIService.generateProductDescription(req.body);
+
+    res.status(200).json({
+      success: true,
+      message: "Description generated successfully.",
+      data: {
+        description,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 
 export {
@@ -352,5 +418,9 @@ export {
   onFlashSale,
   removeFromFlashSale,
   getAllFlashSalesProducts,
+  getTopProductsPublic,
+  getTopProducts,
+  getTopProductsVendor,
   getMyProductSummary,
+  generateProductDescription,
 };
