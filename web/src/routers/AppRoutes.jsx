@@ -18,6 +18,7 @@ import RoleProtectedRoute from "./guards/RoleProtectedRoute";
 import Roles from "../constants/Rolebase";
 import CartPage from "../pages/CartPage";
 import WishlistPage from "../pages/WishlistPage"; 
+import ShopDetailPage from "../pages/ShopDetailPage";
 import CheckoutPage from "../pages/CheckoutPage";
 import OrderSuccessPage from "../pages/OrderSuccessPage";
 import UnauthorizedPage from "../pages/UnauthorizedPage";
@@ -51,6 +52,7 @@ export default function AppRoutes() {
         <Route path="contact" element={<ContactPage />} />
         <Route path="products" element={<ProductListPage />} />
         <Route path="products/:slug" element={<ProductDetailPage />} />
+        <Route path="shop/:slug" element={<ShopDetailPage />} />
         <Route path="wishlist" element={<WishlistPage />} />
 
         {/*  Auth pages  */}

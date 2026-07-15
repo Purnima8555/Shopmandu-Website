@@ -11,11 +11,11 @@ const wishlistItemSchema = new mongoose.Schema(
       required: [true, "Product ID is required."],
     },
 
-    // shopId: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: "Shop",
-    //   required: [true, "Shop ID is required."],
-    // },
+    shopId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Shop",
+      required: [true, "Shop ID is required."],
+    },
   },
   { _id: false }, // no separate _id per item — productId is the unique key
 );

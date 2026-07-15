@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { FiSliders, FiX } from "react-icons/fi";
 import Button from "../components/ui/Button";
 
@@ -7,6 +8,10 @@ import { Pagination } from "../features/product/components/Pagination";
 import { TopControlBar } from "../features/product/components/TopControlBar";
 import { ProductGrid } from "../features/product/components/ProductGrid";
 import useProductStore from "../store/productStore";
+import useCartStore from "../store/cartStore";
+import useWishlistStore from "../store/wishlistStore";
+import useAuthStore from "../store/authStore";
+import { dismissToast, showSuccess, showError } from "../utils/toast";
 
 /// Filter logic helper (Optional if server handles filtering, but kept for robust display)
 function applyFilters(data, filters) {
@@ -61,6 +66,11 @@ const ProductListPage = () => {
     loading 
   } = useProductStore();
 
+  const navigate = useNavigate();
+  const { addToCart } = useCartStore();
+  const { isAuthenticated } = useAuthStore();
+  const { wishlist, getWishlist, addToWishlist, removeFromWishlist } = useWishlistStore();
+
   const [currentPage, setCurrentPage] = useState(1);
   const [draftFilters, setDraftFilters] = useState(DEFAULT_FILTERS);
   const [appliedFilters, setAppliedFilters] = useState(DEFAULT_FILTERS);
@@ -85,6 +95,20 @@ const ProductListPage = () => {
 
     getProductsForPage(params);
   }, [appliedFilters, sortBy, currentPage, getProductsForPage]);
+
+  /// load the user's wishlist once so heart icons can reflect real state.
+  /// Skipped for guests — getWishlist would just 401.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    getWishlist().catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
+
+  /// Set of product ids currently in the wishlist, for O(1) lookup per card
+  const wishlistedIds = useMemo(
+    () => new Set((wishlist?.items ?? []).map((item) => item.productId?._id ?? item.productId)),
+    [wishlist]
+  );
 
   /// get final items (API returns the slice, but we can apply local logic to ensure safety)
   const filteredProducts = useMemo(
@@ -112,6 +136,56 @@ const ProductListPage = () => {
     setDraftFilters(DEFAULT_FILTERS);
     setAppliedFilters(DEFAULT_FILTERS);
     setCurrentPage(1);
+  };
+
+  const handleAddToCart = async (productId) => {
+    if (!productId) return;
+
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      await addToCart({ productId, quantity: 1 });
+      dismissToast();
+      showSuccess("Added to cart.");
+    } catch (err) {
+      dismissToast();
+      if (err?.message?.toLowerCase().includes("select a color") || err?.message?.toLowerCase().includes("select a size")) {
+        showError("This product has options to choose — please select them on the product page.");
+      } else {
+        showError(err?.message || "Failed to add item to cart.");
+      }
+    }
+  };
+
+  const handleToggleWishlist = async (product) => {
+    const productId = product._id ?? product.id;
+    if (!productId) return;
+
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    const alreadyWishlisted = wishlistedIds.has(productId);
+
+    try {
+      if (alreadyWishlisted) {
+        await removeFromWishlist(productId);
+        dismissToast();
+        showSuccess("Removed from wishlist.");
+      } else {
+        // wishlist.api.js's addToWishlistApi expects { productId, shopId }
+        await addToWishlist({ productId, shopId: product.shopId });
+        dismissToast();
+        showSuccess("Added to wishlist.");
+      }
+    } catch (err) {
+      dismissToast();
+      showError(err?.response?.data?.message || err?.message || "Failed to update wishlist.");
+    }
   };
 
   const sidebarProps = {
@@ -190,7 +264,12 @@ const ProductListPage = () => {
               </div>
             ) : filteredProducts.length > 0 ? (
               <>
-                <ProductGrid products={filteredProducts} />
+                <ProductGrid
+                  products={filteredProducts}
+                  onAddToCart={handleAddToCart}
+                  wishlistedIds={wishlistedIds}
+                  onToggleWishlist={handleToggleWishlist}
+                />
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}

@@ -98,15 +98,21 @@ function calculateShipping({ orderAmount = 0, weightKg = 0, volumeCm3 = 0, zone 
    let totalFee = weightFee + fuelSurchargeFee + codFee;
 
    ///  Advanced Promotion Logic
+   // Both branches must cap the discount at totalFee — otherwise a flat
+   // discount (like the 50 below) can exceed a small totalFee and push
+   // totalShippingFee negative, which fails Order.model.js's min(0)
+   // validation on shippingCharge at order-creation time.
    let discount = 0;
    if (orderAmount >= 3000) {
       discount = Math.min(totalFee, 100);
    } else if (orderAmount >= 2000) {
-      discount = 50;
+      discount = Math.min(totalFee, 50);
    }
    totalFee -= discount;
    return {
-      totalShippingFee: Math.ceil(totalFee),
+      // Hard floor as a safety net regardless of the discount logic above —
+      // shipping fee should never be negative.
+      totalShippingFee: Math.max(0, Math.ceil(totalFee)),
       breakdown: {
          chargeableWeight: chargeableWeight.toFixed(2) + "kg",
          baseAndWeight: weightFee.toFixed(2),

@@ -1,5 +1,6 @@
 import { FiX } from "react-icons/fi";
 import { QuantitySelector } from "./QuantitySelector";
+import { formatCurrency } from "../../../utils/currency"; // adjust path to your actual utils folder
 
 export const CartItemRow = ({ item, onIncrease, onDecrease, onRemove }) => (
   <div className="py-5 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr] gap-4 items-center">
@@ -26,7 +27,7 @@ export const CartItemRow = ({ item, onIncrease, onDecrease, onRemove }) => (
     {/* Price */}
     <div className="flex items-center justify-between md:block">
       <span className="text-sm text-muted-foreground md:hidden">Price</span>
-      <span className="text-foreground">${item.price.toFixed(2)}</span>
+      <span className="text-foreground">{formatCurrency(item.price)}</span>
     </div>
 
     {/* Quantity */}
@@ -42,7 +43,7 @@ export const CartItemRow = ({ item, onIncrease, onDecrease, onRemove }) => (
     {/* Total */}
     <div className="flex items-center justify-between md:justify-end">
       <span className="text-sm text-muted-foreground md:hidden">Total</span>
-      <span className="font-semibold text-foreground">${(item.price * item.quantity).toFixed(2)}</span>
+      <span className="font-semibold text-foreground">{formatCurrency(item.price * item.quantity)}</span>
     </div>
   </div>
 );

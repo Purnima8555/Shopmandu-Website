@@ -1,5 +1,6 @@
 import { FiTrash2, FiShoppingCart } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
+import { formatCurrency } from "../../../utils/currency"; // adjust path to your actual utils folder
 
 export const WishlistProductCard = ({
   name,
@@ -57,8 +58,8 @@ export const WishlistProductCard = ({
         <h3 className="text-sm font-medium text-foreground line-clamp-1">{name}</h3>
 
         <div className="flex items-center gap-2 mt-1.5">
-          <span className="text-base font-bold text-primary">${discountPrice}</span>
-          {hasDiscount && <span className="text-sm text-muted-foreground line-through">${price}</span>}
+          <span className="text-base font-bold text-primary">{formatCurrency(discountPrice)}</span>
+          {hasDiscount && <span className="text-sm text-muted-foreground line-through">{formatCurrency(price)}</span>}
         </div>
 
         {rating != null && (

@@ -1,8 +1,7 @@
 
-
 import { create } from "zustand"
 import {changeMyShopStatus, getKycStatus, getMyShop, updateShopInfo, uploadShopBanner, uploadShopLogo, searchShopsApi,
-        updateShopStatusApi,} from "../api/shop"
+        updateShopStatusApi, getShopBySlugApi, getProductsByShopApi,} from "../api/shop"
 import { createProduct, getAllMyProducts, getProductsSummary } from "../api/product.api";
 
 
@@ -15,6 +14,14 @@ const useShopStore = create((set) => ({
     productsSummary: null,
     myProducts: [],
     productsMeta: null,
+
+    // public shop-details page state
+    currentShop: null,
+    currentShopLoading: false,
+    shopProducts: [],
+    shopProductsMeta: null,
+    shopProductsLoading: false,
+
     setShop: (shop) => set({ shop }),
 
     /// get my shop 
@@ -212,6 +219,42 @@ const useShopStore = create((set) => ({
             set({ loading: false });
         }
     },
+
+    // ─── Public shop details page ─────────────────────────────────────────
+    // Get a shop by its public slug
+    getShopBySlug: async (slug) => {
+        set({ currentShopLoading: true, currentShop: null });
+        try {
+            const res = await getShopBySlugApi(slug);
+            set({ currentShop: res?.data ?? null });
+            return res?.data;
+        } catch (error) {
+            throw error.response?.data || error;
+        } finally {
+            set({ currentShopLoading: false });
+        }
+    },
+
+    // Get products belonging to a shop (by shop _id)
+    getShopProducts: async (shopId, params = {}) => {
+        set({ shopProductsLoading: true });
+        try {
+            const res = await getProductsByShopApi(shopId, params);
+            // Backend may return either a raw array or a { metadata, data } shape
+            const payload = res?.data;
+            const products = Array.isArray(payload) ? payload : payload?.data ?? [];
+            const meta = Array.isArray(payload) ? null : payload?.metadata ?? null;
+
+            set({ shopProducts: products, shopProductsMeta: meta });
+            return res;
+        } catch (error) {
+            throw error.response?.data || error;
+        } finally {
+            set({ shopProductsLoading: false });
+        }
+    },
+
+    clearCurrentShop: () => set({ currentShop: null, shopProducts: [], shopProductsMeta: null }),
 
 }))
 

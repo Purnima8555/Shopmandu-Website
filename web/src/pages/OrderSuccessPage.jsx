@@ -1,16 +1,43 @@
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Button from "../components/ui/Button";
 import { OrderConfirmationCard } from "../features/order/components/OrderConfirmationCard";
 import { InvoiceDownloadCard } from "../features/order/components/InvoiceDownloadCard";
+import { getCustomerInvoiceApi } from "../api/order.api"; // adjust path to your actual api folder
 
 const OrderSuccessPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const order = location.state?.order;
 
-  const handleDownloadInvoice = () => {
-    // TODO: wire up to invoice API — fetch and download PDF for order.orderNumber
-    console.log("Downloading invoice for order:", order?.orderNumber);
+  const [downloadingInvoice, setDownloadingInvoice] = useState(false);
+  const [invoiceError, setInvoiceError] = useState(null);
+
+  // Backed by a real endpoint: GET /order/invoice/customer/:orderId ->
+  // orderService.generateCustomerInvoice, which renders a puppeteer PDF
+  // server-side. We just fetch it as a blob and trigger a browser download.
+  const handleDownloadInvoice = async () => {
+    if (!order?._id) return;
+
+    setInvoiceError(null);
+    setDownloadingInvoice(true);
+    try {
+      const pdfBlob = await getCustomerInvoiceApi(order._id);
+
+      const url = window.URL.createObjectURL(pdfBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `invoice-${order.orderNumber ?? "order"}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to download invoice:", err);
+      setInvoiceError("Failed to download invoice. Please try again.");
+    } finally {
+      setDownloadingInvoice(false);
+    }
   };
 
   // If someone lands here directly (refresh, bookmarked link) there's no
@@ -54,7 +81,8 @@ const OrderSuccessPage = () => {
           estimatedDelivery="We'll notify you once your order ships"
         />
 
-        <InvoiceDownloadCard onDownload={handleDownloadInvoice} />
+        <InvoiceDownloadCard onDownload={handleDownloadInvoice} downloading={downloadingInvoice} />
+        {invoiceError && <p className="text-sm text-red-500 mt-2 text-center">{invoiceError}</p>}
 
         <div className="flex flex-col sm:flex-row gap-3 mt-6">
           <Button className="w-full cursor-pointer" onClick={() => navigate("/products")}>

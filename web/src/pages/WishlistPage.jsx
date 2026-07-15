@@ -1,14 +1,10 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/ui/Button";
 import { WishlistGrid } from "../features/wishlist/components/WishlistGrid";
 import { JustForYouSection } from "../features/wishlist/components/JustForYouSection";
 import { EmptyWishlist } from "../features/wishlist/components/EmptyWishlist";
-import {
-  getWishlistApi,
-  removeFromWishlistApi,
-  moveToCartApi,
-} from "../api/wishlist.api"; // adjust path to your actual api folder
+import useWishlistStore from "../store/wishlistStore";
 
 /// TODO: replace with real recommended products once a recommendations API exists
 const recommendedItems = [
@@ -20,26 +16,15 @@ const recommendedItems = [
 
 const WishlistPage = () => {
   const navigate = useNavigate();
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { wishlist, loading, getWishlist, removeFromWishlist, moveToCart } = useWishlistStore();
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchWishlist = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await getWishlistApi();
-        setItems(res?.data?.items ?? []);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load your wishlist.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchWishlist();
+    getWishlist().catch(() => setError("Failed to load your wishlist."));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const items = wishlist?.items ?? [];
 
   // map backend items -> flat shape WishlistGrid/WishlistProductCard expect
   const displayItems = items.map((item) => {
@@ -57,8 +42,7 @@ const WishlistPage = () => {
 
   const removeItem = async (productId) => {
     try {
-      const res = await removeFromWishlistApi(productId);
-      setItems(res?.data?.items ?? []);
+      await removeFromWishlist(productId);
     } catch (err) {
       console.error(err);
       setError(err?.response?.data?.message || "Failed to remove item.");
@@ -67,8 +51,7 @@ const WishlistPage = () => {
 
   const handleAddToCart = async (item) => {
     try {
-      await moveToCartApi(item.id);
-      setItems((prev) => prev.filter((i) => i.productId._id !== item.id));
+      await moveToCart(item.id);
     } catch (err) {
       console.error(err);
       setError(err?.response?.data?.message || "Failed to move item to cart.");
@@ -77,15 +60,14 @@ const WishlistPage = () => {
 
   const handleMoveAllToBag = async () => {
     try {
-      await Promise.all(items.map((item) => moveToCartApi(item.productId._id)));
-      setItems([]);
+      await Promise.all(items.map((item) => moveToCart(item.productId._id)));
     } catch (err) {
       console.error(err);
       setError("Failed to move all items to cart.");
     }
   };
 
-  if (loading) {
+  if (loading && items.length === 0) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center bg-background">
         <p className="text-muted-foreground">Loading your wishlist...</p>

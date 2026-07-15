@@ -2,10 +2,11 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { CiSearch } from "react-icons/ci";
 import Button from "../ui/Button";
 import { FaBars, FaTimes } from "react-icons/fa";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import NavLinks from "../ui/NavLinks";
 import { navLinks } from "../data/navigation";
 import useAuthStore from "../../store/authStore";
+import useCartStore from "../../store/cartStore";
 import { PiShoppingCartSimple } from "react-icons/pi";
 import { FaRegUser } from "react-icons/fa";
 import { IoIosHeartEmpty } from "react-icons/io";
@@ -19,6 +20,19 @@ const Navbar = () => {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   const { isAuthenticated } = useAuthStore();
+  const { cart, getCart } = useCartStore();
+
+  // Navbar renders on every page, but only CartPage used to fetch the cart —
+  // so the badge count would sit at 0 until someone visited /cart. Fetch it
+  // here too whenever the user is logged in.
+  useEffect(() => {
+    if (isAuthenticated) {
+      getCart().catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
+
+  const cartCount = (cart?.items ?? []).reduce((sum, item) => sum + (item.quantity || 0), 0);
 
   // const { loading } = useAuthStore();
 
@@ -119,9 +133,11 @@ const Navbar = () => {
                 <PiShoppingCartSimple size={20} />
 
                 {/* Cart Count */}
-                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-white text-xs flex items-center justify-center">
-                  2
-                </span>
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-white text-xs flex items-center justify-center">
+                    {cartCount > 99 ? "99+" : cartCount}
+                  </span>
+                )}
               </Link>
 
               <Link

@@ -56,7 +56,10 @@ export const moveToCart = async (req, res, next) => {
     const item = await wishlistService.moveToCartService(req.user._id, req.params.productId);
 
     // Step 2 — add it to the cart (quantity defaults to 1)
-    const cart = await cartService.addToCartService(req.user.id, {
+    // was req.user.id — every other handler in this codebase uses
+    // req.user._id, and req.user.id was undefined (no such field on the
+    // JWT-derived user object), which is what triggered the 500.
+    const cart = await cartService.addToCartService(req.user._id, {
       productId: item.productId,
       shopId: item.shopId,
       quantity: 1,

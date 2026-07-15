@@ -49,7 +49,16 @@ class OrderServices {
             // console.log(grandTotal)
 
             /// shipping fee calculate
-            const shippingFee = calculateShipping({ orderAmount: grandTotal.subTotal, weightKg: grandTotal.totalWeight, volumeCm3: grandTotal.totalVolume, zone: "local" });
+            // cod must be passed explicitly — it defaults to false in
+            // calculateShipping, so without this the COD fee never applied
+            // to real Cash on Delivery orders.
+            const shippingFee = calculateShipping({
+                orderAmount: grandTotal.subTotal,
+                weightKg: grandTotal.totalWeight,
+                volumeCm3: grandTotal.totalVolume,
+                zone: "local",
+                cod: (cartData.paymentMethod || paymentMethod.CASH_ON_DELIVERY) === paymentMethod.CASH_ON_DELIVERY,
+            });
 
             /// tax calculate
             const tax = calculateTax(grandTotal.subTotal)

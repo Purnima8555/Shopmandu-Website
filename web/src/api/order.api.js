@@ -30,6 +30,15 @@ export const cancelOrderApi = async (orderId) => {
   return res.data;
 };
 
+/// download the invoice PDF for a completed order (GET /order/invoice/customer/:orderId,
+/// backed by orderService.generateCustomerInvoice — returns a real PDF, not JSON)
+export const getCustomerInvoiceApi = async (orderId) => {
+  const res = await api.get(`/api/order/invoice/customer/${orderId}`, {
+    responseType: "blob",
+  });
+  return res.data; // PDF blob
+};
+
 /// ---- Admin ----
 
 /// get all orders (admin)

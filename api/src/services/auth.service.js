@@ -267,9 +267,9 @@ class authService {
      * @returns       ///     return a success message when the user is verified successfully
      */
     async otpVerification(otp, email) {
-        // Check required fields
+        console.log(otp,email);// Check required fields
         if (!otp || !email) {
-            throw new BadRequestError("OTP and email are required!");
+            throw new BadRequestError("hi!");
         }
 
         // Find OTP record

@@ -1,4 +1,5 @@
 import Button from "../../../components/ui/Button";
+import { formatCurrency } from "../../../utils/currency"; // adjust path to your actual utils folder
 
 export const OrderSummary = ({ items, subtotal, discount, onPlaceOrder, disabled }) => {
   const total = subtotal - discount;
@@ -19,26 +20,26 @@ export const OrderSummary = ({ items, subtotal, discount, onPlaceOrder, disabled
               <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
               <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
             </div>
-            <span className="text-sm text-foreground">${(item.price * item.quantity).toFixed(2)}</span>
+            <span className="text-sm text-foreground">{formatCurrency(item.price * item.quantity)}</span>
           </div>
         ))}
       </div>
 
       <div className="flex justify-between py-3 border-t border-border text-sm mt-4">
         <span className="text-muted-foreground">Subtotal</span>
-        <span className="text-foreground font-medium">${subtotal.toFixed(2)}</span>
+        <span className="text-foreground font-medium">{formatCurrency(subtotal)}</span>
       </div>
 
       {discount > 0 && (
         <div className="flex justify-between py-3 border-b border-border text-sm">
           <span className="text-muted-foreground">Discount</span>
-          <span className="text-primary font-medium">-${discount.toFixed(2)}</span>
+          <span className="text-primary font-medium">-{formatCurrency(discount)}</span>
         </div>
       )}
 
       <div className="flex justify-between py-3 border-b border-border text-sm">
         <span className="text-muted-foreground">Total</span>
-        <span className="text-foreground font-semibold text-lg">${total.toFixed(2)}</span>
+        <span className="text-foreground font-semibold text-lg">{formatCurrency(total)}</span>
       </div>
 
       <Button className="w-full mt-5 cursor-pointer" onClick={onPlaceOrder} disabled={disabled}>

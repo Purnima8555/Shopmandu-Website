@@ -10,9 +10,11 @@ import { getCartApi } from "../api/cart.api";
 import { getAddressesApi } from "../api/address.api";
 import { applyCouponApi } from "../api/coupon.api";
 import { placeOrderApi } from "../api/order.api";
+import useCartStore from "../store/cartStore"; // adjust path to your actual store folder
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
+  const { clearCart } = useCartStore();
 
   const [cart, setCart] = useState({ items: [], totalPrice: 0 });
   const [addresses, setAddresses] = useState([]);
@@ -157,6 +159,15 @@ const CheckoutPage = () => {
         // payment.service response shape confirmed before we can redirect
         // the user to the gateway checkout page.
         console.log("Order created; online payment step still needs wiring:", order);
+      }
+
+      // Order succeeded — the items it contained no longer belong in the
+      // cart. Don't let a clearCart failure block the user from reaching
+      // the success page; the order itself already went through.
+      try {
+        await clearCart();
+      } catch (clearErr) {
+        console.error("Order placed, but failed to clear cart:", clearErr);
       }
 
       navigate("/order-success", { state: { order } });

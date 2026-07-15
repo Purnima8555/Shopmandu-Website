@@ -1,10 +1,30 @@
+import { useState } from "react";
 import Button from "./Button";
 import ButtonRounded from "./ButtonRounded";
-import { IoIosHeartEmpty } from "react-icons/io";
+import { IoIosHeartEmpty, IoIosHeart } from "react-icons/io";
 import { FaStar } from "react-icons/fa";
 import { FiShoppingCart } from "react-icons/fi";
+import { formatCurrency } from "../../utils/currency"; // adjust path to your actual utils folder
 
-const FlashSaleCard = ({name = "Products",price = 0,discountPrice = 0,rating = 1,images,tag = "New",totalReviews = 0,flashSales = false,discountPercent = 0,}) => {
+const FlashSaleCard = ({id, name = "Products",price = 0,discountPrice = 0,rating = 1,images,tag = "New",totalReviews = 0,flashSales = false,discountPercent = 0,onAddToCart,isWishlisted = false,onToggleWishlist,}) => {
+  // Local lock so a fast double-click (or a re-fired handler) can't send
+  // two toggle requests back-to-back — the backend is now atomic too
+  // ($addToSet in wishlist.service.js), but this avoids the wasted
+  // network round trip and flicker regardless.
+  const [togglingWishlist, setTogglingWishlist] = useState(false);
+
+  const handleToggleWishlist = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (togglingWishlist) return;
+
+    setTogglingWishlist(true);
+    try {
+      await onToggleWishlist?.();
+    } finally {
+      setTogglingWishlist(false);
+    }
+  };
 
   return (
     <div className="group bg-card rounded-sm border border-border shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden">
@@ -23,13 +43,31 @@ const FlashSaleCard = ({name = "Products",price = 0,discountPrice = 0,rating = 1
 
         {/* Wishlist */}
         <div className="absolute right-5 top-4">
-          <ButtonRounded icon={IoIosHeartEmpty} variant="outline" className="bg-white shadow-lg cursor-pointer" />
+          <ButtonRounded
+            icon={isWishlisted ? IoIosHeart : IoIosHeartEmpty}
+            variant="outline"
+            className={`bg-white shadow-lg cursor-pointer ${isWishlisted ? "text-red-500" : ""} ${togglingWishlist ? "opacity-60 pointer-events-none" : ""}`}
+            aria-label={isWishlisted ? `Remove ${name} from wishlist` : `Add ${name} to wishlist`}
+            disabled={togglingWishlist}
+            onClick={handleToggleWishlist}
+          />
         </div>
 
         {/* Add to cart */}
         <div className="absolute left-1/2 bottom-2 -translate-x-1/2 translate-y-20 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-          <Button size="sm" variant="secondary" className="rounded-full cursor-pointer" icon={FiShoppingCart} iconPosition="left" iconsize={13}>
-            {/* <FiShoppingCart /> */}
+          <Button
+            size="sm"
+            variant="secondary"
+            className="rounded-full cursor-pointer"
+            icon={FiShoppingCart}
+            iconPosition="left"
+            iconsize={13}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onAddToCart?.(id);
+            }}
+          >
             Add To Cart
           </Button>
         </div>
@@ -41,12 +79,12 @@ const FlashSaleCard = ({name = "Products",price = 0,discountPrice = 0,rating = 1
 
         <div className="flex items-center gap-2 mt-2">
           <span className="text-xl font-bold text-primary">
-            RS. {discountPrice}
+            {formatCurrency(discountPrice)}
           </span>
 
           {price > discountPrice && discountPercent !== 0 && (
             <span className="text-lg text-muted-foreground line-through">
-              RS. {price}
+              {formatCurrency(price)}
             </span>
           )}
         </div>

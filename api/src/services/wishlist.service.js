@@ -5,7 +5,7 @@
 
 import WishlistModel from "../models/Wishlist.model.js";
 import ProductModel from "../models/Product.model.js";
-import { NotFoundError, BadRequestError } from "../utils/AppError.js";
+import { NotFoundError } from "../utils/AppError.js";
 
 // ─── Get wishlist ─────────────────────────────────────────────────────────────
 export const getWishlistService = async (userId) => {
@@ -21,33 +21,25 @@ export const getWishlistService = async (userId) => {
 };
 
 // ─── Add product to wishlist ──────────────────────────────────────────────────
+// Uses findOneAndUpdate + $addToSet instead of find-then-push-then-save.
+// The old version read the wishlist, checked for a duplicate in JS, then
+// pushed and saved as separate steps — under a fast double-click (or a
+// re-fired click handler) two requests could both pass the duplicate check
+// before either saved, producing two entries for the same product (this is
+// what caused the duplicate React key warning on the wishlist page).
+// $addToSet compares the whole subdocument for equality and only inserts if
+// no match exists, so this is safe even if two requests race — the second
+// one is just a no-op instead of an error.
 export const addToWishlistService = async (userId, { productId, shopId }) => {
   // Confirm the product actually exists
   const product = await ProductModel.findById(productId);
   if (!product) throw new NotFoundError("Product not found.");
 
-  let wishlist = await WishlistModel.findOne({ user_id: userId });
-
-  if (!wishlist) {
-    // First item — create the wishlist
-    wishlist = await WishlistModel.create({
-      user_id: userId,
-      items: [{ productId, shopId }],
-    });
-    return wishlist;
-  }
-
-  // Prevent duplicates
-  const alreadyAdded = wishlist.items.some(
-    (i) => i.productId.toString() === productId.toString(),
+  const wishlist = await WishlistModel.findOneAndUpdate(
+    { user_id: userId },
+    { $addToSet: { items: { productId, shopId } } },
+    { upsert: true, new: true },
   );
-
-  if (alreadyAdded) {
-    throw new BadRequestError("Product is already in your wishlist.");
-  }
-
-  wishlist.items.push({ productId, shopId });
-  await wishlist.save();
 
   return wishlist;
 };
