@@ -1,12 +1,15 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { ADMIN_NAV } from "../data/adminNavigation";
 
 export default function AdminSidebar() {
+
+  const navigate = useNavigate()
+
   return (
     <aside className="hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-card md:flex">
       {/* Logo */}
-      <div className="px-6 py-5">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+      <div className="px-6 py-5"  onClick={()=>navigate("/")}>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground cursor-pointer">
           Shop<span className="text-primary">mandu</span>
         </h1>
       </div>

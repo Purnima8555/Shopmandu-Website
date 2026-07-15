@@ -7,8 +7,8 @@ import NavLinks from "../ui/NavLinks";
 import { navLinks } from "../data/navigation";
 import useAuthStore from "../../store/authStore";
 import { PiShoppingCartSimple } from "react-icons/pi";
-import { FaRegUser } from "react-icons/fa";
 import { IoIosHeartEmpty } from "react-icons/io";
+import UserAccountMenu from "../ui/UserAccountMenu";
 // import Loader from "../common/Loader";
 
 const Navbar = () => {
@@ -18,11 +18,10 @@ const Navbar = () => {
   const [mobileMenue, setMobileMenue] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
 
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user, logout } = useAuthStore();
 
+  // console.log(user);
   // const { loading } = useAuthStore();
-
-
 
   return (
     <header className=" sticky top-0 z-50 bg-[var(--glass-bg  backdrop-blur-md  border-b border-border shadow-xs relative ">
@@ -104,14 +103,15 @@ const Navbar = () => {
 
           {isAuthenticated && (
             <div className="flex items-center gap-2">
-              {/* Which list  */}
+              {/* Wishlist Link */}
               <Link
-                to={"/"}
-                className=" p-1 rounded-full hover:bg-surface transition"
+                to="/"
+                className="p-1 rounded-full hover:bg-surface transition"
               >
                 <IoIosHeartEmpty size={20} />
               </Link>
 
+              {/* Cart Link */}
               <Link
                 to="/cart"
                 className="relative p-1 rounded-full hover:bg-surface transition"
@@ -124,12 +124,12 @@ const Navbar = () => {
                 </span>
               </Link>
 
-              <Link
-                to="/"
-                className="flex items-center justify-center w-10 h-10 rounded-full border border-border hover:border-primary hover:bg-surface transition"
-              >
-                <FaRegUser size={18} />
-              </Link>
+              <UserAccountMenu
+                user={user}
+                onLogout={async () => {
+                  await logout();
+                }}
+              />
             </div>
           )}
 

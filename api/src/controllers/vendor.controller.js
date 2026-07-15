@@ -94,7 +94,7 @@ const getVendorKyc = async (req, res, next) => {
         const vendorKycStatusDetail = await vendorService.getVendorKyc(vendorId);
 
         res.status(200).json({
-            ...vendorKycStatusDetail._doc
+            ...vendorKycStatusDetail
         })
     } catch (error) {
         next(error)
@@ -155,12 +155,8 @@ const getVendorById = async (req, res, next) => {
 const getAllVendors = async (req, res, next) => {
 
     try {
-
-
-
-        const vendors = await vendorService.getAllVendors({ data: req.query });
-
-        res.status(200).json({ ...vendors })
+        const vendors = await vendorService.getAllVendors(req.query);
+        res.status(200).json( vendors )
     } catch (error) {
         next(error)
     }

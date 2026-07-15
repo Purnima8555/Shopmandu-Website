@@ -1,5 +1,5 @@
-import { Info, Search, Star } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, Info, RefreshCw, Star } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import useProductStore from "../../../store/productStore";
 
@@ -7,17 +7,30 @@ import ButtonRounded from "../../../components/ui/ButtonRounded";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import ProductDrawer from "../components/ProductDrawer";
 import TopProducts from "../components/TopProducts";
+import Button from "../../../components/ui/Button";
+import Selecter from "../../../components/ui/Selecter";
+import SearchInput from "../../../components/ui/SearchInput";
+import { filterOptions } from "../../vendor/data";
+import { PRODUCT_STATUS_STYLE } from "../data";
 
-const STATUS_STYLE = {
-  ACTIVE: { tone: "success", label: "Active" },
-  INACTIVE: { tone: "neutral", label: "Inactive" },
-  OUT_OF_STOCK: { tone: "warning", label: "Out of Stock" },
-  DRAFT: { tone: "warning", label: "Draft" },
-};
+
 
 const ProductsPage = () => {
+  const [categoryFilter, setCategoryFilter] = useState("ALL");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [sortBy, setSortBy] = useState("NEWEST");
+
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const { categories } = useProductStore();
+
   const {
     products,
+    pagination,
     topProducts,
     selectedProduct,
     loading,
@@ -26,27 +39,35 @@ const ProductsPage = () => {
     getProductById,
   } = useProductStore();
 
-  const [search, setSearch] = useState("");
+  useEffect(() => {
+    const fetchProducts = async () => {
+      await getProducts({
+        page: currentPage,
+        limit: rowsPerPage,
+        search,
+        category: categoryFilter,
+        productStatus: statusFilter,
+        sort: sortBy,
+      });
+    };
+
+    fetchProducts();
+  }, [
+    currentPage,
+    rowsPerPage,
+    getProducts,
+    search,
+    categoryFilter,
+    statusFilter,
+    sortBy,
+  ]);
 
   useEffect(() => {
-    getProducts();
     getTopProducts({ limit: 4 });
   }, []);
 
-  const filteredProducts = useMemo(() => {
-    const keyword = search.toLowerCase();
-
-    return products.filter((product) => {
-      return (
-        product.name?.toLowerCase().includes(keyword) ||
-        product.brand?.toLowerCase().includes(keyword) ||
-        product.shopId?.shopName?.toLowerCase().includes(keyword)
-      );
-    });
-  }, [products, search]);
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 ">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Products</h1>
@@ -61,15 +82,162 @@ const ProductsPage = () => {
       {/* Products Table */}
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         {/* Search Bar */}
-        <div className="flex items-center justify-end border-b border-border p-4">
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search products..."
-              className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-sm outline-none focus:border-primary"
-            />
+        <div className="bg-bg-card p-4 rounded-[14px] border border-border shadow-sm space-y-4">
+          {/* Search */}
+          <SearchInput
+            iconPosition="right"
+            placeholder="Search Products..."
+            value={searchInput}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSearchInput(value);
+              setSearch(value);
+              setCurrentPage(1);
+            }}
+          />
+
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-7">
+              {/* Category filter */}
+              <Selecter
+                size="sm"
+                className="min-w-10 px-0"
+                value={categoryFilter}
+                onChange={(e) => {
+                  setCategoryFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+              >
+                <option value="ALL">All</option>
+
+                {categories.map((category) => (
+                  <option key={category._id} value={category.name}>
+                    {category.name}
+                  </option>
+                ))}
+              </Selecter>
+
+              {/* Status filter */}
+              <Selecter
+                size="sm"
+                className="min-w-10 px-0"
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+              >
+                {filterOptions?.statuses?.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </Selecter>
+
+
+              {/* Sort */}
+              <Selecter
+                size="sm"
+                className="min-w-10 px-0"
+                value={sortBy}
+                onChange={(e) => {
+                  setSortBy(e.target.value);
+                  setCurrentPage(1);
+                }}
+              >
+                {filterOptions?.sorts?.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </Selecter>
+
+              {/* Rows per page + page navigation */}
+              <div className="col-span-2 flex items-center justify-start gap-3">
+                {/* Rows per page */}
+                <Selecter
+                  size="sm"
+                  value={rowsPerPage}
+                  onChange={(e) => {
+                    setRowsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </Selecter>
+
+                {/* Range display  e.g. "1–10 of 47" */}
+                <span className="whitespace-nowrap text-xs font-medium text-text-secondary">
+                  {products?.length === 0
+                    ? "0 Results"
+                    : `${(currentPage - 1) * rowsPerPage + 1}-${Math.min(
+                        currentPage * rowsPerPage,
+                        pagination.totalResults,
+                      )} of ${pagination.totalResults}`}
+                </span>
+
+                {/* Refresh */}
+                <button
+                  onClick={async () => {
+                    await getProducts({
+                      page: currentPage,
+                      limit: rowsPerPage,
+                      search,
+                      category: categoryFilter,
+                      status: statusFilter,
+                      sort: sortBy,
+                    });
+                  }}
+                  className="rounded-lg p-2 text-text-secondary transition hover:bg-bg-main hover:text-primary"
+                  title="Refresh"
+                >
+                  <RefreshCw size={16} />
+                </button>
+
+                {/* Previous page */}
+                <button
+                  onClick={() => setCurrentPage((p) => p - 1)}
+                  disabled={!pagination?.hasPrevPage}
+                  className="rounded-lg border border-border p-2 transition hover:bg-bg-main disabled:cursor-not-allowed disabled:opacity-40"
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+
+                {/* Page indicator */}
+                <span className="whitespace-nowrap text-xs font-medium text-text-secondary">
+                  {/* {currentPage} / {totalPages} */}
+                  {pagination?.currentPage || 1} of{" "}
+                  {pagination?.totalPages || 1}
+                </span>
+
+                {/* Next page */}
+                <button
+                  onClick={() => setCurrentPage((p) => p + 1)}
+                  disabled={!pagination?.hasNextPage}
+                  className="rounded-lg border border-border p-2 transition hover:bg-bg-main disabled:cursor-not-allowed disabled:opacity-40"
+                  aria-label="Next page"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+
+              {/* Filter button  kept as a manual "apply now" shortcut,
+                though the useEffect already re-fetches automatically. */}
+              <Button
+                size="sm"
+                className="px-0 w-25"
+                // icon={Filter}
+                iconsize={15}
+                iconPosition="left"
+                // onClick={fetchProducts}
+              >
+                Filter
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -105,9 +273,9 @@ const ProductsPage = () => {
           </thead>
 
           <tbody>
-            {filteredProducts.map((product) => {
+            {products?.map((product) => {
               const status =
-                STATUS_STYLE[product.productStatus] || STATUS_STYLE.ACTIVE;
+                PRODUCT_STATUS_STYLE[product.productStatus] || PRODUCT_STATUS_STYLE.ACTIVE;
 
               return (
                 <tr
@@ -186,7 +354,7 @@ const ProductsPage = () => {
               );
             })}
 
-            {!loading && filteredProducts.length === 0 && (
+            {!loading && products?.length === 0 && (
               <tr>
                 <td
                   colSpan="8"

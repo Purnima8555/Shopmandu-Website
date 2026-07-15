@@ -13,7 +13,7 @@ import ProductModel from "../models/Product.model.js";
 import { orderNotification, scheduleCodOrderConfirmation, scheduleUnpaidOrderCancellation } from "../utils/EmailQueue.js";
 import { applyCouponService, markCouponAsUsedService } from "./coupon.service.js";
 import puppeteer from "puppeteer";
-import  { QR } from "../utils/qr.generator.js";
+import { QR } from "../utils/qr.generator.js";
 import { customerInvoiceTemplate } from "../messaging/email/templates/customerInvoice.template.js";
 import { vendorInvoiceTemplate } from "../messaging/email/templates/vendorInvoice.template.js";
 import ReturnRequestModel from "../models/ReturnRequest.model.js";
@@ -57,7 +57,7 @@ class OrderServices {
             let discount = 0
             let couponDiscount = {}
             let couponUsed;
-            if(cartData?.couponCode){
+            if (cartData?.couponCode) {
                 couponDiscount = await applyCouponService(userId, cartData.couponCode, grandTotal.subTotal)
                 /// coupon mark as used 
                 couponUsed = await markCouponAsUsedService(couponDiscount.coupon._id, userId)
@@ -66,8 +66,8 @@ class OrderServices {
 
 
             console.log(couponUsed)
-            
-            if(couponUsed){
+
+            if (couponUsed) {
                 discount = couponDiscount.discountAmount
             }
 
@@ -333,41 +333,76 @@ class OrderServices {
 
     //// get vendor all order 
     async getAllOrderByVendorId(vendorId, queryData) {
+        const page = parseInt(queryData.page, 10) || 1;
+        const limit = parseInt(queryData.limit, 10) || 10;
+        const skip = (page - 1) * limit;
 
-            const page = parseInt(queryData.page, 10) || 1
-            const limit = parseInt(queryData.limit, 10) || 10
-            const skip = (page - 1) * limit
+        const pipeline = [];
 
-            const filter = { vendorId };
+        /// Filter by Vendor
+        pipeline.push({ $match: { vendorId: new mongoose.Types.ObjectId(vendorId) } });
 
-            /// apply filter, paginated, get order with filter.
-            if (queryData.paymentStatus) {
-                filter.paymentStatus = queryData.paymentStatus
-            }
-            if (queryData.orderItemsStatus) {
-                filter.orderItemsStatus = queryData.orderItemsStatus
-            }
-
-            const [orderData, totalDocuments] = await Promise.all([
-                OrderItemsModel.find(filter).sort({ createAt: -1 }).skip(skip).limit(limit)
-                    .populate("orderId", "orderNumber").lean(),
-                OrderItemsModel.countDocuments(filter)
-            ])
-            const totalPages = Math.ceil(totalDocuments / limit)
-
-            return {
-                metadata: {
-                    totalResults: totalDocuments,
-                    totalPages: totalPages,
-                    currentPage: page,
-                    limit: limit,
-                    hasNextPage: page < totalPages,
-                    hasPrevPage: page > 1
-                },
-                data: orderData
-            }
-
+        //// Filter by Status (If provided)
+        if (queryData.orderItemsStatus) {
+            pipeline.push({ $match: { orderItemsStatus: queryData.orderItemsStatus } });
         }
+
+        //// Lookup Order details so we can search by orderNumber
+        pipeline.push({
+            $lookup: {
+                from: "orders", // collection name in mongodb
+                localField: "orderId",
+                foreignField: "_id",
+                as: "orderId"
+            }
+        });
+
+        // Unwind because lookup returns an array
+        pipeline.push({ $unwind: "$orderId" });
+
+        // // Global Search (Search by Product Name or Order Number)
+        if (queryData.search) {
+            const searchRegex = new RegExp(queryData.search, "i");
+            pipeline.push({
+                $match: {
+                    $or: [
+                        { "orderId.orderNumber": searchRegex },
+                        { "products.productName": searchRegex }
+                    ]
+                }
+            });
+        }
+
+        // // Facet for Metadata and Data (Handles count and pagination in one call)
+        pipeline.push({
+            $facet: {
+                metadata: [{ $count: "total" }],
+                data: [
+                    { $sort: { createdAt: -1 } },
+                    { $skip: skip },
+                    { $limit: limit }
+                ]
+            }
+        });
+
+        const result = await OrderItemsModel.aggregate(pipeline);
+
+        const totalDocuments = result[0].metadata[0]?.total || 0;
+        const orderData = result[0].data;
+        const totalPages = Math.ceil(totalDocuments / limit);
+
+        return {
+            metadata: {
+                totalResults: totalDocuments,
+                totalPages: totalPages,
+                currentPage: page,
+                limit: limit,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1
+            },
+            data: orderData
+        };
+    }
 
     //// admin get spacefic order by id
     async getOrderById(orderId) {
@@ -467,6 +502,384 @@ class OrderServices {
 
         if (queryData.paymentStatus) {
             filter.paymentStatus = queryData.paymentStatus;
+        }
+
+        if (queryData.paymentMethod) {
+            filter.paymentMethod = queryData.paymentMethod;
+        }
+
+        const [orders, totalDocuments] = await Promise.all([
+
+            OrderModel.find(filter)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .populate("customerId", "userName email")
+                .lean(),
+
+            OrderModel.countDocuments(filter)
+
+        ]);
+
+        const totalPages = Math.ceil(totalDocuments / limit);
+
+        return {
+            metadata: {
+                totalResults: totalDocuments,
+                totalPages,
+                currentPage: page,
+                limit,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1
+            },
+
+            data: orders
+        };
+    }
+
+    // admin stausUpdate
+    async adminUpdateOrderStatus(orderId, status) {
+
+        const ADMIN_ALLOWED_STATUSES = [
+            orderStatus.PROCESSING,
+            orderStatus.OUT_FOR_DELIVERY,
+            orderStatus.DELIVERED,
+            orderStatus.RETURNED,
+        ];
+
+        const order = await OrderModel.findById(orderId);
+        if (!order) throw new NotFoundError("Order not found");
+
+        // block statuses
+        if (!ADMIN_ALLOWED_STATUSES.includes(status)) {
+            throw new BadRequestError(
+                `Admin cannot manually set status to ${status}`
+            );
+        }
+
+        order.orderStatus = status;
+
+        if (status === "PROCESSING") order.deliveredAt = new Date();
+        if (status === "DELIVERED") order.deliveredAt = new Date();
+        if (status === "OUT_FOR_DELIVERY") order.shippedAt = new Date();
+        if (status === "RETURNED") order.returnedAt = new Date();
+
+        await order.save();
+        return order;
+    }
+
+    /// cusotmer invoice
+    async generateCustomerInvoice(orderId, userId) {
+
+        const order = await OrderModel.findOne({
+            _id: orderId,
+            customerId: userId
+        }).lean();
+
+        if (!order) throw new NotFoundError("Order not found");
+
+        const qr = await QR(
+            `${order.orderNumber}`
+        );
+
+        const html = customerInvoiceTemplate({
+            orderNumber: order.orderNumber,
+            customerName: "Customer",
+            orderStatus: order.orderStatus,
+            items: order.items,
+            totalAmount: order.totalAmount,
+            qr
+        });
+
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+
+        await page.setContent(html);
+
+        const pdf = await page.pdf({
+            format: "A4",
+            printBackground: true
+        });
+
+        await browser.close();
+
+        return pdf;
+    }
+
+    async generateVendorInvoice(orderItemId, vendorId) {
+
+        const orderItem = await OrderItemsModel.findOne({
+            _id: orderItemId,
+            vendorId
+        }).lean();
+
+        if (!orderItem) throw new NotFoundError("Order item not found");
+
+        const qr = await QR(
+            `${orderItemId}`
+        );
+
+        const html = vendorInvoiceTemplate({
+            orderItemId,
+            vendorName: "Vendor",
+            products: orderItem.products,
+            totalPrice: orderItem.totalPrice,
+            qr
+        });
+
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+
+        await page.setContent(html);
+
+        const pdf = await page.pdf({
+            format: "A4",
+            printBackground: true
+        });
+
+        await browser.close();
+        return pdf;
+    }
+
+    /// vendor dashboard sales summary
+    async getVendorSalesSummary(vendorId, query = {}) {
+        const { filter: dateFilter, period } = buildDateFilter(query);
+        const [orders, refundedRequests] = await Promise.all([
+
+            OrderItemsModel.find({
+                vendorId,
+                ...dateFilter
+            }).lean(),
+
+            ReturnRequestModel.find({
+                vendorId,
+                status: "REFUNDED",
+                ...dateFilter
+            }).lean()
+
+        ]);
+
+        let totalRevenue = 0;
+
+        const summary = {
+            totalOrders: orders.length,
+            pendingOrders: 0,
+            confirmedOrders: 0,
+            processingOrders: 0,
+            partiallyShippedOrders: 0,
+            outForDeliveryOrders: 0,
+            deliveredOrders: 0,
+            cancelledOrders: 0
+        };
+
+        for (const order of orders) {
+
+            switch (order.orderItemsStatus) {
+
+                case orderStatus.PENDING:
+                    summary.pendingOrders++;
+                    break;
+
+                case orderStatus.CONFIRMED:
+                    summary.confirmedOrders++;
+                    break;
+
+                case orderStatus.PROCESSING:
+                    summary.processingOrders++;
+                    break;
+
+                case orderStatus.PARTIALLY_SHIPPED:
+                    summary.partiallyShippedOrders++;
+                    break;
+
+                case orderStatus.OUT_FOR_DELIVERY:
+                    summary.outForDeliveryOrders++;
+                    break;
+
+                case orderStatus.DELIVERED:
+                    summary.deliveredOrders++;
+                    totalRevenue += order.totalPrice;
+                    break;
+
+                case orderStatus.CANCELLED:
+                    summary.cancelledOrders++;
+                    break;
+            }
+        }
+
+        for (const refund of refundedRequests) {
+            totalRevenue -= refund.refundAmount;
+        }
+
+        return {
+            period,
+            ...summary,
+            totalRevenue,
+            averageOrderValue:
+                summary.deliveredOrders > 0
+                    ? Number((totalRevenue / summary.deliveredOrders).toFixed(2))
+                    : 0
+        };
+    }
+
+    /// admin dashboard sales summary
+    async getAdminSalesSummary(query = {}) {
+
+        const { filter: dateFilter, period } = buildDateFilter(query);
+
+        const [orders, refundedRequests] = await Promise.all([
+
+            OrderModel.find(dateFilter).lean(),
+
+            ReturnRequestModel.find({
+                status: "REFUNDED",
+                ...dateFilter
+            }).lean()
+
+        ]);
+
+        let grossSales = 0;
+
+        const summary = {
+            totalOrders: orders.length,
+            pendingOrders: 0,
+            confirmedOrders: 0,
+            processingOrders: 0,
+            partiallyShippedOrders: 0,
+            outForDeliveryOrders: 0,
+            deliveredOrders: 0,
+            cancelledOrders: 0
+        };
+
+        for (const order of orders) {
+
+            switch (order.orderStatus) {
+
+                case orderStatus.PENDING:
+                    summary.pendingOrders++;
+                    break;
+
+                case orderStatus.CONFIRMED:
+                    summary.confirmedOrders++;
+                    break;
+
+                case orderStatus.PROCESSING:
+                    summary.processingOrders++;
+                    break;
+
+                case orderStatus.PARTIALLY_SHIPPED:
+                    summary.partiallyShippedOrders++;
+                    break;
+
+                case orderStatus.OUT_FOR_DELIVERY:
+                    summary.outForDeliveryOrders++;
+                    break;
+
+                case orderStatus.DELIVERED:
+                    summary.deliveredOrders++;
+                    grossSales += order.totalAmount;
+                    break;
+
+                case orderStatus.CANCELLED:
+                    summary.cancelledOrders++;
+                    break;
+            }
+        }
+
+        for (const refund of refundedRequests) {
+            grossSales -= refund.refundAmount;
+        }
+
+        return {
+            period,
+            ...summary,
+            grossSales,
+            averageOrderValue:
+                summary.deliveredOrders > 0
+                    ? Number((grossSales / summary.deliveredOrders).toFixed(2))
+                    : 0
+        };
+    }
+
+    // vendor status update and automatically update master
+    async updateOrderItemStatus(vendorId, orderItemId, status) {
+
+        const allowed = [
+            orderStatus.PROCESSING,
+            orderStatus.OUT_FOR_DELIVERY,
+            orderStatus.DELIVERED,
+            orderStatus.CANCELLED
+        ];
+
+        if (!allowed.includes(status)) {
+            throw new BadRequestError("Invalid status update");
+        }
+
+        const now = new Date();
+        const update = {
+            orderItemsStatus: status
+        };
+
+        if (status === orderStatus.PROCESSING) update.processedAt = now;
+        if (status === orderStatus.OUT_FOR_DELIVERY) update.shippedAt = now;
+        if (status === orderStatus.DELIVERED) update.deliveredAt = now;
+
+        const orderItem = await OrderItemsModel.findOneAndUpdate(
+            { _id: orderItemId, vendorId },
+            { $set: update },
+            { new: true }
+        );
+
+        if (!orderItem) {
+            throw new NotFoundError("Order item not found");
+        }
+
+        const items = await OrderItemsModel.find({
+            orderId: orderItem.orderId
+        });
+
+        const statuses = items.map(i => i.orderItemsStatus);
+
+        const masterStatus =
+            statuses.every(s => s === orderStatus.DELIVERED)
+                ? orderStatus.DELIVERED
+                : statuses.every(s => s === orderStatus.CANCELLED)
+                    ? orderStatus.CANCELLED
+                    : statuses.some(s => s === orderStatus.OUT_FOR_DELIVERY)
+                        ? orderStatus.OUT_FOR_DELIVERY
+                        : statuses.some(s => s === orderStatus.PROCESSING)
+                            ? orderStatus.PROCESSING
+                            : orderStatus.PARTIALLY_SHIPPED;
+
+        await OrderModel.findByIdAndUpdate(orderItem.orderId, {
+            orderStatus: masterStatus
+        });
+
+        return orderItem;
+    }
+
+    /// admin getAllOrders with filter
+    async getAllOrders(queryData) {
+
+        const page = parseInt(queryData.page, 10) || 1;
+        const limit = parseInt(queryData.limit, 10) || 10;
+        const skip = (page - 1) * limit;
+
+        const filter = {};
+
+        if (queryData.orderStatus) {
+            filter.orderStatus = queryData.orderStatus;
+        }
+
+        if (queryData.paymentStatus) {
+            filter.paymentStatus = queryData.paymentStatus;
+        }
+
+        if (queryData.search?.trim()) {
+            filter.orderNumber = {
+                $regex: queryData.search.trim(),
+                $options: "i",
+            };
         }
 
         if (queryData.paymentMethod) {

@@ -75,6 +75,9 @@ const updateShopInfo = async (req, res, next) => {
     try {
         const shopData = req.body
         const vendorId = req.user?._id
+
+        // console.log("Shop Data in Backend: ", shopData)
+
         const updatedShop = await shopService.updateShopData(shopData, vendorId);
         res.status(200).json({
             success: true,

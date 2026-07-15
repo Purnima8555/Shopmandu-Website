@@ -90,12 +90,9 @@ export const updateUserName = async (req, res, next) => {
 //
 export const getAllUsers = async (req, res, next) => {
   try {
-    const users = await userService.getAllUsers();
+    const users = await userService.getAllUsers(req.query);
 
-    res.status(200).json({
-      success: true,
-      data: users,
-    });
+    res.status(200).json(users);
   } catch (error) {
     next(error);
   }

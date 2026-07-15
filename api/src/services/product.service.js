@@ -375,18 +375,27 @@ class ProductService {
 
     /// delete product image 
 
-    async deleteProductImage(vendorId, productId, imageIndex) {
-
-        /// find product
+    async deleteProductImage(vendorId, productId, imageUrl) {
         const product = await this.getMyProductById(vendorId, productId);
 
-        /// index checked.
-        if (imageIndex === undefined || imageIndex === null || imageIndex < 0 || imageIndex >= product.images.length) {
-            throw new BadRequestError("Invalid image Index.")
+        // console.log(imageUrl)
+
+        const originalLength = product.images.length;
+        /// get all images expect that imageUrl
+        product.images = product.images.filter(img => img !== imageUrl);
+
+        /// when imasge length is same then that image not found
+        if (product.images.length === originalLength) {
+            throw new BadRequestError("Image not found.");
         }
-        product.images.splice(imageIndex, 1)
+
         await product.save();
-        return { message: "Image remove succesfull!" };
+
+        return {
+            success: true,
+            message: "Image removed successfully.",
+            data: product
+        };
     }
 
 
@@ -411,9 +420,8 @@ class ProductService {
 
         const filter = {};
 
-        let sort = {
-            createdAt: -1,
-        };
+
+
 
         /// search by product name
         if (data?.name || data?.search) {
@@ -425,7 +433,7 @@ class ProductService {
         }
 
         /// multiple brands filter
-        if (data?.brand) {
+        if (data?.brand && data.brand !== "ALL") {
             // We split string into array: "Apple,Samsung" -> ["Apple", "Samsung"]
             const brandArray = Array.isArray(data.brand)
                 ? data.brand
@@ -437,7 +445,7 @@ class ProductService {
         }
 
         /// multiple categories filter 
-        if (data?.category) {
+        if (data?.category && data.category !== "ALL") {
             const categoryArray = Array.isArray(data.category)
                 ? data.category
                 : data.category.split(",").filter(Boolean);
@@ -460,16 +468,61 @@ class ProductService {
             if (data.maxPrice) filter.discountPrice.$lte = parseFloat(data.maxPrice);
         }
 
-        /// sort order
-        if (data?.sort) {
-            if (data.sort === "price_asc") sort = { discountPrice: 1 };
-            if (data.sort === "price_desc") sort = { discountPrice: -1 };
+        // /// sort order
+        // if (data?.sort) {
+        //     if (data.sort === "price_asc") sort = { discountPrice: 1 };
+        //     if (data.sort === "price_desc") sort = { discountPrice: -1 };
+        // }
+
+        let sort = {
+            createdAt: -1,
+        };
+
+        switch (data?.sort) {
+            case "NEWEST":
+                sort = { createdAt: -1 };
+                break;
+
+            case "OLDEST":
+                sort = { createdAt: 1 };
+                break;
+
+            case "PRICE_ASC":
+            case "price_asc":
+                sort = { discountPrice: 1 };
+                break;
+
+            case "PRICE_DESC":
+            case "price_desc":
+                sort = { discountPrice: -1 };
+                break;
+
+            case "STOCK_ASC":
+                sort = { stock: 1 };
+                break;
+
+            case "STOCK_DESC":
+                sort = { stock: -1 };
+                break;
+
+            case "NAME_ASC":
+                sort = { name: 1 };
+                break;
+
+            case "NAME_DESC":
+                sort = { name: -1 };
+                break;
+
+            default:
+                sort = { createdAt: -1 };
         }
 
+
         /// product status
-        if (data?.productStatus) {
+        if (data?.productStatus && data.productStatus !== "ALL") {
             filter.productStatus = data.productStatus;
         }
+
 
         /// best selling products
         if (data?.bestSale) {

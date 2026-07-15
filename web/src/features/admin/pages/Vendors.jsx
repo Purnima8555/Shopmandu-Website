@@ -1,38 +1,47 @@
-// pages/VendorsPage.jsx
-import { Eye, Search, SlidersHorizontal } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import {
+  Eye,
+  Search,
+  SlidersHorizontal,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 
 import ButtonRounded from "../../../components/ui/ButtonRounded";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import useVendorStore from "../../../store/vendorStore";
 import VendorDrawer from "../components/VendorDrawer";
-
-const KYC_STYLE = {
-  approve: { tone: "success", label: "Approved" },
-  approved: { tone: "success", label: "Approved" },
-  pending: { tone: "warning", label: "Pending" },
-  reject: { tone: "danger", label: "Rejected" },
-  rejected: { tone: "danger", label: "Rejected" },
-};
-
-const STATUS_STYLE = {
-  active: { tone: "success", label: "Active" },
-  pending: { tone: "warning", label: "Pending" },
-  suspended: { tone: "danger", label: "Suspended" },
-  deactivated: { tone: "neutral", label: "Deactivated" },
-};
+import { KYC_STYLE } from "../data";
+import AdminPagination from "../components/AdminPagination";
 
 const VendorsPage = () => {
-  const { vendors, getAllVendors, getVendorById, selectedVendor, kycDetail } =
-    useVendorStore();
+  const {
+    allVendors,
+    allVendorsMetadata,
+    getAllVendors,
+    getVendorById,
+    selectedVendor,
+    kycDetail,
+  } = useVendorStore();
 
   const [kycFilter, setKycFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [imageError, setImageError] = useState({});
   const [search, setSearch] = useState("");
 
+  // const [selectedVendor, setSelectedVendor] = useState(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+
   useEffect(() => {
-    getAllVendors();
-  }, []);
+    const fetchVendors = async () => {
+      await getAllVendors({
+        page,
+        limit,
+        search,
+        kycStatus: kycFilter === "All" ? "All" : kycFilter.toUpperCase(),
+      });
+    };
+
+    fetchVendors();
+  }, [page, limit, search, kycFilter, getAllVendors]);
 
   const handleViewVendor = async (vendorId) => {
     try {
@@ -42,28 +51,7 @@ const VendorsPage = () => {
     }
   };
 
-  const filtered = useMemo(() => {
-    const keyword = search.toLowerCase().trim();
-
-    return vendors.filter((vendor) => {
-      const kycStatus = vendor.kycStatus?.toLowerCase() || "pending";
-      const accountStatus = vendor.accountStatus?.toLowerCase() || "active";
-
-      const kycMatch =
-        kycFilter === "All" || KYC_STYLE[kycStatus]?.label === kycFilter;
-
-      const statusMatch =
-        statusFilter === "All" ||
-        STATUS_STYLE[accountStatus]?.label === statusFilter;
-
-      const matchesSearch =
-        !keyword ||
-        vendor.userName?.toLowerCase().includes(keyword) ||
-        vendor.email?.toLowerCase().includes(keyword);
-
-      return kycMatch && statusMatch && matchesSearch;
-    });
-  }, [vendors, kycFilter, statusFilter, search]);
+  // console.log(allVendors);
 
   return (
     <div className="space-y-8">
@@ -83,7 +71,7 @@ const VendorsPage = () => {
               Total Vendors
             </p>
             <p className="mt-2 font-mono text-3xl font-medium">
-              {vendors.length}
+              {allVendorsMetadata?.totalResults || 0}
             </p>
           </div>
 
@@ -93,8 +81,9 @@ const VendorsPage = () => {
             </p>
             <p className="mt-2 font-mono text-3xl font-medium">
               {
-                vendors.filter((v) => v.kycStatus?.toLowerCase() === "pending")
-                  .length
+                allVendors?.filter(
+                  (v) => v.kycStatus?.toLowerCase() === "pending",
+                ).length
               }
             </p>
           </div>
@@ -109,7 +98,10 @@ const VendorsPage = () => {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
               placeholder="Search by name or email..."
               className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-sm outline-none focus:border-primary"
             />
@@ -118,10 +110,13 @@ const VendorsPage = () => {
           <div className="flex flex-wrap items-center gap-2">
             <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
 
-            {["All", "Approved", "Pending", "Rejected"].map((filter) => (
+            {["All", "Approve", "Pending", "Reject"].map((filter) => (
               <button
                 key={filter}
-                onClick={() => setKycFilter(filter)}
+                onClick={() => {
+                  setKycFilter(filter);
+                  setPage(1);
+                }}
                 className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                   kycFilter === filter
                     ? "bg-primary text-primary-foreground"
@@ -133,23 +128,27 @@ const VendorsPage = () => {
             ))}
 
             <div className="mx-1 h-4 w-px bg-border" />
-
-            {["All", "Active", "Deactivated"].map((filter) => (
-              <button
-                key={filter}
-                onClick={() => setStatusFilter(filter)}
-                className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                  statusFilter === filter
-                    ? "bg-foreground text-background"
-                    : "bg-surface text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {filter}
-              </button>
-            ))}
           </div>
         </div>
 
+        <AdminPagination
+          data={allVendors}
+          metadata={allVendorsMetadata}
+          page={page}
+          setPage={setPage}
+          limit={limit}
+          setLimit={setLimit}
+          refreshData={() =>
+            getAllVendors({
+              page,
+              limit,
+              ...(search.trim() && { search }),
+              ...(kycFilter !== "All" && {
+                kycStatus: kycFilter.toUpperCase(),
+              }),
+            })
+          }
+        />
         {/* Actual Table */}
         <table className="w-full">
           <thead>
@@ -161,9 +160,6 @@ const VendorsPage = () => {
                 KYC Status
               </th>
               <th className="px-6 py-3 text-left text-xs uppercase tracking-wide text-muted-foreground font-medium">
-                Account Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs uppercase tracking-wide text-muted-foreground font-medium">
                 Joined
               </th>
               <th className="px-6 py-3 text-right text-xs uppercase tracking-wide text-muted-foreground font-medium">
@@ -173,22 +169,36 @@ const VendorsPage = () => {
           </thead>
 
           <tbody>
-            {filtered.map((vendor) => {
+            {allVendors?.map((vendor) => {
               const kycStatus = vendor.kycStatus?.toLowerCase() || "pending";
-              const accountStatus =
-                vendor.accountStatus?.toLowerCase() || "active";
 
               const kyc = KYC_STYLE[kycStatus] || KYC_STYLE.pending;
-              const status = STATUS_STYLE[accountStatus] || STATUS_STYLE.active;
 
               return (
                 <tr key={vendor._id} className="border-t border-border">
                   {/* Vendor Info */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-muted font-mono text-[10px] font-semibold text-muted-foreground">
-                        {vendor.userName?.substring(0, 2).toUpperCase() || "??"}
-                      </span>
+                      <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full border border-border bg-muted">
+                        {vendor.avatar && !imageError[vendor._id] ? (
+                          <img
+                            src={vendor.avatar}
+                            alt={vendor.userName}
+                            className="h-full w-full object-cover"
+                            onError={() =>
+                              setImageError((prev) => ({
+                                ...prev,
+                                [vendor._id]: true,
+                              }))
+                            }
+                          />
+                        ) : (
+                          <span className="flex h-full w-full items-center justify-center font-mono text-[14px] font-semibold text-muted-foreground">
+                            {vendor.userName?.substring(0, 2).toUpperCase() ||
+                              "??"}
+                          </span>
+                        )}
+                      </div>
 
                       <div className="min-w-0">
                         <p className="truncate font-medium">
@@ -205,11 +215,6 @@ const VendorsPage = () => {
                   {/* KYC Status */}
                   <td className="px-6 py-4">
                     <StatusBadge tone={kyc.tone}>{kyc.label}</StatusBadge>
-                  </td>
-
-                  {/* Account Status */}
-                  <td className="px-6 py-4">
-                    <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
                   </td>
 
                   {/* Joined */}
@@ -234,7 +239,7 @@ const VendorsPage = () => {
               );
             })}
 
-            {filtered.length === 0 && (
+            {allVendors?.length === 0 && (
               <tr>
                 <td
                   colSpan="5"

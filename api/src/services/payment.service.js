@@ -254,6 +254,13 @@ class PaymentService {
             filter.paymentMethod = query.paymentMethod.toString().toUpperCase()
         }
 
+        if (query.search?.trim()) {
+            filter.orderNumber = {
+                $regex: query.search.trim(),
+                $options: "i",
+            };
+        }
+
         if (query.status) {
             filter.status = query.status.toString().toUpperCase()
         }

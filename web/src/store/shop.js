@@ -1,21 +1,39 @@
 
 
 import { create } from "zustand"
-import {changeMyShopStatus, getKycStatus, getMyShop, updateShopInfo, uploadShopBanner, uploadShopLogo, searchShopsApi,
-        updateShopStatusApi,} from "../api/shop"
-import { createProduct, getAllMyProducts, getProductsSummary } from "../api/product.api";
+import {changeMyShopStatus, getKycStatus, getMyShop, updateShopInfo, uploadShopBanner, uploadShopLogo, searchShopsApi, createShop, updateShopStatusApi,} from "../api/shop"
+import { addProductImagesApi, createProduct, deleteProductImageApi, getAllMyProducts, getProductsSummary, updateProductInfoApi } from "../api/product.api";
 
 
 const useShopStore = create((set) => ({
 
     ///states
     shop: [],
+    shops: [],
     loading: true,
     kycStatus: null,
     productsSummary: null,
     myProducts: [],
     productsMeta: null,
     setShop: (shop) => set({ shop }),
+
+    //// create shop
+
+    createShop: async (shopData) => {
+
+        try {
+            const res = await createShop(shopData);
+            set({
+                shop: res?.data,
+                loading: false
+            })
+            
+            return res
+        } finally{
+            set({loading: false})
+        }
+
+     },
 
     /// get my shop 
     getMyshop: async () => {
@@ -155,23 +173,23 @@ const useShopStore = create((set) => ({
         }
     },
 
-    updateShopStatus: async (statusPayload) => {
-        try {
-            set({ loading: true });
-            const res = await changeMyShopStatus(statusPayload);
-            set((state) => ({
-                shop: {
-                    ...state.shop,
-                    ShopStatus: res?.data?.ShopStatus || res?.data?.status || statusPayload.status
-                },
-                loading: false,
-            }));
-            return res?.data;
-        } finally{
+    // updateShopStatus: async (statusPayload) => {
+    //     try {
+    //         set({ loading: true });
+    //         const res = await changeMyShopStatus(statusPayload);
+    //         set((state) => ({
+    //             shop: {
+    //                 ...state.shop,
+    //                 ShopStatus: res?.data?.ShopStatus || res?.data?.status || statusPayload.status
+    //             },
+    //             loading: false,
+    //         }));
+    //         return res?.data;
+    //     } finally{
             
-            set({ loading: false });
-        }
-    },
+    //         set({ loading: false });
+    //     }
+    // },
 
     // Get all shops
     getAllShops: async (params = {}) => {
@@ -212,6 +230,65 @@ const useShopStore = create((set) => ({
             set({ loading: false });
         }
     },
+
+
+    // Update product information
+    updateProductInfo: async (productId, productData) => {
+        set({ loading: true });
+
+        try {
+        const res = await updateProductInfoApi(productId, productData);
+
+        set((state) => ({
+            myProducts: state.myProducts.map((product) =>
+            product._id === res.data._id ? res.data : product
+            ),
+        }));
+
+        return res;
+        } finally {
+        set({ loading: false });
+        }
+    },
+
+    // Add product images
+    addProductImages: async (productId, formData) => {
+        set({ loading: true });
+
+        try {
+        const res = await addProductImagesApi(productId, formData);
+
+        set((state) => ({
+            myProducts: state.myProducts.map((product) =>
+            product._id === res.data._id ? res.data : product
+            ),
+        }));
+
+        return res;
+        } finally {
+        set({ loading: false });
+        }
+    },
+
+    // Delete product image
+    deleteProductImage: async (productId, imageUrl) => {
+        set({ loading: true });
+
+        try {
+        const res = await deleteProductImageApi(productId, imageUrl);
+
+        set((state) => ({
+            myProducts: state.myProducts.map((product) =>
+            product._id === res.data._id ? res.data : product
+            ),
+        }));
+
+        return res;
+        } finally {
+        set({ loading: false });
+        }
+    },
+
 
 }))
 

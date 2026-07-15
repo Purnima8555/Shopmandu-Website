@@ -5,6 +5,24 @@
 import api from "./axios";
 
 
+// router.post("/shop/create", auth, roleBasedAuth(Roles.VENDOR_ROLE), 
+//     upload.fields([
+//       {name: 'logo', maxCount: 1},
+//       {name: 'banner', maxCount: 1}
+//     ]),
+//     schemaValidator(shopSchema),
+//     createShop
+// )
+
+export const createShop = async (shopData) => {
+//     const formData = objectToFormData(shopData);
+
+    const response = await api.post("/api/shop/create", shopData);
+
+    return response.data;
+};
+
+
 export const getMyShop = async () => {
 
  

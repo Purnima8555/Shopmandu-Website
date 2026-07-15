@@ -1,4 +1,5 @@
-// components/ui/Drawer.jsx
+
+
 import { X } from "lucide-react";
 
 const Drawer = ({ 
@@ -12,7 +13,7 @@ const Drawer = ({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex justify-end bg-black/50" 
+      className="fixed inset-0 z-100 flex justify-end bg-black/50" 
       onClick={onClose}
     >
       <div

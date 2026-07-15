@@ -1,8 +1,12 @@
 
 import { FiLock, FiArrowLeft } from "react-icons/fi";
 import Button from "../components/ui/Button";
+import { useNavigate } from "react-router-dom";
 
 const UnauthorizedPage = () => {
+
+  const navigate = useNavigate()
+
   return (
     <section className="min-h-[70vh] flex items-center justify-center px-6 py-16 bg-background">
       <div className="max-w-2xl w-full text-center">
@@ -23,7 +27,7 @@ const UnauthorizedPage = () => {
         </p>
 
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button icon={FiArrowLeft} iconPosition="left" iconsize={18} >Back to Home</Button>
+          <Button icon={FiArrowLeft} iconPosition="left" onClick={()=>navigate("/")} iconsize={18} >Back to Home</Button>
         </div>
 
       </div>

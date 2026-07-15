@@ -1,12 +1,15 @@
 
 
-import {Router} from "express"
+import { Router } from "express"
 import auth from "../middleware/auth.middleware.js"
 import roleBasedAuth from "../middleware/roleBase.middleware.js";
 import Roles from "../constants/userRoles.js";
-import {orderPlace, cancelOrder, getOrderHistory, adminGetOrderById, updateOrderItemStatus, getAllOrders,
+import {
+        orderPlace, cancelOrder, getOrderHistory, adminGetOrderById, updateOrderItemStatus, getAllOrders,
         getOrdersByStatus, adminUpdateOrderStatus, getOrderDetail, customerInvoice, vendorInvoice, getVendorSalesSummary,
-        getAdminSalesSummary, getAdminSalesTrend, getVendorSalesTrend} from "../controllers/order.controller.js";
+        getAdminSalesSummary, getAdminSalesTrend, getVendorSalesTrend,
+        getVendorOrders
+} from "../controllers/order.controller.js";
 import schemaValidator from "../middleware/schemaValidator.middleware.js";
 import createOrderSchema from "../libs/schema/order.schema.js";
 
@@ -20,6 +23,7 @@ router.get("/history", auth, roleBasedAuth(Roles.USER_ROLE), getOrderHistory);
 router.patch("/vendor/item/status", auth, roleBasedAuth(Roles.VENDOR_ROLE), updateOrderItemStatus);
 
 router.get("/admin/orders", auth, roleBasedAuth(Roles.ADMIN_ROLE), getAllOrders);
+router.get("/vendor/orders", auth, roleBasedAuth(Roles.VENDOR_ROLE), getVendorOrders);
 
 router.patch("/admin/status", auth, roleBasedAuth(Roles.ADMIN_ROLE), adminUpdateOrderStatus);
 

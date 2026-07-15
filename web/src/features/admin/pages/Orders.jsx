@@ -9,46 +9,14 @@ import OrderDrawer from "../components/OrderDrawer";
 import useOrderStore from "../../../store/orderStore";
 import sendApiRequest from "../../../utils/sendApiRequest";
 import { dismissToast, showSuccess } from "../../../utils/toast";
-
-const ORDER_STYLE = {
-  PENDING: { tone: "warning", label: "Pending" },
-  PROCESSING: { tone: "warning", label: "Processing" },
-  CONFIRMED: { tone: "info", label: "Confirmed" },
-  OUT_FOR_DELIVERY: { tone: "info", label: "Out For Delivery" },
-  DELIVERED: { tone: "success", label: "Delivered" },
-  CANCELLED: { tone: "danger", label: "Cancelled" },
-  RETURNED: { tone: "neutral", label: "Returned" },
-};
-
-const PAYMENT_STYLE = {
-  PAID: { tone: "success", label: "Paid" },
-  PENDING: { tone: "warning", label: "Pending" },
-  UNPAID: { tone: "neutral", label: "Unpaid" },
-  REFUNDED: { tone: "danger", label: "Refunded" },
-  FAILED: { tone: "danger", label: "Failed" },
-  EXPIRED: { tone: "neutral", label: "Expired" },
-};
-
-const STATUS_STYLES = {
-  success: "bg-success/10 text-success border border-success/20",
-  warning: "bg-warning/10 text-warning border border-warning/20",
-  danger: "bg-danger/10 text-danger border border-danger/20",
-  info: "bg-blue-500/10 text-blue-600 border border-blue-500/20",
-  primary: "bg-primary/10 text-primary border border-primary/20",
-  neutral: "bg-muted text-muted-foreground border border-border",
-};
-
-const ADMIN_STATUSES = [
-  "PENDING",
-  "PROCESSING",
-  "CONFIRMED",
-  "OUT_FOR_DELIVERY",
-  "DELIVERED",
-  "CANCELLED",
-  "RETURNED",
-];
-
-const TABS = ["All Orders", "Pending", "Processing", "Delivered", "Cancelled"];
+import {
+  ADMIN_STATUSES,
+  ORDER_STYLE,
+  PAYMENT_STYLE,
+  STATUS_STYLES,
+  TABS,
+} from "../data";
+import AdminPagination from "../components/AdminPagination";
 
 const OrdersPage = () => {
   const {
@@ -57,29 +25,32 @@ const OrdersPage = () => {
     selectedOrder,
     getAllOrders,
     getOrderById,
+    orderMetadata,
     updateOrderStatus,
   } = useOrderStore();
 
   const [tab, setTab] = useState("All Orders");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  // const [imageError, setImageError] = useState({})
+  const [limit, setLimit] = useState(10);
 
   useEffect(() => {
-    sendApiRequest(() => getAllOrders());
-  }, []);
+    const params = {
+      page,
+      limit,
+    };
 
-  const filteredOrders = orders.filter((order) => {
-    const matchesStatus =
-      tab === "All Orders" ||
-      order.orderStatus?.toLowerCase() === tab.toLowerCase();
+    if (tab !== "All Orders") {
+      params.orderStatus = tab.toUpperCase().replace(/ /g, "_");
+    }
 
-    const keyword = search.toLowerCase();
+    if (search.trim()) {
+      params.search = search.trim();
+    }
 
-    const matchesSearch =
-      order.orderNumber?.toLowerCase().includes(keyword) ||
-      order.customerId?.userName?.toLowerCase().includes(keyword);
-
-    return matchesStatus && matchesSearch;
-  });
+    sendApiRequest(() => getAllOrders(params));
+  }, [page, limit, tab, search, getAllOrders]);
 
   return (
     <div className="space-y-8">
@@ -100,7 +71,10 @@ const OrdersPage = () => {
                 key={t}
                 variant={tab === t ? "primary" : "ghost"}
                 size="sm"
-                onClick={() => setTab(t)}
+                onClick={() => {
+                  setTab(t);
+                  setPage(1);
+                }}
                 className="px-4 py-1.5 text-xs"
               >
                 {t}
@@ -112,12 +86,36 @@ const OrdersPage = () => {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
               placeholder="Search orders..."
               className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-sm outline-none focus:border-primary"
             />
           </div>
         </div>
+
+        <AdminPagination
+          data={orders}
+          metadata={orderMetadata}
+          page={page}
+          setPage={setPage}
+          limit={limit}
+          setLimit={setLimit}
+          refreshData={() =>
+            getAllOrders({
+              page,
+              limit,
+              ...(tab !== "All Orders" && {
+                orderStatus: tab.toUpperCase().replace(/ /g, "_"),
+              }),
+              ...(search.trim() && {
+                search: search.trim(),
+              }),
+            })
+          }
+        />
 
         {/* Real Table */}
         <table className="w-full">
@@ -151,7 +149,7 @@ const OrdersPage = () => {
           </thead>
 
           <tbody>
-            {filteredOrders.map((order) => {
+            {orders?.map((order) => {
               const orderStatus = ORDER_STYLE[order.orderStatus] || {
                 tone: "neutral",
                 label: order.orderStatus,
@@ -237,7 +235,7 @@ const OrdersPage = () => {
           </tbody>
         </table>
 
-        {!loading && filteredOrders.length === 0 && (
+        {!loading && orders?.length === 0 && (
           <div className="py-10 text-center text-muted-foreground">
             No orders found.
           </div>

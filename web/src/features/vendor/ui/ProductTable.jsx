@@ -1,12 +1,17 @@
-import { AlertTriangle, Edit, EyeIcon, PackageSearch, Trash2 } from "lucide-react";
+import {
+  AlertTriangle,
+  Edit,
+  EyeIcon,
+  PackageSearch,
+  Trash2,
+  Video,
+} from "lucide-react";
 import AddProduct from "../components/AddProduct";
 import { useState } from "react";
+import ProductView from "./ProductView";
+import VideoUploadModal from "./VideoUploadMode";
 
-
-const ProductTable = ({products}) => {
-
-
-
+const ProductTable = ({ products }) => {
   const getStatusBadge = (status) => {
     switch (status) {
       case "ACTIVE":
@@ -30,10 +35,18 @@ const ProductTable = ({products}) => {
     }
   };
 
-  /// on edit 
+  /// on edit
   // 1. Add state to track current view and the product being edited
   const [editingProduct, setEditingProduct] = useState(null);
   const [showForm, setShowForm] = useState(false);
+
+  const [viewProduct, setViewProduct] = useState(null);
+
+  const [videoProduct, setVideoProduct] = useState(null);
+
+  const handleCloseView = () => {
+    setViewProduct(null);
+  };
 
   // 2. Correct logic for Edit button
   const handleEditClick = (product) => {
@@ -48,18 +61,13 @@ const ProductTable = ({products}) => {
 
   // 3. Conditional Rendering: Switch between Table and AddProduct form
   if (showForm) {
-    return (
-      <AddProduct 
-        editingProduct={editingProduct} 
-        onBack={handleBack} 
-      />
-    );
+    return <AddProduct editingProduct={editingProduct} onBack={handleBack} />;
   }
 
   return (
-    <div className="bg-bg-card rounded-[14px] border border-border shadow-sm overflow-hidden">
+    <div className="bg-bg-card rounded-[14px] border  border-border shadow-sm overflow-hidden">
       {products.length > 0 ? (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto animation-fade-in animation-delay-200 ">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-bg-main border-b border-border">
@@ -148,28 +156,36 @@ const ProductTable = ({products}) => {
                     {new Date(p?.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-4 text-right">
-                    <div className="flex items-center justify-end gap-1">
+                    <div className="flex items-center justify-end">
                       <button
-                        className="p-1.5 hover:bg-[#F1F5F9] text-[#64748B] hover:text-[#1F2937] rounded-lg transition-all"
+                        className="p-1 hover:bg-[#F1F5F9] text-[#64748B] hover:text-[#1F2937] rounded-lg transition-all"
                         title="Edit Product"
-                        onClick={()=>handleEditClick(p)}
+                        onClick={() => handleEditClick(p)}
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
-                        className="p-1.5 hover:bg-red-50 text-[#64748B] hover:text-red-600 rounded-lg transition-all"
+                        className="p-1 hover:bg-red-50 text-[#64748B] hover:text-red-600 rounded-lg transition-all"
                         title="Delete Product"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
 
-                       <button
+                      <button
                         className="p-1.5 hover:bg-red-50 text-[#64748B] hover:text-green-600 rounded-lg transition-all"
-                        title="Delete Product"
+                        title="View Product"
+                        onClick={() => setViewProduct(p)}
                       >
                         <EyeIcon className="w-4 h-4" />
                       </button>
 
+                      <button
+                        className="p-1.5 hover:bg-red-50 text-[#64748B] hover:text-green-600 rounded-lg transition-all"
+                        title="Add video"
+                        onClick={() => setVideoProduct(p)}
+                      >
+                        <Video className="w-4 h-4" />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -191,12 +207,26 @@ const ProductTable = ({products}) => {
             started.
           </p>
 
-          <button
-            className="mt-2 text-xs font-semibold text-primary hover:underline"
-          >
+          <button className="mt-2 text-xs font-semibold text-primary hover:underline">
             Reset Filters
           </button>
         </div>
+      )}
+
+      {viewProduct && (
+        <ProductView
+          open={!!viewProduct}
+          product={viewProduct}
+          onClose={handleCloseView}
+        />
+      )}
+
+      {videoProduct && (
+        <VideoUploadModal
+          open={!!videoProduct}
+          product={videoProduct}
+          onClose={() => setVideoProduct(null)}
+        />
       )}
     </div>
   );

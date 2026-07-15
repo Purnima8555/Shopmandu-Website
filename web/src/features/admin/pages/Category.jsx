@@ -10,17 +10,13 @@ import CreateCategoryModal from "../components/CreateCategoryModal";
 import useCategoryStore from "../../../store/categoryStore";
 import sendApiRequest from "../../../utils/sendApiRequest";
 import { dismissToast, showSuccess } from "../../../utils/toast";
-
-const STATUS_STYLE = {
-  true: { tone: "success", label: "Active" },
-  false: { tone: "neutral", label: "Inactive" },
-};
+import { STATUS_STYLE } from "../data";
 
 const CategoriesPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
 
-  const { categories, loading, getAllCategories, deleteCategory } =
+  const { categories, getAllCategories, deleteCategory } =
     useCategoryStore();
 
   useEffect(() => {

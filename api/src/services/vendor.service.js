@@ -12,6 +12,7 @@ import sendEmail from "../messaging/email/email.service.js";
 import { verifyJwt } from "../utils/jwt.utils.js";
 
 import { v2 as cloudinary } from "cloudinary"
+import { toDataURL } from "qrcode";
 
 class vendorService {
   /// vendor kyc submit.
@@ -132,7 +133,7 @@ class vendorService {
 
   /// get all vendors from database
 
-  /// it only access for admin
+/// it only access for admin
   async getAllVendors(data) {
     const page = parseInt(String(data?.page), 10) || 1;
     const limit = parseInt(String(data?.limit), 10) || 10;
@@ -142,24 +143,62 @@ class vendorService {
       roles: Roles.VENDOR_ROLE,
     };
 
+    //// search by username or email
+    if (data.search?.trim()) {
+      filter.$or = [
+        {
+          userName: {
+            $regex: data.search.trim(),
+            $options: "i",
+          },
+        },
+        {
+          email: {
+            $regex: data.search.trim(),
+            $options: "i",
+          },
+        },
+      ];
+    }
+
+    // //// accountStatus filter (added to fix functionality with frontend)
+    // if (data.accountStatus && data.accountStatus !== "All") {
+    //   filter.accountStatus = data.accountStatus;
+    // }
+
+    //  Build the Base Pipeline (Matches and Lookups only)
+    const basePipeline = [
+      { $match: filter },
+      {
+        $lookup: {
+          from: "vendorkycs",
+          localField: "_id",
+          foreignField: "user_id",
+          as: "kyc",
+        },
+      },
+      {
+        $addFields: {
+          kycStatus: {
+            $ifNull: [{ $arrayElemAt: ["$kyc.kycStatus", 0] }, "PENDING"],
+          },
+        },
+      },
+    ];
+
+    /// KYC status filtering needs to happen after addFields but before count
+    if (data.kycStatus && data.kycStatus !== "All") {
+      basePipeline.push({
+        $match: {
+          kycStatus: data.kycStatus,
+        },
+      });
+    }
+
+    //  Execute both the count and the paginated data retrieval
     const [vendors, totalDocuments] = await Promise.all([
       UserModel.aggregate([
-        { $match: filter },
-        {
-          $lookup: {
-            from: "vendorkycs",
-            localField: "_id",
-            foreignField: "user_id",
-            as: "kyc",
-          },
-        },
-        {
-          $addFields: {
-            kycStatus: {
-              $ifNull: [{ $arrayElemAt: ["$kyc.kycStatus", 0] }, "PENDING"],
-            },
-          },
-        },
+        ...basePipeline,
         {
           $project: {
             password: 0,
@@ -171,14 +210,18 @@ class vendorService {
         { $limit: limit },
       ]),
 
-      UserModel.countDocuments(filter),
+      UserModel.aggregate([
+        ...basePipeline,
+        { $count: "total" },
+      ]),
     ]);
 
-    const totalPages = Math.ceil(totalDocuments / limit);
+    const totalResults = totalDocuments[0]?.total || 0;
+    const totalPages = Math.ceil(totalResults / limit);
 
     return {
       metadata: {
-        totalResults: totalDocuments,
+        totalResults,
         totalPages,
         currentPage: page,
         limit,
@@ -388,17 +431,37 @@ class vendorService {
     };
   }
 
-  /// vendor kyc full detail
-  async getVendorKyc(vendorId) {
-    /// get vendor profile
-    // console.log(vendorId)
-    const vendorKyc = await vendorKycModel.findOne({ user_id: vendorId });
-    if (!vendorKyc) {
-      throw new NotFoundError("Vendor profile Status not found.");
-    }
+/// vendor kyc full detail
+async getVendorKyc(vendorId) {
+  const vendorKyc = await vendorKycModel.findOne({ user_id: vendorId }).lean();
 
-    return vendorKyc;
+  if (!vendorKyc) {
+    throw new NotFoundError("Vendor profile Status not found.");
   }
+
+  const expiresAt = Math.floor(Date.now() / 1000) + 60 * 5;
+
+  const frontSideImageURL = cloudinary.utils.private_download_url(
+    vendorKyc.citizenship.frontSideImage.public_id,
+    vendorKyc.citizenship.frontSideImage.format,
+    {
+      expires_at: expiresAt,
+    }
+  );
+
+  const backSideImageURL = cloudinary.utils.private_download_url(
+    vendorKyc.citizenship.backSideImage.public_id,
+    vendorKyc.citizenship.backSideImage.format,
+    {
+      expires_at: expiresAt,
+    }
+  );
+
+  vendorKyc.citizenship.frontSideImage = frontSideImageURL;
+  vendorKyc.citizenship.backSideImage = backSideImageURL;
+
+  return vendorKyc;
+}
 
   //// vendor kyc Approve
   async vendorKycAccountApprove(vendorKycId) {

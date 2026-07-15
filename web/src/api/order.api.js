@@ -56,6 +56,13 @@ export const getCustomerOrderHistoryApi = async (params = {}) => {
 // Customer order detail
 export const getCustomerOrderDetailApi = async (orderId) => {
     const res = await api.get(`/api/order/detail/${orderId}`);
+};
+
+/// vendor orders.
+export const getVendorOrdersApi = async (params) => {
+    const res = await api.get("/api/order/vendor/orders", {
+        params,
+    });
 
     return res.data;
 };
@@ -80,6 +87,22 @@ export const getVendorSalesTrendApi = async (params = {}) => {
             params,
         }
     );
+
+    return res.data;
+};
+    
+// Update order item status
+export const updateOrderItemStatusApi = async (data) => {
+    const res = await api.patch("/api/order/vendor/item/status", data);
+
+    return res.data;
+};
+
+// Download vendor invoice
+export const getVendorInvoiceApi = async (orderItemId) => {
+    const res = await api.get(`/api/order/invoice/vendor/${orderItemId}`, {
+        responseType: "blob", // for PDF/file download
+    });
 
     return res.data;
 };

@@ -56,7 +56,7 @@ router.patch("/product/image/:id", auth, roleBasedAuth(Roles.VENDOR_ROLE), uploa
 router.patch("/product/images/:id", auth, roleBasedAuth(Roles.VENDOR_ROLE), upload.array("images", 4), addProductImage);
 
 // Delete product image
-router.delete("/product/delete/image/:id", auth, roleBasedAuth(Roles.VENDOR_ROLE), deleteProductImage);
+router.patch("/product/delete/image/:id", auth, roleBasedAuth(Roles.VENDOR_ROLE), deleteProductImage);
 
 /// product video upload 
 

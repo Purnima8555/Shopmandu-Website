@@ -1,10 +1,5 @@
 import api from "./axios";
 
-/// Get all users
-export const getAllUsersApi = async () => {
-    const res = await api.get("/api/users/all");
-    return res.data;
-};
 
 // Update User Avatar
 export const updateUserAvatarApi = async (formData) => {
@@ -29,4 +24,11 @@ export const updateUserNameApi = async (param) => {
     );
 
     return updatedUser.data;
+};
+export const getAllUsersApi = async (queryData = {}) => {
+    const res = await api.get("/api/users/all", {
+        params: queryData,
+    });
+
+    return res.data;
 };

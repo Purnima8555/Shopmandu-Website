@@ -6,7 +6,7 @@ export const getFormDetails = (shopData) => {
     shopName: shopData.shopName || "",
     businessEmail: shopData.businessEmail || "",
     businessMobile: shopData.businessMobile || "",
-    discription: shopData.discription || "",
+    description: shopData.description || "",
     openingHour: {
       open: shopData.openingHour?.open || "09:00",
       close: shopData.openingHour?.close || "21:00",

@@ -11,12 +11,7 @@ import useCouponStore from "../../../store/couponStore";
 
 import sendApiRequest from "../../../utils/sendApiRequest";
 import { dismissToast, showSuccess } from "../../../utils/toast";
-
-const STATUS_STYLE = {
-  active: { tone: "success", label: "Active" },
-  inactive: { tone: "neutral", label: "Inactive" },
-  expired: { tone: "danger", label: "Expired" },
-};
+import { COUPON_STATUS_STYLE } from "../data";
 
 const CouponsPage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -110,7 +105,7 @@ const CouponsPage = () => {
                   ? "active"
                   : "inactive";
 
-              const status = STATUS_STYLE[statusKey];
+              const status = COUPON_STATUS_STYLE[statusKey];
 
               return (
                 <tr key={coupon._id} className="border-t border-border">

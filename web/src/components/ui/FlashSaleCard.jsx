@@ -3,11 +3,20 @@ import ButtonRounded from "./ButtonRounded";
 import { IoIosHeartEmpty } from "react-icons/io";
 import { FaStar } from "react-icons/fa";
 import { FiShoppingCart } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
-const FlashSaleCard = ({name = "Products",price = 0,discountPrice = 0,rating = 1,images,tag = "New",totalReviews = 0,flashSales = false,discountPercent = 0,}) => {
+const FlashSaleCard = ({name = "Products",price = 0,discountPrice = 0,rating = 1,images,tag = "New",totalReviews = 0,flashSales = false,discountPercent = 0, slug=""}) => {
+
+
+      const navigate = useNavigate(); 
+
+
+  const handleCardClick = (productSlug) => {
+    navigate(`/products/${productSlug}`); 
+  };
 
   return (
-    <div className="group bg-card rounded-sm border border-border shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden">
+    <div onClick={()=>handleCardClick(slug)} className="group bg-card rounded-sm border border-border shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden">
       {/* image */}
       <div className="relative bg-surface p-3 h-72 overflow-hidden">
         <img src={images[0]} alt={name} className="w-full h-full rounded-sm object-cover transition duration-300 group-hover:scale-102"/>

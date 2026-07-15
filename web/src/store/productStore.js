@@ -1,6 +1,6 @@
 
 import { create } from "zustand";
-import { getAllProductCategories, getAllProductsApi, getFlashSaleProductsApi,  getProductByIdApi, getTopProductsApi, } from "../api/product.api";
+import {getAllProductCategories, getAllProductsApi, getFlashSaleProductsApi, getProductByIdApi, getProductBySlug, getTopProductsApi, } from "../api/product.api";
 
 const useProductStore = create((set) => ({
   /// state
@@ -12,6 +12,7 @@ const useProductStore = create((set) => ({
   productPagePagination: null, // separate pagination for product listing page
   loading: true,
   categories: [],
+  productDetail: [],
   topProducts: [],
   selectedProduct: null,
 
@@ -20,9 +21,11 @@ const useProductStore = create((set) => ({
     try {
       set({ loading: true });
       const res = await getAllProductsApi(params);
+
+      // console.log(res.data)
       set({
-        products: res.data.data,
-        pagination: res.data.pagination,
+        products: res?.data || [],
+        pagination: res?.metadata|| {},
         loading: false,
       });
 
@@ -39,8 +42,8 @@ const useProductStore = create((set) => ({
       set({ loading: true });
       const res = await getAllProductsApi(params);
       set({
-        productPageProducts: res.data.data,
-        productPagePagination: res.data.metadata,
+        productPageProducts: res?.data,
+        productPagePagination: res?.metadata,
         loading: false,
       });
 
@@ -137,6 +140,26 @@ const useProductStore = create((set) => ({
       set({ loading: false });
     }
   },
+
+
+  getProductDetail: async (params) => {
+
+    try {
+
+      const res = await getProductBySlug(params)
+      set({
+        productDetail: res.data
+      })
+      return res.data
+
+    } catch (error) {
+      set({ loading: false })
+      console.log(error)
+    }
+
+  },
+
+ 
 }));
 
 export default useProductStore;

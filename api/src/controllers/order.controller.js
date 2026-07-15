@@ -151,6 +151,19 @@ const getAllOrders = async (req, res, next) => {
 
 };
 
+const getVendorOrders = async (req, res, next) => {
+    try {
+        const result = await orderService.getAllOrderByVendorId(
+            req.user._id,
+            req.query
+        );
+
+        res.json(result);
+    } catch (error) {
+        next(error);
+    }
+};
+
 const getOrdersByStatus = async (req, res, next) => {
     try {
 
@@ -294,6 +307,6 @@ const getVendorSalesTrend = async (req, res, next) => {
 
 export {
     orderPlace, cancelOrder, getOrderHistory, adminGetOrderById, updateOrderItemStatus, getAllOrders, getAdminSalesTrend, getVendorSalesTrend,
-    getOrdersByStatus, adminUpdateOrderStatus, getOrderDetail, customerInvoice, vendorInvoice, getVendorSalesSummary, getAdminSalesSummary
+    getOrdersByStatus, adminUpdateOrderStatus, getOrderDetail, customerInvoice, vendorInvoice, getVendorSalesSummary, getAdminSalesSummary, getVendorOrders
 };
 

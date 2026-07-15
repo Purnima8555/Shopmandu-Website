@@ -3,13 +3,69 @@ import { ForbiddenError, NotFoundError } from "../utils/AppError.js";
 import CloudinaryUpload from "../utils/CloudinaryUpload.js";
 
 class userService {
-    //
-    // GET ALL USERS
-    //
-    async getAllUsers() {
-        return await UserModel.find({});
+  //
+  // GET ALL USERS
+  //
+async getAllUsers(queryData) {
+
+    const page = parseInt(queryData.page, 10) || 1;
+    const limit = parseInt(queryData.limit, 10) || 10;
+    const skip = (page - 1) * limit;
+
+    const filter = {};
+
+    //// search by username or email
+    if (queryData.search?.trim()) {
+        filter.$or = [
+            {
+                userName: {
+                    $regex: queryData.search.trim(),
+                    $options: "i"
+                }
+            },
+            {
+                email: {
+                    $regex: queryData.search.trim(),
+                    $options: "i"
+                }
+            }
+        ];
     }
 
+    //// filter by role
+    if (queryData.role && queryData.role !== "All" ) {
+        filter.roles = queryData.role;
+    }
+
+    const [users, totalDocuments] = await Promise.all([
+
+        UserModel.find(filter)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+
+        UserModel.countDocuments(filter)
+
+    ]);
+
+    const totalPages = Math.ceil(totalDocuments / limit);
+
+    return {
+        success: true,
+        message: "",
+        metadata: {
+            totalResults: totalDocuments,
+            totalPages,
+            currentPage: page,
+            limit,
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1
+        },
+
+        data: users
+    };
+}
     //
     // GET USER BY ID
     //

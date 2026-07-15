@@ -19,6 +19,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import ProductTable from "../ui/ProductTable";
 import useProductStore from "../../../store/productStore";
 
+
 //// How long to wait after the user stops typing before firing a request.
 const SEARCH_DEBOUNCE_MS = 400;
 
@@ -108,10 +109,15 @@ const ListAllProducts = ({setCurrentTab}) => {
     setCurrentPage(1);
   }, []);
 
+  
+
+
   return (
-    <div className="space-y-8 animation-fade-in animation-delay-200">
+
+    <section>
+    <div className="space-y-8 relative">
       {/* ── Header  */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex animation-fade-in animation-delay-200   flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-[#1F2937]">
             Manage Products
@@ -127,7 +133,7 @@ const ListAllProducts = ({setCurrentTab}) => {
       </div>
 
       {/*  Summary cards  */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 animation-fade-in animation-delay-200  lg:grid-cols-4 gap-6">
         <SummaryCard
           title="Total Products"
           summary={productsSummary.totalProducts}
@@ -163,7 +169,7 @@ const ListAllProducts = ({setCurrentTab}) => {
       </div>
 
       {/*  Filters/ pagination toolbar  */}
-      <div className="bg-bg-card p-4 rounded-[14px] border border-border shadow-sm space-y-4">
+      <div className="bg-bg-card p-4 rounded-[14px] border animation-fade-in animation-delay-200  border-border shadow-sm space-y-4">
         {/* Search */}
         <SearchInput
           iconPosition="right"
@@ -309,6 +315,7 @@ const ListAllProducts = ({setCurrentTab}) => {
       {/*  Product table  */}
       <ProductTable products={myProducts} />
     </div>
+    </section>
   );
 };
 

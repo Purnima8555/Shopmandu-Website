@@ -211,17 +211,14 @@ const deleteProductImage = async (req, res, next) => {
   try {
     const vendorId = req.user._id;
     const productId = req.params.id;
-    const { imageIndex } = req.body;
-    const deleteProduct = await productService.updateProductImage(
+    const { imageUrl } = req.body;
+    const deleteProduct = await productService.deleteProductImage(
       vendorId,
       productId,
-      imageIndex,
+      imageUrl,
     );
 
-    res.status(200).json({
-      success: true,
-      data: deleteProduct,
-    });
+    res.status(200).json( deleteProduct);
   } catch (error) {
     next(error);
   }
@@ -248,10 +245,7 @@ const getAllProductForPublic = async (req, res, next) => {
   try {
     const data = req.query;
     const products = await productService.getAllProduct(data);
-    res.status(200).json({
-      success: true,
-      data: products,
-    });
+    res.status(200).json(products);
   } catch (error) {
     next(error);
   }

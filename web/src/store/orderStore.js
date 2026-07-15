@@ -8,41 +8,46 @@ import {
     getAdminSalesTrendApi,
     getCustomerOrderHistoryApi,
     getCustomerOrderDetailApi,
+    getVendorOrdersApi,
     getVendorSalesSummaryApi,
     getVendorSalesTrendApi,
+    updateOrderItemStatusApi,
+    getVendorInvoiceApi,
 } from "../api/order.api";
 
 const useOrderStore = create((set, get) => ({
     loading: false,
 
     orders: [],
-    orderMetadata: null,
+    orderMetadata: {},
 
     selectedOrder: null,
+customerSelectedOrder: null,
 
     salesSummary: null,
     salesTrend: null,
+    vendorOrders: [],
+    vendorOrderMetadata: null,
 
     vendorSalesSummary: null,
     vendorSalesTrend: null,
-
-  // Get all orders
+    // Get all orders
     getAllOrders: async (params = {}) => {
         try {
-        set({ loading: true });
+            set({ loading: true });
 
-        const res = await getAllOrdersApi(params);
+            const res = await getAllOrdersApi(params);
 
-        set({
-            orders: res.data || [],
-            orderMetadata: res.metadata || null,
-        });
+            set({
+                orders: res.data || [],
+                orderMetadata: res.metadata || {},
+            });
 
-        return res;
+            return res;
         } catch (error) {
-        throw error.response?.data || error;
+            throw error.response?.data || error;
         } finally {
-        set({ loading: false });
+            set({ loading: false });
         }
     },
 
@@ -137,7 +142,7 @@ const useOrderStore = create((set, get) => ({
 
             set({
             orders: res.orders?.data || [],
-            metadata: res.orders?.metadata || null,
+            metadata: res.orders?.metadata || {},
             });
 
             return res;
@@ -155,6 +160,24 @@ const useOrderStore = create((set, get) => ({
 
             set({
                 customerSelectedOrder: res.data,
+                });
+
+            return res;
+        } finally {
+            set({ loading: false });
+        }
+    },
+
+    // Get Vendor Orders
+    getVendorOrders: async (params = {}) => {
+        try {
+            set({ loading: true });
+
+            const res = await getVendorOrdersApi(params);
+
+            set({
+                vendorOrders: res.data || [],
+                vendorOrderMetadata: res.metadata || null,
             });
 
             return res;
@@ -164,7 +187,7 @@ const useOrderStore = create((set, get) => ({
     },
 
     // Vendor Sales Summary
-getVendorSalesSummary: async (params = {}) => {
+    getVendorSalesSummary: async (params = {}) => {
         try {
             set({ loading: true });
 
@@ -196,7 +219,48 @@ getVendorSalesSummary: async (params = {}) => {
             set({ loading: false });
         }
     },
-    
+
+    // Update Vendor Order Item Status
+    updateVendorOrderItemStatus: async (orderItemId, status) => {
+        try {
+            set({ loading: true });
+
+            const res = await updateOrderItemStatusApi({
+                orderItemId,
+                status,
+            });
+
+            await get().getVendorOrders();
+
+            return res;
+        } finally {
+            set({ loading: false });
+        }
+    },
+
+    // Download Vendor Invoice
+    downloadVendorInvoice: async (orderItemId) => {
+        try {
+            set({ loading: true });
+
+            const pdfBlob = await getVendorInvoiceApi(orderItemId);
+
+            const url = window.URL.createObjectURL(pdfBlob);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `invoice-${orderItemId}.pdf`;
+
+            document.body.appendChild(link);
+            link.click();
+
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } finally {
+            set({ loading: false });
+        }
+    },
+
 }));
 
 export default useOrderStore;

@@ -21,23 +21,9 @@ import {
 import ButtonRounded from "../../../components/ui/ButtonRounded";
 import DashbordHomeHead from "../ui/DashbordHomeHead";
 import useOrderStore from "../../../store/orderStore";
+import { MONTHS } from "../data";
 
 /* -------------------------------- Helpers -------------------------------- */
-
-const MONTHS = [
-    { value: 1, label: "January" },
-    { value: 2, label: "February" },
-    { value: 3, label: "March" },
-    { value: 4, label: "April" },
-    { value: 5, label: "May" },
-    { value: 6, label: "June" },
-    { value: 7, label: "July" },
-    { value: 8, label: "August" },
-    { value: 9, label: "September" },
-    { value: 10, label: "October" },
-    { value: 11, label: "November" },
-    { value: 12, label: "December" },
-];
 
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -222,7 +208,7 @@ const DashboardHome = () => {
 
                             <p className="mt-1 text-sm text-muted-foreground">
                                 Weekly revenue for{" "}
-                                {MONTHS.find((m) => m.value === month)?.label}{" "}
+                                {MONTHS.find((m) => m.value === month)?.label}
                                 {year}
                             </p>
                         </div>
