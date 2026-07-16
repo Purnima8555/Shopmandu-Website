@@ -26,17 +26,8 @@ export default function ProfilePage() {
         <div className="min-h-screen font-sans text-[#23241F]">
             <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
 
-                {/* Breadcrumb */}
-                <nav className="mb-8 flex items-center gap-1.5 text-xs text-[#6B6A63]">
-                    <span>Home</span>
-                    <ChevronRight size={12} />
-                    <span className="font-medium text-[#23241F]">
-                        My account
-                    </span>
-                </nav>
-
                 {/* Profile Header */}
-                <div className="mb-6 rounded-3xl border border-[#E7E3D8] bg-white p-6 sm:p-8">
+                <div className="mb-6 rounded-3xl border border-[#E7E3D8] bg-white p-6 sm:p-8 mt-6">
                     <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-8">
 
                         {/* Avatar */}

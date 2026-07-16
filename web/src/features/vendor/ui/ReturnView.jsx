@@ -1,13 +1,22 @@
 import {
     Calendar,
-    Package,
-    User,
     ClipboardList,
     ImageIcon,
+    Package,
+    User,
 } from "lucide-react";
 
 import Modal from "../../../components/ui/Modal";
-import StatusBadge from "../../../components/ui/StatusBadge";
+
+import useReturnStore from "../../../store/returnStore";
+import sendApiRequest from "../../../utils/sendApiRequest";
+import { dismissToast, showSuccess } from "../../../utils/toast";
+
+import {
+    RETURN_STATUS,
+    RETURN_STATUS_TRANSITIONS,
+    STATUS_STYLES,
+} from "../data";
 
 const reasonLabels = {
     DEFECTIVE: "Defective",
@@ -18,22 +27,29 @@ const reasonLabels = {
     OTHER: "Other",
 };
 
-const statusTones = {
-    PENDING: "warning",
-    APPROVED: "success",
-    REJECTED: "danger",
-    REFUNDED: "info",
-};
-
-function InfoCard({ icon: Icon, title, children }) {
+function Field({ label, children }) {
     return (
-        <div className="rounded-2xl border border-[#E7E3D8] p-5">
-            <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#23241F]">
-                <Icon size={16} className="text-primary" />
+        <div>
+            <p className="mb-0.5 text-xs text-muted-foreground">
+                {label}
+            </p>
+
+            <div className="text-sm text-foreground">
+                {children}
+            </div>
+        </div>
+    );
+}
+
+function Section({ title, children }) {
+    return (
+        <section className="rounded-2xl border border-border bg-card p-5">
+            <h3 className="mb-4 text-sm font-semibold text-foreground">
                 {title}
             </h3>
+
             {children}
-        </div>
+        </section>
     );
 }
 
@@ -41,142 +57,243 @@ const ReturnView = ({
     request,
     onClose,
 }) => {
+    const {
+        approveReturnRequest,
+        rejectReturnRequest,
+        refundReturnRequest,
+        getVendorReturnRequests,
+    } = useReturnStore();
 
     if (!request) return null;
 
-    const statusTone = statusTones[request.status] || "neutral";
+    const status =
+        RETURN_STATUS[request.status] || {
+            tone: "neutral",
+            label: request.status,
+        };
+
+    const availableStatuses =
+        RETURN_STATUS_TRANSITIONS[request.status] || [
+            request.status,
+        ];
+
+    const handleStatusChange = async (e) => {
+        const newStatus = e.target.value;
+
+        if (newStatus === request.status) return;
+
+        let res = null;
+
+        if (newStatus === "APPROVED") {
+            res = await sendApiRequest(() =>
+                approveReturnRequest(request._id)
+            );
+        }
+
+        if (newStatus === "REJECTED") {
+            res = await sendApiRequest(() =>
+                rejectReturnRequest(request._id)
+            );
+        }
+
+        if (newStatus === "REFUNDED") {
+            res = await sendApiRequest(() =>
+                refundReturnRequest(request._id)
+            );
+        }
+
+        if (res) {
+            dismissToast();
+            showSuccess("Return request updated successfully.");
+
+            await getVendorReturnRequests();
+
+            onClose();
+        }
+    };
 
     return (
-
         <Modal
             title="Return request"
             onClose={onClose}
             maxWidth="max-w-4xl"
         >
-
             <div className="space-y-6">
 
-                {/* Header: requested date + status */}
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <span className="flex items-center gap-2 text-sm text-[#6B6A63]">
-                        <Calendar size={14} />
-                        Requested {new Date(request.createdAt).toLocaleDateString(undefined, {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                        })}
-                    </span>
+                {/* Return Information */}
+                <Section title="Return information">
 
-                    <StatusBadge tone={statusTone}>
-                        {request.status}
-                    </StatusBadge>
-                </div>
+                    <div className="grid grid-cols-2 gap-4">
+
+                        <Field label="Requested">
+                            {new Date(
+                                request.createdAt
+                            ).toLocaleDateString(undefined, {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                            })}
+                        </Field>
+
+                        <Field label="Status">
+                            <div className="relative inline-block">
+                                <select
+                                    value={request.status}
+                                    onChange={handleStatusChange}
+                                    className={`inline-flex w-36 cursor-pointer items-center justify-center rounded-full border px-2.5 py-0.5 text-xs font-medium outline-none ${STATUS_STYLES[status.tone]}`}
+                                >
+                                    {availableStatuses.map((item) => (
+                                        <option
+                                            key={item}
+                                            value={item}
+                                        >
+                                            {RETURN_STATUS[item]?.label ??
+                                                item}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </Field>
+
+                    </div>
+
+                </Section>
 
                 {/* Product */}
-                <InfoCard icon={Package} title="Product">
+                <Section title="Product">
+
                     <div className="flex gap-5">
+
                         {request.productId?.images?.[0] ? (
                             <img
                                 src={request.productId.images[0]}
                                 alt={request.productId.name}
-                                className="h-28 w-28 shrink-0 rounded-xl border border-[#E7E3D8] object-cover"
+                                className="h-28 w-28 shrink-0 rounded-xl border border-border object-cover"
                             />
                         ) : (
-                            <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-xl border border-[#E7E3D8] bg-[#F1F0EC] text-[#6B6A63]">
+                            <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-xl border border-border bg-bg-main">
                                 <Package size={28} />
                             </div>
                         )}
 
                         <div className="flex-1">
-                            <h4 className="mb-3 text-base font-semibold text-[#23241F]">
+
+                            <h4 className="mb-3 text-base font-semibold">
                                 {request.productId?.name || "Product"}
                             </h4>
 
-                            <div className="grid grid-cols-3 gap-3 rounded-xl bg-[#FCFBF9] p-3.5">
-                                <div>
-                                    <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#6B6A63]">
-                                        Quantity
-                                    </p>
-                                    <p className="text-sm font-medium text-[#23241F]">
-                                        {request.quantity}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#6B6A63]">
-                                        Unit price
-                                    </p>
-                                    <p className="text-sm font-medium text-[#23241F]">
-                                        Rs. {request.unitPrice}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#6B6A63]">
-                                        Refund
-                                    </p>
-                                    <p className="text-sm font-semibold text-primary">
+                            <div className="grid grid-cols-3 gap-3 rounded-xl bg-bg-main p-3">
+
+                                <Field label="Quantity">
+                                    {request.quantity}
+                                </Field>
+
+                                <Field label="Unit Price">
+                                    Rs. {request.unitPrice}
+                                </Field>
+
+                                <Field label="Refund">
+                                    <span className="font-semibold text-primary">
                                         Rs. {request.refundAmount}
-                                    </p>
-                                </div>
+                                    </span>
+                                </Field>
+
                             </div>
+
                         </div>
+
                     </div>
-                </InfoCard>
 
-                {/* Customer + Timeline */}
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <InfoCard icon={User} title="Customer">
-                        <p className="text-sm text-[#23241F]">
+                </Section>
+
+                {/* Customer & Timeline */}
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+                    <Section title="Customer">
+
+                        <Field label="Customer">
                             {request.customerId?.userName || "—"}
-                        </p>
-                    </InfoCard>
+                        </Field>
 
-                    <InfoCard icon={Calendar} title="Timeline">
-                        <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-[#6B6A63]">Created</span>
-                                <span className="text-[#23241F]">
-                                    {new Date(request.createdAt).toLocaleString()}
-                                </span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-[#6B6A63]">Updated</span>
-                                <span className="text-[#23241F]">
-                                    {new Date(request.updatedAt).toLocaleString()}
-                                </span>
-                            </div>
-                        </div>
-                    </InfoCard>
+                        <Field label="Email">
+                            {request.customerId?.email || "—"}
+                        </Field>
+
+                    </Section>
+
+                    <Section title="Timeline">
+
+                        <Field label="Created">
+                            {new Date(
+                                request.createdAt
+                            ).toLocaleString()}
+                        </Field>
+
+                        <Field label="Updated">
+                            {new Date(
+                                request.updatedAt
+                            ).toLocaleString()}
+                        </Field>
+
+                    </Section>
+
                 </div>
+                                {/* Return Reason */}
+                <Section title="Return reason">
 
-                {/* Reason */}
-                <InfoCard icon={ClipboardList} title="Return reason">
                     <span className="mb-3 inline-block rounded-full bg-[#F7EFDF] px-3 py-1 text-xs font-medium text-[#B7893F]">
                         {reasonLabels[request.reason] || request.reason}
                     </span>
-                    <p className="text-sm leading-relaxed text-[#6B6A63]">
+
+                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                         {request.description || "No description provided."}
                     </p>
-                </InfoCard>
 
-                {/* Images */}
-                <InfoCard icon={ImageIcon} title="Evidence">
+                </Section>
+
+                {/* Evidence */}
+                <Section title="Evidence">
+
                     {request.images?.length > 0 ? (
                         <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
                             {request.images.map((image, index) => (
                                 <img
                                     key={index}
                                     src={image}
-                                    alt=""
-                                    className="aspect-square rounded-xl border border-[#E7E3D8] object-cover transition hover:scale-105"
+                                    alt={`Evidence ${index + 1}`}
+                                    className="aspect-square rounded-xl border border-border object-cover transition hover:scale-105"
                                 />
                             ))}
                         </div>
                     ) : (
-                        <p className="text-sm text-[#6B6A63]">
+                        <p className="text-sm text-muted-foreground">
                             No evidence images were provided.
                         </p>
                     )}
-                </InfoCard>
+
+                </Section>
+
+                {/* Metadata */}
+                <Section title="Metadata">
+
+                    <div className="grid grid-cols-2 gap-4">
+
+                        <Field label="Request ID">
+                            <span className="break-all font-mono">
+                                {request._id}
+                            </span>
+                        </Field>
+
+                        <Field label="Order Number">
+                            <span className="break-all font-mono">
+                                {request.orderId?.orderNumber || "—"}
+                            </span>
+                        </Field>
+
+                    </div>
+
+                </Section>
+
             </div>
         </Modal>
     );

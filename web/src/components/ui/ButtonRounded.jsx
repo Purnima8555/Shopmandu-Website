@@ -1,5 +1,5 @@
 
-const ButtonRounded = ({className = "", variant = "primary", size = "default", icon: Icon, iconPosition = "center", iconSize=20, children, onClick, type = "button", disabled = false, ...props}) => {
+const ButtonRounded = ({className = "", variant = "primary", size = "default", icon: Icon, iconPosition = "center", iconSize=20,  iconClassName = "",children, onClick, type = "button", disabled = false, ...props}) => {
   const base =
     "relative inline-flex items-center justify-center cursor-pointer transition-all duration-300 active:scale-95 font-medium select-none disabled:opacity-50 disabled:cursor-not-allowed";
 
@@ -18,12 +18,12 @@ const ButtonRounded = ({className = "", variant = "primary", size = "default", i
 
   const renderContent = () => {
     if (iconPosition === "center") {
-      return Icon ? <Icon className="w-5 h-5" size={iconSize}/> : children;
+      return Icon ? <Icon className={`w-5 h-5 ${iconClassName}`} size={iconSize} /> : children;
     }
     if (iconPosition === "left") {
       return (
         <div className="flex items-center gap-2">
-          {Icon && <Icon className="w-4 h-4" size={iconSize} />}
+          {Icon && <Icon className={`w-4 h-4 ${iconClassName}`} size={iconSize} />}
           {children}
         </div>
       );

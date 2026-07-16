@@ -7,64 +7,54 @@ const Popup = ({
     isOpen,
     onClose,
 
-    // footer options
     showFooter = false,
     confirmText = "Confirm",
     cancelText = "Cancel",
     onConfirm,
-
-    confirmVariant = "primary",
-
     maxWidth = "max-w-md",
 }) => {
-
     if (!isOpen) return null;
 
-
     return (
-
-        <div className=" fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
-            onClick={onClose}>
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            onClick={onClose}
+        >
             <div
-                className={` w-full ${maxWidth} rounded-2xl border border-border bg-card shadow-lg animation-fade-in`}
-                onClick={(e)=>e.stopPropagation()}>
-
+                className={`w-full ${maxWidth} overflow-hidden rounded-2xl bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200`}
+                onClick={(e) => e.stopPropagation()}
+            >
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-0.5">
-                    <h2
-                        className="text-lg font-semibold text-foreground">
+                <div className="flex items-center justify-between px-6 py-5">
+                    <h2 className="text-lg font-bold text-foreground">
                         {title}
                     </h2>
 
                     <button
                         onClick={onClose}
-                        className="rounded-lg p-2 text-muted-foreground hover:bg-surface transition cursor-pointer"
+                        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition hover:bg-muted"
                     >
-                        <X size={18}/>
+                        <X size={18} />
                     </button>
                 </div>
 
                 {/* Content */}
-                <div
-                    className="px-6 py-5 text-sm text-muted-foreground">
+                <div className="px-6 py-2 text-lg leading-6 font-semibold">
                     {children}
                 </div>
 
                 {/* Footer */}
                 {showFooter && (
-                    <div
-                        className="flex justify-end gap-3 px-6 py-4">
+                    <div className="flex justify-end gap-3 px-6 py-5">
                         <Button
-                            variant="outline"
-                            size="sm"
+                            variant="secondary"
                             onClick={onClose}
                         >
                             {cancelText}
                         </Button>
 
                         <Button
-                            variant={confirmVariant}
-                            size="sm"
+                            variant = "primary"
                             onClick={onConfirm}
                         >
                             {confirmText}
@@ -75,6 +65,5 @@ const Popup = ({
         </div>
     );
 };
-
 
 export default Popup;

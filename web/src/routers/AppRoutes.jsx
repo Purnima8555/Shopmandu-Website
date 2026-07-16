@@ -14,6 +14,8 @@ import AuthenticatedRoute from "./guards/AuthenticatedRoute";
 import RoleProtectedRoute from "./guards/RoleProtectedRoute";
 import Roles from "../constants/Rolebase";
 import CartPage from "../pages/CartPage";
+import WishlistPage from "../pages/WishlistPage";
+import CheckoutPage from "../pages/CheckoutPage";
 import UnauthorizedPage from "../pages/UnauthorizedPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import VendorDashboard from "../features/vendor/pages/VendorDashboard";
@@ -66,12 +68,13 @@ export default function AppRoutes() {
         {/*  any authenticated user  */}
         <Route element={<AuthenticatedRoute />}>
           <Route path="cart" element={<CartPage />} />
-          <Route path="profile" element={<ProfilePage />}>
+          <Route path="wishlist" element={<WishlistPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="checkout" element={<CheckoutPage />} />
           {/* USER only route, nested one level deeper for the role check */}
           <Route element={<RoleProtectedRoute roles={[Roles.USER_ROLE]} />}>
             <Route path="user/dashboard" element={<div>User dashboard</div>} />
 
-            </Route>
           </Route>
         </Route>
       </Route>

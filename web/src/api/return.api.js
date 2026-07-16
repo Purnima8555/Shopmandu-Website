@@ -27,8 +27,13 @@ export const getCustomerReturnRequestsApi = async (params = {}) => {
 };
 
 /// Vendor - Get return requests
-export const getVendorReturnRequestsApi = async () => {
-    const res = await api.get("/api/return/vendor");
+export const getVendorReturnRequestsApi = async (params = {}) => {
+    const res = await api.get(
+        "/api/return/vendor",
+        {
+            params,
+        }
+    );
 
     return res.data;
 };

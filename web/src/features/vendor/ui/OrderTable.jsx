@@ -6,28 +6,10 @@ import {
 import ButtonRounded from "../../../components/ui/ButtonRounded";
 import useOrderStore from "../../../store/orderStore";
 import sendApiRequest from "../../../utils/sendApiRequest";
+import StatusBadge from "../../../components/ui/StatusBadge";
+import { ORDER_STATUS, PAYMENT_STATUS } from "../data";
 import { useState } from "react";
 
-const getStatusBadge = (status) => {
-  const styles = {
-    PENDING: "bg-amber-100 text-amber-700",
-    CONFIRMED: "bg-blue-100 text-blue-700",
-    PROCESSING: "bg-purple-100 text-purple-700",
-    SHIPPED: "bg-indigo-100 text-indigo-700",
-    DELIVERED: "bg-emerald-100 text-emerald-700",
-    CANCELLED: "bg-red-100 text-red-700",
-  };
-
-  return (
-    <span
-      className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-        styles[status] || "bg-slate-100 text-slate-700"
-      }`}
-    >
-      {status.replaceAll("_", " ")}
-    </span>
-  );
-};
 
 const OrderTable = ({ orders = [], onView }) => {
   const [downloadingInvoice, setDownloadingInvoice] = useState("");
@@ -134,19 +116,27 @@ const OrderTable = ({ orders = [], onView }) => {
                     </td>
 
                     <td className="px-6 py-4">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          order.paymentStatus === "PAID"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
+                      <StatusBadge
+                        tone={
+                          PAYMENT_STATUS[order.paymentStatus]?.tone ??
+                          "neutral"
+                        }
                       >
-                        {order.paymentStatus}
-                      </span>
+                        {PAYMENT_STATUS[order.paymentStatus]?.label ??
+                          order.paymentStatus}
+                      </StatusBadge>
                     </td>
 
                     <td className="px-6 py-4">
-                      {getStatusBadge(order.orderItemsStatus)}
+                      <StatusBadge
+                        tone={
+                          ORDER_STATUS[order.orderItemsStatus]?.tone ??
+                          "neutral"
+                        }
+                      >
+                        {ORDER_STATUS[order.orderItemsStatus]?.label ??
+                          order.orderItemsStatus}
+                      </StatusBadge>
                     </td>
 
                     <td className="px-6 py-4 text-sm text-text-secondary">
@@ -171,9 +161,9 @@ const OrderTable = ({ orders = [], onView }) => {
                         />
                         <button
                           onClick={() => onView(order)}
-                          className="flex items-center gap-1 text-primary hover:underline text-sm font-medium"
+                          className="flex items-center gap-1 text-primary cursor-pointer hover:underline text-sm font-medium"
                         >
-                          Menage
+                          Manage
                           <ChevronRight className="w-4 h-4" />
                         </button>
                       </div>

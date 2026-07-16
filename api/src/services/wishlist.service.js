@@ -32,7 +32,7 @@ export const addToWishlistService = async (userId, { productId, shopId }) => {
     // First item — create the wishlist
     wishlist = await WishlistModel.create({
       user_id: userId,
-      items: [{ productId, shopId }],
+      items: [{ productId }],
     });
     return wishlist;
   }

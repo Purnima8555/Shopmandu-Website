@@ -2,6 +2,11 @@
 
 import api from "./axios";
 
+/// place a new order from the cart
+export const placeOrderApi = async (orderData) => {
+    const res = await api.post("/api/order/place", orderData);
+    return res.data;
+};
 
 // Get all orders
 export const getAllOrdersApi = async (params) => {
@@ -56,6 +61,7 @@ export const getCustomerOrderHistoryApi = async (params = {}) => {
 // Customer order detail
 export const getCustomerOrderDetailApi = async (orderId) => {
     const res = await api.get(`/api/order/detail/${orderId}`);
+    return res.data;
 };
 
 /// vendor orders.
@@ -103,6 +109,23 @@ export const getVendorInvoiceApi = async (orderItemId) => {
     const res = await api.get(`/api/order/invoice/vendor/${orderItemId}`, {
         responseType: "blob", // for PDF/file download
     });
+
+    return res.data;
+};
+
+// Download Customer Invoice
+export const getCustomerInvoiceApi = async (orderId) => {
+    const res = await api.get(
+        `/api/order/invoice/customer/${orderId}`,
+        {responseType: "blob",}
+    );
+
+    return res.data;
+};
+
+// Cancel customer order
+export const cancelCustomerOrderApi = async (orderId) => {
+    const res = await api.patch(`/api/order/${orderId}/cancel`);
 
     return res.data;
 };

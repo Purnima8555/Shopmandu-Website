@@ -1,12 +1,15 @@
 import { AlertCircle, CheckCircle, Clock, ShoppingBag } from "lucide-react";
+import { useEffect, useState } from "react";
+
 import SummaryCard from "../ui/SummaryCard";
 import SearchInput from "../../../components/ui/SearchInput";
-import { useEffect, useState } from "react";
 import Selecter from "../../../components/ui/Selecter";
-import { filterOrders } from "../data";
-import useOrderStore from "../../../store/orderStore";
 import OrderTable from "../ui/OrderTable";
 import VendorPagination from "../ui/vendorPagination";
+import VendorOrderDrawer from "../components/OrderDrawer";
+
+import { filterOrders } from "../data";
+import useOrderStore from "../../../store/orderStore";
 
 const OrderList = () => {
   const [searchInput, setSearchInput] = useState("");
@@ -16,6 +19,9 @@ const OrderList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
+  // NEW
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
   const {
     vendorSalesSummary,
     getVendorOrders,
@@ -23,7 +29,6 @@ const OrderList = () => {
     vendorOrderMetadata,
   } = useOrderStore();
 
-  // Sync with Backend using keys defined in your backend: search, orderItemsStatus
   useEffect(() => {
     getVendorOrders({
       page: currentPage,
@@ -39,7 +44,6 @@ const OrderList = () => {
     getVendorOrders,
   ]);
 
-  // Debounce logic for Search
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchInput);
@@ -55,7 +59,6 @@ const OrderList = () => {
   };
 
   const handleSearchChange = (val) => {
-    // Robustly handle both raw values or events
     const value = val?.target ? val.target.value : val;
     setSearchInput(value);
   };
@@ -76,13 +79,14 @@ const OrderList = () => {
         <h1 className="text-3xl font-bold tracking-tight text-[#1F2937]">
           Store Orders
         </h1>
+
         <p className="text-sm text-[#64748B] mt-1">
           Fulfill incoming custom requests, trigger track codes, and oversee
           billing.
         </p>
       </div>
 
-      {/* Top Summary Cards */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <SummaryCard
           title="Pending Funds"
@@ -112,7 +116,7 @@ const OrderList = () => {
         />
 
         <SummaryCard
-          title=" Cancelled Logs"
+          title="Cancelled Logs"
           summary={vendorSalesSummary?.cancelledOrders ?? 0}
           icon={AlertCircle}
           iconBackground="bg-red-50"
@@ -121,8 +125,8 @@ const OrderList = () => {
         />
       </div>
 
+      {/* Search + Filter + Pagination */}
       <div className="bg-bg-card rounded-[14px] border border-border shadow-sm p-5 space-y-5">
-        {/* Top Controls */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
           <div className="md:col-span-10">
             <SearchInput
@@ -134,9 +138,15 @@ const OrderList = () => {
           </div>
 
           <div className="md:col-span-2">
-            <Selecter value={selectedStatus} onChange={handleFilterChange}>
+            <Selecter
+              value={selectedStatus}
+              onChange={handleFilterChange}
+            >
               {filterOrders.map((order) => (
-                <option key={order.value} value={order.value}>
+                <option
+                  key={order.value}
+                  value={order.value}
+                >
                   {order.label}
                 </option>
               ))}
@@ -155,9 +165,17 @@ const OrderList = () => {
         />
       </div>
 
+      {/* Orders Table */}
       <OrderTable
         orders={vendorOrders}
-        onView={(order) => console.log("viewing order:", order)}
+        onView={setSelectedOrder}
+      />
+
+      {/* Drawer */}
+      <VendorOrderDrawer
+        order={selectedOrder}
+        onClose={() => setSelectedOrder(null)}
+        refreshOrders={fetchOrders}
       />
     </div>
   );

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Store, ChevronRight } from "lucide-react";
+import { Store, ChevronRight, Download, } from "lucide-react";
 
 import StatusBadge from "../../../components/ui/StatusBadge";
+import Popup from "../../../components/ui/Popup";
 import { showSuccess, showError } from "../../../utils/toast";
 
 import OrderDetail from "../components/OrderDetail";
@@ -41,7 +42,7 @@ function SectionHeading({ eyebrow, title }) {
     );
 }
 
-function OrderTicket({ order, onView }) {
+function OrderTicket({ order, onView, onDownload, onCancel,}) {
     const status =
         STATUS_CONFIG[order.orderStatus] || STATUS_CONFIG.PENDING;
 
@@ -62,6 +63,15 @@ function OrderTicket({ order, onView }) {
                 <p className="text-xs text-[#6B6A63]">
                     Placed {new Date(order.createdAt).toLocaleDateString()}
                 </p>
+
+                {order.orderStatus === "PENDING" && (
+                    <button
+                        onClick={() => onCancel(order._id)}
+                        className="mt-3 inline-flex cursor-pointer items-center gap-1 text-xs font-medium text-red-600 hover:underline"
+                    >
+                        Cancel Order
+                    </button>
+                )}
             </div>
 
             {/* Divider */}
@@ -80,13 +90,23 @@ function OrderTicket({ order, onView }) {
                     Rs. {order.totalAmount}
                 </p>
 
-                <button
-                    onClick={() => onView(order._id)}
-                    className="inline-flex cursor-pointer items-center gap-1 text-xs font-medium text-[#2F5D50] hover:text-[#24483E]"
-                >
-                    View Order
-                    <ChevronRight size={13} />
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => onDownload(order._id)}
+                        className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-border transition hover:bg-muted"
+                        title="Download Invoice"
+                    >
+                        <Download size={16} />
+                    </button>
+
+                    <button
+                        onClick={() => onView(order._id)}
+                        className="inline-flex cursor-pointer items-center gap-1 text-xs font-medium text-primary hover:underline"
+                    >
+                        View Order
+                        <ChevronRight size={13} />
+                    </button>
+                </div>
             </div>
         </div>
     );
@@ -97,12 +117,17 @@ export default function MyOrders() {
     const [showReturnForm, setShowReturnForm] = useState(false);
     const [returnData, setReturnData] = useState(null);
 
+    const [cancelOrderId, setCancelOrderId] = useState(null);
+    const [showCancelPopup, setShowCancelPopup] = useState(false);
+
     const {
         orders,
         loading,
         getCustomerOrderHistory,
         getCustomerOrderDetail,
         customerSelectedOrder,
+        downloadCustomerInvoice,
+        cancelCustomerOrder,
     } = useOrderStore();
 
     const {
@@ -136,6 +161,53 @@ export default function MyOrders() {
         );
     }
 
+    const handleDownloadInvoice = async (orderId) => {
+        try {
+            await downloadCustomerInvoice(orderId);
+
+            showSuccess("Invoice downloaded successfully.");
+        } catch (error) {
+            console.error(error);
+
+            showError(
+                error?.message ||
+                error?.response?.data?.message ||
+                "Failed to download invoice."
+            );
+        }
+    };
+
+    const handleCancelClick = (orderId) => {
+    setCancelOrderId(orderId);
+    setShowCancelPopup(true);
+    };
+
+    const handleConfirmCancel = async () => {
+        try {
+            const res = await cancelCustomerOrder(cancelOrderId);
+
+            showSuccess(
+                res?.cancel?.message ||
+                res?.message ||
+                "Order cancelled successfully."
+            );
+
+            setShowCancelPopup(false);
+            setCancelOrderId(null);
+
+            await getCustomerOrderHistory();
+
+        } catch (error) {
+            console.error(error);
+
+            showError(
+                error?.response?.data?.message ||
+                error?.message ||
+                "Failed to cancel order."
+            );
+        }
+    };
+
     return (
         <>
             <div>
@@ -155,6 +227,8 @@ export default function MyOrders() {
                                 key={order._id}
                                 order={order}
                                 onView={handleViewOrder}
+                                onDownload={handleDownloadInvoice}
+                                onCancel={handleCancelClick}
                             />
                         ))}
                     </div>
@@ -209,6 +283,28 @@ export default function MyOrders() {
                     }}
                 />
             )}
+
+            <Popup
+                isOpen={showCancelPopup}
+                onClose={() => {
+                    setShowCancelPopup(false);
+                    setCancelOrderId(null);
+                }}
+                title="Cancel Order"
+                showFooter
+                confirmText="Yes, Cancel"
+                cancelText="Keep Order"
+                confirmVariant="destructive"
+                onConfirm={handleConfirmCancel}
+            >
+                <p >
+                    Are you sure you want to cancel this order?
+                </p>
+
+                <p className="mt-2 text-xs text-muted-foreground">
+                    This action cannot be undone.
+                </p>
+            </Popup>
         </>
     );
 }

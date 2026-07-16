@@ -105,7 +105,7 @@ const Navbar = () => {
             <div className="flex items-center gap-2">
               {/* Wishlist Link */}
               <Link
-                to="/"
+                to="/wishlist"
                 className="p-1 rounded-full hover:bg-surface transition"
               >
                 <IoIosHeartEmpty size={20} />

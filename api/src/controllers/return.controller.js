@@ -36,11 +36,14 @@ export const getCustomerRequests = async (req, res, next) => {
 
 export const getVendorRequests = async (req, res, next) => {
     try {
-        const result = await returnService.getVendorRequests(req.user._id);
+        const result = await returnService.getVendorRequests(
+            req.user._id,
+            req.query
+        );
 
         res.status(200).json({
-        success: true,
-        data: result,
+            success: true,
+            data: result,
         });
     } catch (err) {
         next(err);
