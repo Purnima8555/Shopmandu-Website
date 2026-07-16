@@ -15,6 +15,7 @@ export const ProductGrid = ({ products }) => {
       {products.map((item, idx) => (
         <ProductCard
           key={`${item.name}-${idx}`}
+          _id={item._id}
           name={item.name}
           price={item.price}
           discountPrice={item.discountPrice}

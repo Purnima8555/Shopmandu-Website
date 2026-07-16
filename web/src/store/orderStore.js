@@ -13,6 +13,8 @@ import {
     getVendorSalesTrendApi,
     updateOrderItemStatusApi,
     getVendorInvoiceApi,
+    getCustomerInvoiceApi,
+    cancelCustomerOrderApi,
 } from "../api/order.api";
 
 const useOrderStore = create((set, get) => ({
@@ -256,6 +258,51 @@ customerSelectedOrder: null,
 
             link.remove();
             window.URL.revokeObjectURL(url);
+        } finally {
+            set({ loading: false });
+        }
+    },
+
+    // Download Customer Invoice
+    downloadCustomerInvoice: async (orderId) => {
+        try {
+            set({ loading: true });
+
+            const pdfBlob = await getCustomerInvoiceApi(orderId);
+
+            const url = window.URL.createObjectURL(pdfBlob);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `invoice-${orderId}.pdf`;
+
+            document.body.appendChild(link);
+            link.click();
+
+            link.remove();
+
+            window.URL.revokeObjectURL(url);
+        } finally {
+            set({ loading: false });
+        }
+    },
+
+    // Cancel customer order
+    cancelCustomerOrder: async (orderId) => {
+        try {
+            set({ loading: true });
+
+            const res = await cancelCustomerOrderApi(orderId);
+
+            // Refresh the order history
+            await get().getCustomerOrderHistory();
+
+            // Refresh the currently opened order if it exists
+            if (get().customerSelectedOrder?.order?._id === orderId) {
+                await get().getCustomerOrderDetail(orderId);
+            }
+
+            return res;
         } finally {
             set({ loading: false });
         }

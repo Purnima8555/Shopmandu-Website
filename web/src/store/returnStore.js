@@ -16,6 +16,13 @@ const useReturnStore = create((set, get) => ({
     returns: [],
     metadata: null,
 
+    selectedReturn: null,
+
+    setSelectedReturn: (request) =>
+        set({
+            selectedReturn: request,
+        }),
+
     // CUSTOMER
     // create return request
     createReturnRequest: async (data) => {
@@ -52,14 +59,15 @@ const useReturnStore = create((set, get) => ({
 
     // VENDOR
     // get
-    getVendorReturnRequests: async () => {
+    getVendorReturnRequests: async (params = {}) => {
         try {
             set({ loading: true });
 
-            const res = await getVendorReturnRequestsApi();
+            const res = await getVendorReturnRequestsApi(params);
 
             set({
-                returns: res.data || [],
+                returns: res.data.data || [],
+                metadata: res.data.metadata,
             });
 
             return res;
@@ -75,7 +83,10 @@ const useReturnStore = create((set, get) => ({
 
             const res = await approveReturnRequestApi(id);
 
-            await get().getVendorReturnRequests();
+            await get().getVendorReturnRequests({
+                page: get().metadata?.currentPage || 1,
+                limit: get().metadata?.limit || 10,
+            });
 
             return res;
         } finally {
@@ -90,7 +101,10 @@ const useReturnStore = create((set, get) => ({
 
             const res = await rejectReturnRequestApi(id);
 
-            await get().getVendorReturnRequests();
+            await get().getVendorReturnRequests({
+                page: get().metadata?.currentPage || 1,
+                limit: get().metadata?.limit || 10,
+            });
 
             return res;
         } finally {
@@ -105,7 +119,10 @@ const useReturnStore = create((set, get) => ({
 
             const res = await refundReturnRequestApi(id);
 
-            await get().getVendorReturnRequests();
+            await get().getVendorReturnRequests({
+                page: get().metadata?.currentPage || 1,
+                limit: get().metadata?.limit || 10,
+            });
 
             return res;
         } finally {
