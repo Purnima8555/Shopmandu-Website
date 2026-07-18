@@ -118,7 +118,7 @@ const CartPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 max-w-7xl">
         <div className="flex items-center gap-3">
             <div className="w-1.5 h-6 rounded-xs bg-primary" />
             <h1 className="text-lg font-semibold text-foreground">
@@ -126,7 +126,7 @@ const CartPage = () => {
             </h1>
           </div>
 
-        <h1 className="text-2xl sm:text-md font-semibold text-foreground mb-8 mt-4">
+        <h1 className="text-lg sm:text-md font-semibold text-secondary-foreground mb-8 mt-4">
           Complete your purchase
         </h1>
 

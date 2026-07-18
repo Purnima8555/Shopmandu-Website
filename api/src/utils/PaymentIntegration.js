@@ -169,7 +169,7 @@ class StripeGateway extends PaymentGatewayNew {
                     product_data: {
                         name: "Tax",
                     },
-                    unit_amount: payload.taxAmount * 100,
+                    unit_amount: Math.round(payload.taxAmount * 100),
                 },
                 quantity: 1,
             });
@@ -186,7 +186,7 @@ class StripeGateway extends PaymentGatewayNew {
             metadata: {
                 purchase_order_id: String(payload.purchase_order_id),
                 shippingAmount: String(payload.shippingAmount || 0),
-                taxAmount: String(payload.taxAmount || 0),
+                taxAmount: String(Math.round(payload.taxAmount) || 0),
             },
 
         });

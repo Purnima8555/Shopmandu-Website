@@ -1,4 +1,5 @@
 
+import config from "../config/config.js"
 import paymentService from "../services/payment.service.js"
 import { getWishlist } from "./wishlist.controller.js"
 
@@ -12,9 +13,7 @@ const payOrder = async (req, res, next) => {
         const { orderId, gateway } = req.body
 
         const paymentOrder = await paymentService.orderPay(userId, orderId, gateway);
-        res.status(200).json({
-            paymentOrder
-        })
+        res.status(200).json(paymentOrder)
     } catch (error) {
         next(error)
     }
@@ -27,9 +26,13 @@ const paymentCheckOut = async (req, res, next) => {
         const { pidx, transaction_id, tidx, txnId, amount, total_amount, mobile, status, purchase_order_id, purchase_order_name } = req.query
         // console.log({ pidx, transaction_id, tidx, txnId, amount, total_amount, mobile, status, purchase_order_id, purchase_order_name })
         const verifyPayment = await paymentService.verifyOrderPayment(pidx, transaction_id, total_amount, purchase_order_id)
-        res.status(200).json({ verifyPayment })
+
+        return res.redirect(
+            `${config.client_url}/payment/success/${purchase_order_id}`
+        );
     } catch (error) {
-        next(error)
+        return res.redirect(`${config.client_url}/payment/failed/${purchase_order_id}`);
+        // next(error)
     }
 }
 
@@ -40,13 +43,14 @@ const verifyStripeCheckout = async (req, res, next) => {
         // console.log(sessionId)
         const verifyPayment = await paymentService.verifyStripePayment(sessionId);
 
-        res.status(200).json({
-            success: true,
-            verifyPayment
-        });
+        return res.redirect(
+            `${config.client_url}/payment/success/${verifyPayment.orderNumber}`
+        );
+
 
     } catch (error) {
-        next(error);
+        return res.redirect(`${config.client_url}/payment/failed/${verifyPayment.orderNumber}`);
+        // next(error);
     }
 };
 

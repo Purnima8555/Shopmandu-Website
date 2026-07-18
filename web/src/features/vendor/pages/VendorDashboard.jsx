@@ -27,7 +27,7 @@ const VendorDashboard = () => {
 
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const [currentTab, setCurrentTab] = useState("kyc-verification");
+  const [currentTab, setCurrentTab] = useState("dashboard");
   const [searchQuery, setSearchQuery] = useState("");
 
   const [editingProduct, setEditingProduct] = useState(undefined);

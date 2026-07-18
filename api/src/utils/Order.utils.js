@@ -106,6 +106,11 @@ function calculateShipping({ orderAmount = 0, weightKg = 0, volumeCm3 = 0, zone 
       discount = 50;
    }
    totalFee -= discount;
+
+   if(totalFee < 0){
+      totalFee = 0
+   }
+
    return {
       totalShippingFee: Math.ceil(totalFee),
       breakdown: {

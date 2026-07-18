@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import Button from "./Button";
 import ButtonRounded from "./ButtonRounded";
 import { IoIosHeart, IoIosHeartEmpty } from "react-icons/io";
@@ -9,91 +8,93 @@ import { useNavigate } from "react-router-dom";
 
 import useWishlistStore from "../../store/wishlistStore";
 import useCartStore from "../../store/cartStore";
+import useAuthStore from "../../store/authStore";
 
 const FlashSaleCard = ({
-    _id,
-    name = "Products",
-    price = 0,
-    discountPrice = 0,
-    rating = 1,
-    images = [],
-    tag = "New",
-    totalReviews = 0,
-    flashSales = false,
-    discountPercent = 0,
-    slug = "",
+  _id,
+  name = "Products",
+  price = 0,
+  discountPrice = 0,
+  rating = 1,
+  images = [],
+  tag = "New",
+  totalReviews = 0,
+  flashSales = false,
+  discountPercent = 0,
+  slug = "",
 }) => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    // Wishlist
-    const {
-        wishlist,
-        getWishlist,
-        addToWishlist,
-        removeFromWishlist,
-        isInWishlist,
-    } = useWishlistStore();
+  const { isAuthenticated, user } = useAuthStore();
 
-    // Cart
-    const {
-        cart,
-        getCart,
-        addToCart,
-        isInCart,
-    } = useCartStore();
+  const isDashboardUser =
+    user?.roles?.includes("VENDOR") || user?.roles?.includes("ADMIN");
 
-    useEffect(() => {
-        if (wishlist.length === 0) {
-            getWishlist();
-        }
+  //  Wishlist
+  const {
+    addToWishlist,
+    removeFromWishlist,
+    isInWishlist,
+  } = useWishlistStore();
 
-        if (cart.items?.length === 0) {
-            getCart();
-        }
-    }, []);
+  //  Cart
+  const {addToCart, isInCart } = useCartStore();
 
-    const handleCardClick = (productSlug) => {
-        navigate(`/products/${productSlug}`);
-    };
+  const handleCardClick = (productSlug) => {
+    navigate(`/products/${productSlug}`);
+  };
 
-    const handleWishlistClick = async (e) => {
-        e.stopPropagation();
+  //  Wishlist
+  const handleWishlistClick = async (e) => {
+    e.stopPropagation();
 
-        try {
-            if (isInWishlist(_id)) {
-                await removeFromWishlist(_id);
-            } else {
-                await addToWishlist(_id);
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    };
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
 
-    const handleAddToCart = async (e) => {
-        e.stopPropagation();
+    if (isDashboardUser) return;
 
-        try {
-            if (!isInCart(_id)) {
-                await addToCart(_id, 1);
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    };
+    try {
+      if (isInWishlist(_id)) {
+        await removeFromWishlist(_id);
+      } else {
+        await addToWishlist(_id);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-    return (
-        <div
-            onClick={() => handleCardClick(slug)}
-            className="group cursor-pointer overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:shadow-md"
-        >
-            {/* Image */}
-            <div className="relative h-72 overflow-hidden bg-surface p-3">
-                <img
-                    src={images?.[0]}
-                    alt={name}
-                    className="h-full w-full rounded-xl object-cover transition duration-300 group-hover:scale-105"
-                />
+  //  Cart
+  const handleAddToCart = async (e) => {
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    if (isDashboardUser) return;
+    try {
+      if (!isInCart(_id)) {
+        await addToCart(_id, 1);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return (
+    <div
+      onClick={() => handleCardClick(slug)}
+      className="group bg-card rounded-sm border border-border shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
+    >
+      {/* Image */}
+      <div className="relative bg-surface p-3 h-72 overflow-hidden">
+        <img
+          src={images?.[0]}
+          alt={name}
+          className="w-full h-full rounded-sm object-cover transition duration-300 group-hover:scale-102"
+        />
 
                 {/* Badge */}
                 <span

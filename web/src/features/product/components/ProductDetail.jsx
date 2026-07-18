@@ -1,14 +1,20 @@
-
-
 import { useEffect, useState } from "react";
-import { IoIosHeartEmpty, IoMdAdd, IoMdRemove } from "react-icons/io";
+import {
+  IoIosHeart,
+  IoIosHeartEmpty,
+  IoMdAdd,
+  IoMdRemove,
+} from "react-icons/io";
 import { TbTruckDelivery } from "react-icons/tb";
 import { FiRotateCcw, FiPlay, FiSearch } from "react-icons/fi"; // Added FiSearch for the message
 import { FaStar, FaRegStar, FaLongArrowAltRight } from "react-icons/fa";
 import Button from "../../../components/ui/Button";
 import ButtonRounded from "../../../components/ui/ButtonRounded";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import useProductStore from "../../../store/productStore";
+import useWishlistStore from "../../../store/wishlistStore";
+import useAuthStore from "../../../store/authStore";
+import { useUserOrderStore } from "../../order/store/userOrderStore";
 
 export const ProductDetail = () => {
   const { slug } = useParams();
@@ -19,6 +25,72 @@ export const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
+
+  //  Wishlist
+  const { addToWishlist, removeFromWishlist, isInWishlist } =
+    useWishlistStore();
+
+  const { isAuthenticated, user } = useAuthStore();
+  const navigate = useNavigate();
+  //  Wishlist
+  const handleWishlistClick = async (e) => {
+    e?.stopPropagation();
+
+    console.log("Button Clicked");
+
+    // Make sure product exists
+    if (!productDetail?._id) {
+      console.error("Product ID not found");
+      return;
+    }
+
+    // Redirect if not logged in
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    // Vendors and admins cannot use wishlist
+    const isDashboardUser =
+      user?.roles?.includes("VENDOR") || user?.roles?.includes("ADMIN");
+
+    if (isDashboardUser) {
+      return;
+    }
+
+    try {
+      const productId = productDetail?._id;
+
+      if (isInWishlist(productId)) {
+        await removeFromWishlist(productId);
+      } else {
+        await addToWishlist(productId);
+      }
+    } catch (error) {
+      console.error("Wishlist Error:", error);
+    }
+  };
+
+  const { setBuyProduct } = useUserOrderStore();
+
+  const handleBuyNow = () => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    setBuyProduct({
+      productId: productDetail._id,
+      name: productDetail.name,
+      image: productDetail.images?.[0],
+      price: productDetail.discountPrice || productDetail.price,
+      quantity,
+      color: selectedColor,
+      size: selectedSize,
+    });
+
+    navigate("/buy-product");
+  };
 
   // Zoom State
   const [zoomStyle, setZoomStyle] = useState({
@@ -46,14 +118,18 @@ export const ProductDetail = () => {
   // 2. Initialize Selection States when productDetail is loaded
   useEffect(() => {
     if (productDetail) {
-      if (productDetail.sizes?.length > 0) setSelectedSize(productDetail.sizes[0]);
-      if (productDetail.colors?.length > 0) setSelectedColor(productDetail.colors[0]);
+      if (productDetail.sizes?.length > 0)
+        setSelectedSize(productDetail.sizes[0]);
+      if (productDetail.colors?.length > 0)
+        setSelectedColor(productDetail.colors[0]);
       setCurrentImgIndex(0);
     }
   }, [productDetail]);
 
   // --- START LOADING AND MISSING DATA LOGIC ---
-  
+
+  // console.log(productDetail)
+
   // Show Spinner while loading
   if (loading) {
     return (
@@ -73,11 +149,17 @@ export const ProductDetail = () => {
               <FiSearch className="text-6xl text-gray-200" />
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Product Not Found</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            Product Not Found
+          </h2>
           <p className="text-gray-500 mb-8 max-w-sm mx-auto leading-relaxed">
-            Sorry, we couldn't find the product details you're looking for. It might have been moved or is currently unavailable.
+            Sorry, we couldn't find the product details you're looking for. It
+            might have been moved or is currently unavailable.
           </p>
-          <a href="/" className="inline-block px-8 py-3 bg-primary text-white font-medium rounded-sm hover:bg-opacity-90 transition-all">
+          <a
+            href="/"
+            className="inline-block px-8 py-3 bg-primary text-white font-medium rounded-sm hover:bg-opacity-90 transition-all"
+          >
             Return to Homepage
           </a>
         </div>
@@ -85,7 +167,7 @@ export const ProductDetail = () => {
     );
   }
 
-  // --- END LOADING AND MISSING DATA LOGIC ---
+  //  END LOADING AND MISSING DATA LOGIC
 
   // Helper for Rating Stars
   const renderStars = () => {
@@ -100,7 +182,8 @@ export const ProductDetail = () => {
 
   // Precision Zoom logic using current images from data
   const handleMouseMove = (e) => {
-    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    const { left, top, width, height } =
+      e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - left) / width) * 100;
     const y = ((e.clientY - top) / height) * 100;
 
@@ -111,6 +194,10 @@ export const ProductDetail = () => {
       backgroundSize: "200%",
     });
   };
+
+  const isAvailable =
+  productDetail.productStatus === "ACTIVE" &&
+  productDetail.stock > 0;
 
   return (
     <section className="bg-white min-h-screen py-10 px-4 md:px-10 lg:px-20 text-gray-900">
@@ -126,10 +213,16 @@ export const ProductDetail = () => {
                   key={i}
                   onMouseEnter={() => setCurrentImgIndex(i)}
                   className={`min-w-[80px] w-20 h-20 bg-surface rounded-sm flex items-center justify-center p-2 border transition-all ${
-                    currentImgIndex === i ? "border-primary" : "border-transparent"
+                    currentImgIndex === i
+                      ? "border-primary"
+                      : "border-transparent"
                   }`}
                 >
-                  <img src={img} alt={productDetail.name} className="w-full h-full object-contain" />
+                  <img
+                    src={img}
+                    alt={productDetail.name}
+                    className="w-full h-full object-contain"
+                  />
                 </button>
               ))}
             </div>
@@ -137,7 +230,9 @@ export const ProductDetail = () => {
             {/* MAIN IMAGE WITH ZOOM */}
             <div
               onMouseMove={handleMouseMove}
-              onMouseLeave={() => setZoomStyle({ ...zoomStyle, display: "none" })}
+              onMouseLeave={() =>
+                setZoomStyle({ ...zoomStyle, display: "none" })
+              }
               className="relative flex-1 bg-surface rounded-sm border border-border aspect-square overflow-hidden cursor-crosshair flex items-center justify-center p-8"
             >
               <img
@@ -147,21 +242,34 @@ export const ProductDetail = () => {
                   zoomStyle.display === "block" ? "opacity-0" : "opacity-100"
                 }`}
               />
-              <div className="absolute inset-0 pointer-events-none" style={zoomStyle} />
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={zoomStyle}
+              />
             </div>
           </div>
 
           {/* RIGHT SIDE: Information */}
           <div className="flex flex-col pt-1">
-            <h1 className="text-2xl font-semibold mb-3">{productDetail.name}</h1>
+            <h1 className="text-2xl font-semibold mb-3">
+              {productDetail.name}
+            </h1>
 
             <div className="flex items-center gap-3 text-sm mb-4">
               <div className="flex text-[#FFAD33] gap-0.5">{renderStars()}</div>
+
               <span className="text-gray-400 border-r border-gray-300 pr-3 font-normal">
                 ({productDetail.totalReviews} Reviews)
               </span>
-              <span className={productDetail.stock > 0 ? "text-[#00FF66] font-medium" : "text-danger font-medium"}>
-                {productDetail.stock > 0 ? "In Stock" : "Out of Stock"}
+
+              <span
+                className={
+                  isAvailable
+                    ? "text-[#00FF66] font-medium"
+                    : "text-danger font-medium"
+                }
+              >
+                {isAvailable ? "In Stock" : "Out of Stock"}
               </span>
             </div>
 
@@ -177,7 +285,8 @@ export const ProductDetail = () => {
             </div>
 
             <p className="text-[13px] leading-relaxed text-gray-800 mb-8 border-b border-gray-300 pb-8 ">
-              {productDetail.shortDescription || productDetail.description?.substring(0, 150) + "..."}
+              {productDetail.shortDescription ||
+                productDetail.description?.substring(0, 150) + "..."}
             </p>
 
             <div className="space-y-6">
@@ -192,7 +301,9 @@ export const ProductDetail = () => {
                         onClick={() => setSelectedColor(c)}
                         title={c}
                         className={`w-5 h-5 rounded-full ring-offset-1 ring-1 transition-all flex items-center justify-center border border-gray-200 ${
-                          selectedColor === c ? "ring-black scale-110" : "ring-transparent opacity-60"
+                          selectedColor === c
+                            ? "ring-black scale-110"
+                            : "ring-transparent opacity-60"
                         }`}
                         style={{ backgroundColor: c.toLowerCase() }} // Note: This works if string is "Black", "Blue" etc
                       />
@@ -211,7 +322,9 @@ export const ProductDetail = () => {
                         key={s}
                         onClick={() => setSelectedSize(s)}
                         className={`min-w-[40px] px-2 h-8 rounded-sm border text-xs font-medium transition-all ${
-                          selectedSize === s ? "bg-primary text-white border-primary/20" : "border-gray-400"
+                          selectedSize === s
+                            ? "bg-primary text-white border-primary/20"
+                            : "border-gray-400"
                         }`}
                       >
                         {s}
@@ -230,7 +343,9 @@ export const ProductDetail = () => {
                   >
                     <IoMdRemove />
                   </button>
-                  <div className="w-16 flex items-center justify-center font-bold">{quantity}</div>
+                  <div className="w-16 flex items-center justify-center font-bold">
+                    {quantity}
+                  </div>
                   <button
                     onClick={() => setQuantity((q) => q + 1)}
                     className="w-10 flex items-center justify-center border-l border-gray-400 hover:bg-[#db4444] hover:text-white"
@@ -239,14 +354,29 @@ export const ProductDetail = () => {
                   </button>
                 </div>
 
-                <Button className="h-11 px-10 bg-primary hover:opacity-90 rounded-sm font-medium">
+                <Button
+                  onClick={handleBuyNow}
+                  className="h-11 px-10 bg-primary hover:opacity-90 rounded-sm font-medium"
+                >
                   Buy Now
                 </Button>
 
                 <ButtonRounded
+                  icon={
+                    isInWishlist(productDetail?._id)
+                      ? IoIosHeart
+                      : IoIosHeartEmpty
+                  }
                   variant="secondary"
-                  icon={IoIosHeartEmpty}
-                  className="rounded-sm cursor-pointer h-11 w-11"
+                  onClick={handleWishlistClick}
+                  className="  cursor-pointer rounded-sm h-11 w-11"
+                  size="default"
+                  iconSize={28}
+                  iconClassName={
+                    isInWishlist(productDetail?._id)
+                      ? "text-red-600"
+                      : "text-gray-500"
+                  }
                 />
               </div>
 
@@ -256,7 +386,9 @@ export const ProductDetail = () => {
                   <TbTruckDelivery className="text-3xl" />
                   <div>
                     <p className="text-sm font-bold">Free Delivery</p>
-                    <p className="text-[11px] underline">Enter your zip for Delivery Availability</p>
+                    <p className="text-[11px] underline">
+                      Enter your zip for Delivery Availability
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center p-4 gap-4">
@@ -264,7 +396,8 @@ export const ProductDetail = () => {
                   <div>
                     <p className="text-sm font-bold">Return Delivery</p>
                     <p className="text-[11px]">
-                      Free 30 Days Returns. <span className="underline cursor-pointer">Details</span>
+                      Free 30 Days Returns.{" "}
+                      <span className="underline cursor-pointer">Details</span>
                     </p>
                   </div>
                 </div>
@@ -301,14 +434,18 @@ export const ProductDetail = () => {
                 <div className="space-y-4">
                   <h4 className="text-lg font-bold mb-5">Product Overview</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <div className="flex gap-4 items-start">
-                        <FaLongArrowAltRight className="mt-1 text-sm text-primary" />
-                        <p className="text-[13px] text-gray-500">Weight: {productDetail.productWeight?.$numberDecimal} kg</p>
-                     </div>
-                     <div className="flex gap-4 items-start">
-                        <FaLongArrowAltRight className="mt-1 text-sm text-gray-900" />
-                        <p className="text-[13px] text-gray-500">Stock Availability: {productDetail.stock} units</p>
-                     </div>
+                    <div className="flex gap-4 items-start">
+                      <FaLongArrowAltRight className="mt-1 text-sm text-primary" />
+                      <p className="text-[13px] text-gray-500">
+                        Weight: {productDetail.productWeight?.$numberDecimal} kg
+                      </p>
+                    </div>
+                    <div className="flex gap-4 items-start">
+                      <FaLongArrowAltRight className="mt-1 text-sm text-gray-900" />
+                      <p className="text-[13px] text-gray-500">
+                        Stock Availability: {productDetail.stock} units
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -316,29 +453,45 @@ export const ProductDetail = () => {
 
             {activeTab === "additional info" && (
               <div className="py-6 space-y-4">
-                 <p className="text-sm text-gray-600 font-medium">Box Volume: {productDetail.boxVolume?.$numberDecimal} mm³</p>
-                 {/* <p className="text-sm text-gray-600 font-medium">SKU ID: {productDetail._id}</p> */}
-                 <p className="text-sm text-gray-500  italic">No other specific technical details provided for this listing.</p>
+                <p className="text-sm text-gray-600 font-medium">
+                  Box Volume: {productDetail.boxVolume?.$numberDecimal} mm³
+                </p>
+                {/* <p className="text-sm text-gray-600 font-medium">SKU ID: {productDetail._id}</p> */}
+                <p className="text-sm text-gray-500  italic">
+                  No other specific technical details provided for this listing.
+                </p>
               </div>
             )}
-            
+
             {activeTab === "reviews" && (
               <div className="text-center py-20 bg-surface rounded-lg">
-                <p className="text-sm text-gray-500 mb-2">Customer Feedback ({productDetail.totalReviews})</p>
-                <div className="flex justify-center text-highlight mb-4">{renderStars()}</div>
-                <p className="text-xs text-gray-400">Total Reviews will be loaded after verified purchase.</p>
+                <p className="text-sm text-gray-500 mb-2">
+                  Customer Feedback ({productDetail.totalReviews})
+                </p>
+                <div className="flex justify-center text-highlight mb-4">
+                  {renderStars()}
+                </div>
+                <p className="text-xs text-gray-400">
+                  Total Reviews will be loaded after verified purchase.
+                </p>
               </div>
             )}
 
             {activeTab === "video" && (
               <div className="aspect-video w-full max-w-4xl bg-gray-100 rounded flex flex-col items-center justify-center group cursor-pointer shadow-inner relative overflow-hidden">
                 {productDetail.videos?.length > 0 ? (
-                    <video className="w-full h-full object-cover" controls src={productDetail.videos[0]} />
+                  <video
+                    className="w-full h-full object-cover"
+                    controls
+                    src={productDetail.videos[0]}
+                  />
                 ) : (
-                    <>
-                        <FiPlay className="text-5xl text-gray-300 group-hover:text-primary transition-colors mb-2" />
-                        <span className="text-xs font-medium text-gray-400">Video Content is not available for this product</span>
-                    </>
+                  <>
+                    <FiPlay className="text-5xl text-gray-300 group-hover:text-primary transition-colors mb-2" />
+                    <span className="text-xs font-medium text-gray-400">
+                      Video Content is not available for this product
+                    </span>
+                  </>
                 )}
               </div>
             )}

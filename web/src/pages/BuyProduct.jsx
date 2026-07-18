@@ -1,108 +1,110 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { AddressList } from "../features/checkout/components/AddressList";
 import { AddressFormModal } from "../features/checkout/components/AddressFormModal";
 import { PaymentMethodSelector } from "../features/checkout/components/PaymentMethodSelector";
 import { OrderSummary } from "../features/checkout/components/OrderSummary";
 import { CouponBox } from "../features/cart/components/CouponBox";
-import { getCartApi } from "../api/cart.api";
+
 import { getAddressesApi } from "../api/address.api";
 import { applyCouponApi } from "../api/coupon.api";
+
 import { useUserOrderStore } from "../features/order/store/userOrderStore";
 import sendApiRequest from "../utils/sendApiRequest";
 
-const CheckoutPage = () => {
+const BuyProduct = () => {
   const navigate = useNavigate();
 
-  const [cart, setCart] = useState({ items: [], totalPrice: 0 });
+  const {
+    buyProduct,
+    clearBuyProduct,
+    placeOrder,
+    loading: placingOrder,
+  } = useUserOrderStore();
+
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState("cod"); // UI-level id; mapped to backend enum on submit
+
+  const [paymentMethod, setPaymentMethod] = useState("cod");
+
   const [couponCode, setCouponCode] = useState("");
   const [discount, setDiscount] = useState(0);
   const [couponMessage, setCouponMessage] = useState(null);
 
   const [loading, setLoading] = useState(true);
-  const { placeOrder, loading: placingOrder } = useUserOrderStore();
   const [error, setError] = useState(null);
 
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-  const [editingAddress, setEditingAddress] = useState(null); // null = add mode, object = edit mode
+  const [editingAddress, setEditingAddress] = useState(null);
 
   const loadAddresses = async () => {
-    const addressRes = await getAddressesApi();
-    const addressList = addressRes?.data ?? [];
-    setAddresses(addressList);
-    return addressList;
+    const res = await getAddressesApi();
+    const list = res?.data ?? [];
+    setAddresses(list);
+    return list;
   };
 
-  // features/order/store/useUserOrderStore.js
-  // const {placeOrder} = useUserOrderStore()
-
   useEffect(() => {
-    const loadCheckoutData = async () => {
-      setLoading(true);
-      setError(null);
+    const load = async () => {
       try {
-        const [cartRes, addressList] = await Promise.all([
-          getCartApi(),
-          loadAddresses(),
-        ]);
+        const list = await loadAddresses();
 
-        setCart(cartRes?.data ?? { items: [], totalPrice: 0 });
+        const defaultAddress = list.find((a) => a.isDefault) ?? list[0];
 
-        const defaultAddress =
-          addressList.find((a) => a.isDefault) ?? addressList[0];
         setSelectedAddressId(defaultAddress?._id ?? null);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load checkout details.");
+      } catch {
+        setError("Failed to load addresses.");
       } finally {
         setLoading(false);
       }
     };
-    loadCheckoutData();
+
+    load();
   }, []);
 
-  const orderItems = (cart.items ?? []).map((item) => {
-    const product = item.productId;
-    return {
-      id: product._id,
-      name: product.name,
-      image: product.images?.[0] || "https://placehold.co/150x150",
-      price: item.priceAtAdd ?? product.discountPrice ?? product.price,
-      quantity: item.quantity,
-    };
-  });
+  if (!buyProduct) {
+    return <Navigate to="/products" replace />;
+  }
 
-  const subtotal = orderItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0,
-  );
+  const orderItems = [
+    {
+      id: buyProduct.productId,
+      name: buyProduct.name,
+      image: buyProduct.image,
+      quantity: buyProduct.quantity,
+      price: buyProduct.price,
+    },
+  ];
+
+  const subtotal = buyProduct.price * buyProduct.quantity;
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
-    setCouponMessage(null);
+
     try {
       const res = await applyCouponApi(couponCode.trim(), subtotal);
-      setDiscount(res?.discountAmount ?? 0);
+
+      setDiscount(res.discountAmount || 0);
+
       setCouponMessage({
         type: "success",
-        text: res?.message || "Coupon applied.",
+        text: res.message,
       });
     } catch (err) {
-      console.error(err);
       setDiscount(0);
+
       setCouponMessage({
         type: "error",
-        text: err?.response?.data?.message || "Failed to apply coupon.",
+        text: err?.response?.data?.message ?? "Failed to apply coupon.",
       });
     }
   };
 
   const handleEditAddress = (id) => {
     const address = addresses.find((a) => a._id === id);
+
     if (!address) return;
+
     setEditingAddress(address);
     setIsAddressModalOpen(true);
   };
@@ -113,49 +115,45 @@ const CheckoutPage = () => {
   };
 
   const handleAddressSaved = async (savedAddress) => {
-    const addressList = await loadAddresses();
-    // select the address we just added/edited, or fall back to whatever is default
+    const list = await loadAddresses();
+
     const target =
-      addressList.find((a) => a._id === savedAddress?._id) ??
-      addressList.find((a) => a.isDefault) ??
-      addressList[0];
+      list.find((a) => a._id === savedAddress?._id) ??
+      list.find((a) => a.isDefault) ??
+      list[0];
+
     setSelectedAddressId(target?._id ?? null);
   };
 
   const handlePlaceOrder = async () => {
-    if (!selectedAddressId) return;
+    const selectedAddress = addresses.find((a) => a._id === selectedAddressId);
 
-    const selectedAddress = addresses.find(
-      (address) => address._id === selectedAddressId,
-    );
-
-    if (!selectedAddress) {
-      setError("Please select a delivery address.");
-      return;
-    }
+    if (!selectedAddress) return;
 
     const payload = {
-      products: orderItems.map((item) => ({
-        productId: item.id,
-        quantity: item.quantity,
-      })),
+      products: [
+        {
+          productId: buyProduct.productId,
+          quantity: buyProduct.quantity,
+          color: buyProduct.color,
+          size: buyProduct.size,
+        },
+      ],
+
       shippingAddress: {
         addressType: selectedAddress.addressType,
         location: selectedAddress.location,
         city: selectedAddress.city,
         state: selectedAddress.state,
         mobile: selectedAddress.mobile,
-        ...(selectedAddress.pincode && {
-          pincode: selectedAddress.pincode,
-        }),
-        ...(selectedAddress.landmark && {
-          landmark: selectedAddress.landmark,
-        }),
+        pincode: selectedAddress.pincode,
+        landmark: selectedAddress.landmark,
       },
 
       paymentMethod: paymentMethod === "cod" ? "CASH_ON_DELIVERY" : "ONLINE",
-      ...(couponCode.trim() && {
-        couponCode: couponCode.trim(),
+
+      ...(couponCode && {
+        couponCode,
       }),
     };
 
@@ -163,11 +161,7 @@ const CheckoutPage = () => {
 
     if (!order) return;
 
-    if (payload.paymentMethod === "ONLINE") {
-      console.log("Order created; online payment integration pending.", order);
-    }
-
-    console.log("Order Reseve: ", order);
+    clearBuyProduct();
 
     navigate(`/order-success/${order._id}`, {
       state: { order },
@@ -176,8 +170,8 @@ const CheckoutPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center bg-background">
-        <p className="text-muted-foreground">Loading checkout...</p>
+      <div className="min-h-[70vh] flex justify-center items-center">
+        Loading...
       </div>
     );
   }
@@ -187,16 +181,14 @@ const CheckoutPage = () => {
       <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="flex items-center gap-2 mb-6">
           <div className="w-1.5 h-6 rounded-xs bg-primary" />
-          <h1 className="text-lg font-semibold text-foreground">Checkout</h1>
+          <h1 className="text-lg font-semibold">Buy Product</h1>
         </div>
 
-        <h1 className="text-2xl sm:text-md font-semibold text-foreground mb-8">
-          Select address, apply coupon, and place your order
-        </h1>
+        <h2 className="text-2xl mb-8">Complete your purchase</h2>
 
-        {error && <p className="mb-4 text-sm text-red-500">{error}</p>}
+        {error && <p className="text-red-500 mb-4">{error}</p>}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <AddressList
               addresses={addresses}
@@ -205,30 +197,31 @@ const CheckoutPage = () => {
               onEdit={handleEditAddress}
               onAddNew={handleAddNewAddress}
             />
+
             <PaymentMethodSelector
               selected={paymentMethod}
               onSelect={setPaymentMethod}
             />
           </div>
 
-          <div className="lg:col-span-1">
+          <div>
             <OrderSummary
               items={orderItems}
               subtotal={subtotal}
               discount={discount}
               onPlaceOrder={handlePlaceOrder}
-              disabled={
-                !selectedAddressId || orderItems.length === 0 || placingOrder
-              }
+              disabled={!selectedAddressId || placingOrder}
             />
+
             <CouponBox
               couponCode={couponCode}
               setCouponCode={setCouponCode}
               onApply={handleApplyCoupon}
             />
+
             {couponMessage && (
               <p
-                className={`text-sm mt-2 ${
+                className={`mt-2 text-sm ${
                   couponMessage.type === "success"
                     ? "text-primary"
                     : "text-red-500"
@@ -251,4 +244,4 @@ const CheckoutPage = () => {
   );
 };
 
-export default CheckoutPage;
+export default BuyProduct;

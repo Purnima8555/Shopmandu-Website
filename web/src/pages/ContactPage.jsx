@@ -36,7 +36,7 @@ const ContactPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 max-w-7xl">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-8">
           <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary-light text-primary">

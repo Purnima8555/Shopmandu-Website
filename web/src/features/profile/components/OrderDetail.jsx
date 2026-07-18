@@ -1,18 +1,19 @@
 import {
-    AlertTriangle,
-    Calendar,
-    CheckCircle2,
-    CreditCard,
-    MapPin,
-    Package,
-    RotateCcw,
-    Store,
+  AlertTriangle,
+  Calendar,
+  CheckCircle2,
+  CreditCard,
+  MapPin,
+  Package,
+  RotateCcw,
+  Store,
 } from "lucide-react";
 
 import Button from "../../../components/ui/Button";
 import Modal from "../../../components/ui/Modal";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import { RETURN_STATUS, STATUS, STEPS } from "../data";
+import { useNavigate } from "react-router-dom";
 
 function stepIndex(status) {
   if (status === "PARTIALLY_SHIPPED") return 2;
@@ -103,6 +104,8 @@ export default function OrderDetail({
   onClose,
   onReturnItem,
 }) {
+  const navigate = useNavigate();
+
   if (!order) return null;
 
   const status = STATUS[order.orderStatus] || STATUS.PENDING;
@@ -115,7 +118,7 @@ export default function OrderDetail({
   return (
     <Modal title="Order details" onClose={onClose} maxWidth="max-w-5xl">
       <div className="space-y-8">
-        {/* ================= Header ================= */}
+        {/*  Header  */}
 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -139,13 +142,13 @@ export default function OrderDetail({
           <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
         </div>
 
-        {/* ================= Progress ================= */}
+        {/*  Progress  */}
 
         <OrderStepper status={order.orderStatus} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            {/* ================= Shipping + Payment ================= */}
+            {/*  Shipping  Payment  */}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <InfoCard icon={MapPin} title="Shipping address">
@@ -173,16 +176,40 @@ export default function OrderDetail({
                 </div>
               </InfoCard>
 
-              <InfoCard icon={CreditCard} title="Payment">
+              <InfoCard
+                icon={CreditCard}
+                title="Payment"
+                action={
+                  order.paymentMethod === "ONLINE" &&
+                  order.paymentStatus === "UNPAID" &&
+                  order.orderStatus !== "CANCELLED" &&
+                  order.orderStatus !== "FAILED" && 
+                  (
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        navigate(`/payment/${order._id}`, {
+                          state: { order: {...order} },
+                        })
+                      }
+                    >
+                      Pay Now
+                    </Button>
+                  )
+                }
+              >
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="mb-0.5 text-xs text-[#6B6A63]">Method</p>
+
                     <p className="font-medium text-[#23241F]">
                       {order.paymentMethod}
                     </p>
                   </div>
+
                   <div>
                     <p className="mb-0.5 text-xs text-[#6B6A63]">Status</p>
+
                     <p className="font-medium text-[#23241F]">
                       {order.paymentStatus}
                     </p>

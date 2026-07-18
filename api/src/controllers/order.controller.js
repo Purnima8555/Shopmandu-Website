@@ -23,10 +23,7 @@ const orderPlace = async (req, res, next) => {
     try {
         const order = await orderService.placeNewOrder(userId, cartData)
 
-        res.status(200).json({
-            message: "Order Create.",
-            data: order
-        })
+        res.status(200).json(order)
 
     } catch (error) {
         await client.del(orderKey);

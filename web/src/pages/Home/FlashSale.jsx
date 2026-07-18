@@ -33,7 +33,7 @@ const FlashSale = () => {
         </div>
 
         {/* Countdown */}
-        <div className="flex items-center gap-4">
+        {/* <div className="flex items-center gap-4">
           {countdown.map((item, index) => (
             <div key={item.label} className="flex items-center gap-4">
               <div className="text-center">
@@ -48,12 +48,11 @@ const FlashSale = () => {
               {index !== 3 && (
                 <span className="text-3xl font-bold text-primary">
                   :{" "}
-                  {/** display ":" after each item except the last one index 3. */}
                 </span>
               )}
             </div>
           ))}
-        </div>
+        </div> */}
       </div>
 
       {/* Products */}

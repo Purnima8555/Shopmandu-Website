@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   User,
-  ShoppingBag,
   LayoutDashboard,
   ShieldCheck,
   LogOut,
@@ -32,6 +31,8 @@ const UserAccountMenu = ({ user, onLogout }) => {
       setIsOpen(false);
     }
   };
+
+  const isDashboardUser = isVendor || isAdmin;
 
   return (
     <div className="relative">
@@ -67,23 +68,27 @@ const UserAccountMenu = ({ user, onLogout }) => {
             {/* <p className="text-xs text-gray-500 truncate">{user?.email}</p> */}
           </div>
 
-          <Link
-            to="/profile"
-            onClick={() => setIsOpen(false)}
-            className={menuItemClass}
-          >
-            <User className="w-4 h-4" />
-            <span>Manage My Account</span>
-          </Link>
-
-          <Link
-            to="/my-orders"
-            onClick={() => setIsOpen(false)}
-            className={menuItemClass}
-          >
-            <ShoppingBag className="w-4 h-4" />
-            <span>My Orders</span>
-          </Link>
+          {!isDashboardUser && (
+            <>
+              <Link
+                to="/profile"
+                onClick={() => setIsOpen(false)}
+                className={menuItemClass}
+              >
+                <User className="w-4 h-4" />
+                <span>Manage My Account</span>
+              </Link>
+{/* 
+              <Link
+                to="/my-orders"
+                onClick={() => setIsOpen(false)}
+                className={menuItemClass}
+              >
+                <ShoppingBag className="w-4 h-4" />
+                <span>My Orders</span>
+              </Link> */}
+            </>
+          )}
 
           {isVendor && (
             <Link

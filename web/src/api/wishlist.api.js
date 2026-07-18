@@ -4,6 +4,7 @@ import api from "./axios";
 export const getWishlistApi = async () => {
     const res = await api.get("/api/wishlist");
     return res.data;
+    // return
 };
 
 /// Add product

@@ -4,10 +4,11 @@ import MainLayout from "../AppLayout/AppLayout";
 import AdminLayout from "../AppLayout/AdminLayout";
 
 //// public Pages
-import HomePage from "../pages/HomePage";
+import HomePage from "../pages/Homepage";
 import AboutPage from "../pages/AboutPage";
 import ContactPage from "../pages/ContactPage";
 import ProductListPage from "../pages/ProductListPage";
+import ShopDetailPage from "../pages/ShopDetailPage";
 
 /// guards
 import AuthenticatedRoute from "./guards/AuthenticatedRoute";
@@ -39,6 +40,11 @@ import UsersPage from "../features/admin/pages/Users";
 import { ProductDetail } from "../features/product/components/ProductDetail";
 import ProfilePage from "../features/profile/pages/MyProfile";
 import Settings from "../features/admin/pages/Settings";
+import OrderSuccess from "../features/order/components/orderSuccess";
+import PaymentPage from "../features/payment/components/PaymentPage";
+import PaymentSuccess from "../features/payment/components/PaymentSuccess";
+import PaymentFail from "../features/payment/components/PaymentFail";
+import BuyProduct from "../pages/BuyProduct";
 
 export default function AppRoutes() {
   return (
@@ -50,6 +56,7 @@ export default function AppRoutes() {
         <Route path="contact" element={<ContactPage />} />
         <Route path="products" element={<ProductListPage />} />
         <Route path="products/:slug" element={<ProductDetail />} />
+        <Route path="shop/:slug" element={<ShopDetailPage />} />
 
         {/*  Auth pages  */}
         <Route path="login" element={<LoginPage />} />
@@ -73,6 +80,11 @@ export default function AppRoutes() {
             <Route path="wishlist" element={<WishlistPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="checkout" element={<CheckoutPage />} />
+            <Route path="order-success/:orderId" element={<OrderSuccess />} />
+            <Route path="payment/:orderId" element={<PaymentPage />} />
+            <Route path="payment/success/:order" element={<PaymentSuccess />} />
+            <Route path="payment/failed/:order" element={<PaymentFail />} />
+            <Route path="buy-product" element={<BuyProduct />} />
 
           </Route>
         </Route>
@@ -103,9 +115,9 @@ export default function AppRoutes() {
             <Route path="admin/coupons" element={<CouponsPage />} />
             <Route path="admin/users" element={<UsersPage />} />
             <Route path="admin/settings" element={<Settings />} />
-            </Route>
           </Route>
         </Route>
+      </Route>
     </Routes>
   );
 }

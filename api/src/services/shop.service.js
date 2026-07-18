@@ -48,7 +48,7 @@ class shopServices {
 
     //// public get shop data
     async getShopBySlug(slug) {
-        const shop = await ShopModel.findOne({ slugs: slug }, { user_id: 0, _id: 0 });
+        const shop = await ShopModel.findOne({ slugs: slug }, { user_id: 0, _id: 1 });
         if (!shop) {
             throw new NotFoundError("Shop not found. Invalid slug.");
         }

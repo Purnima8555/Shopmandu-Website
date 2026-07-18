@@ -1,8 +1,8 @@
 
 
 import { create } from "zustand"
-import {changeMyShopStatus, getKycStatus, getMyShop, updateShopInfo, uploadShopBanner, uploadShopLogo, searchShopsApi, createShop, updateShopStatusApi,} from "../api/shop"
-import { addProductImagesApi, createProduct, deleteProductImageApi, getAllMyProducts, getProductsSummary, updateProductInfoApi } from "../api/product.api";
+import {changeMyShopStatus, getKycStatus, getMyShop, updateShopInfo, uploadShopBanner, uploadShopLogo, searchShopsApi, createShop, updateShopStatusApi, getShopBySlugApi, getProductsByShopApi,} from "../api/shop"
+import { addProductImagesApi, createProduct, deleteProductImageApi, getAllMyProducts, getProductsSummary, updateProductInfoApi, } from "../api/product.api";
 
 
 const useShopStore = create((set) => ({
@@ -15,6 +15,13 @@ const useShopStore = create((set) => ({
     productsSummary: null,
     myProducts: [],
     productsMeta: null,
+
+    currentShop: null,
+    currentShopLoading: false,
+    shopProducts: [],
+    shopProductsMeta: null,
+    shopProductsLoading: false,
+    
     setShop: (shop) => set({ shop }),
 
     //// create shop
@@ -289,7 +296,45 @@ const useShopStore = create((set) => ({
         }
     },
 
+    // ─── Public shop details page ─────────────────────────────────────────
+    // Get a shop by its public slug
+    getShopBySlug: async (slug) => {
+        set({ currentShopLoading: true, currentShop: null });
+        try {
+            const res = await getShopBySlugApi(slug);
+            set({ currentShop: res?.data ?? null });
+            return res?.data;
+        } catch (error) {
+            throw error.response?.data || error;
+        } finally {
+            set({ currentShopLoading: false });
+        }
+    },
 
+    // Get products belonging to a shop (by shop _id)
+    getShopProducts: async (shopId, params = {}) => {
+        console.log(params)
+        set({ shopProductsLoading: true });
+        try {
+            set({ loading: true });
+              const res = await getProductsByShopApi(shopId, params);
+        
+              // console.log(res.data)
+              set({
+                shopProducts: res?.data || [],
+                shopProductsMeta: res?.metadata || {},
+                loading: false,
+                shopProductsLoading: false,
+              });
+        
+              return res.data;
+            } catch (error) {
+              set({ loading: false, shopProductsLoading: false });
+              console.log(error);
+            }
+    },
+
+    clearCurrentShop: () => set({ currentShop: null, shopProducts: [], shopProductsMeta: null }),
 }))
 
 

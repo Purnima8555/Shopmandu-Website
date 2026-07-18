@@ -51,6 +51,7 @@ class OrderServices {
             /// shipping fee calculate
             const shippingFee = calculateShipping({ orderAmount: grandTotal.subTotal, weightKg: grandTotal.totalWeight, volumeCm3: grandTotal.totalVolume, zone: "local" });
 
+            // console.log(shippingFee.totalShippingFee)
             /// tax calculate
             const tax = calculateTax(grandTotal.subTotal)
             /// discount price calculate from copun
@@ -65,7 +66,7 @@ class OrderServices {
 
 
 
-            console.log(couponUsed)
+            // console.log(couponUsed)
 
             if (couponUsed) {
                 discount = couponDiscount.discountAmount
@@ -152,6 +153,7 @@ class OrderServices {
             }
             return {
                 success: true,
+                message: "order Create Succesfull!",
                 masterOrder,
             };
 

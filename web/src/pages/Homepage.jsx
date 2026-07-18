@@ -6,6 +6,7 @@ import Button from "../components/ui/Button";
 import { getFlashSaleProductsApi } from "../api/product.api";
 import ExploreProducts from "./Home/ExploreProducts";
 import BestSelling from "./Home/BestSelling";
+import { useNavigate } from "react-router-dom";
 
 
 function HomePage() {
@@ -21,10 +22,12 @@ function HomePage() {
     }
   };
 
+  const navigate = useNavigate()
+
 
   return (
     <section className="bg-background">
-      <div className="container mx-auto px-6 py-16 lg:py-24">
+      <div className="container mx-auto px-6 py-16 lg:py-24 ">
         <div className="grid lg:grid-cols-2 gap-14 items-center">
           {/* Left Content */}
           <div>
@@ -46,7 +49,7 @@ function HomePage() {
             </p>
 
             <div className="flex flex-wrap gap-4 mt-10 animation-fade-in animation-delay-300">
-              <Button size="lg" onClick={flashSaleProducts} className="px-12 cursor-pointer">
+              <Button size="lg" onClick={()=>{flashSaleProducts(); navigate('/products')}} className="px-12 cursor-pointer">
                 Shop Now
               </Button>
             </div>
