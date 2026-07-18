@@ -12,7 +12,7 @@ const KycImageModal = ({ src, isOpen, onClose }) => {
       <div className="relative max-w-4xl w-full flex justify-center" onClick={(e) => e.stopPropagation()}>
         <button
           onClick={onClose}
-          className="absolute top-1 -right-5 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors z-10"
+          className="absolute top-1 -right-10 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors z-10"
           aria-label="Close preview"
         >
           <X size={22} />

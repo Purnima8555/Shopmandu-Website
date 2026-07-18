@@ -1,7 +1,4 @@
-import {
-  Eye,
-  Search,
-} from "lucide-react";
+import { Eye, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import Button from "../../../components/ui/Button";

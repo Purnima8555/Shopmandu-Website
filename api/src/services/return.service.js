@@ -4,6 +4,7 @@ import OrderItemsModel from "../models/orderItem.model.js";
 import ProductModel from "../models/product.model.js";
 import CloudinaryUpload from "../utils/CloudinaryUpload.js";
 import { BadRequestError, NotFoundError } from "../utils/AppError.js";
+import mongoose from "mongoose";
 
 class ReturnService {
 
@@ -143,13 +144,109 @@ class ReturnService {
         };
     }
 
-    /// vendor getrequests
-    async getVendorRequests(vendorId) {
-        return await ReturnRequestModel.find({ vendorId })
-            .populate("customerId", "userName email")
-            .sort({ createdAt: -1 })
-            .lean();
+    /// VENDOR - Get Return Requests
+async getVendorRequests(vendorId, query = {}) {
+
+    const page = parseInt(query.page, 10) || 1;
+    const limit = parseInt(query.limit, 10) || 10;
+    const skip = (page - 1) * limit;
+
+    const pipeline = [];
+
+    // Vendor Filter
+    pipeline.push({
+        $match: {vendorId: new mongoose.Types.ObjectId(vendorId),},
+    });
+
+    // Status Filter
+    if (query.status) {
+        pipeline.push({
+            $match: {status: query.status,},
+        });
     }
+
+    // Populate Customer
+    pipeline.push({
+        $lookup: {
+            from: "users",
+            localField: "customerId",
+            foreignField: "_id",
+            as: "customerId",
+        },
+    });
+
+    pipeline.push({
+        $unwind: "$customerId",
+    });
+
+    // Populate Product
+    pipeline.push({
+        $lookup: {
+            from: "products",
+            localField: "productId",
+            foreignField: "_id",
+            as: "productId",
+        },
+    });
+
+    pipeline.push({
+        $unwind: "$productId",
+    });
+
+    // Populate Order
+    pipeline.push({
+        $lookup: {
+            from: "orders",
+            localField: "orderId",
+            foreignField: "_id",
+            as: "orderId",
+        },
+    });
+
+    pipeline.push({
+        $unwind: "$orderId",
+    });
+
+    // Search
+    if (query.search) {
+        const regex = new RegExp(query.search, "i");
+        pipeline.push({
+            $match: {
+                $or: [
+                    { "orderId.orderNumber": regex },
+                    { "productId.name": regex },
+                    { "customerId.userName": regex },
+                ],
+            },
+        });
+    }
+
+    pipeline.push({
+        $facet: {
+            metadata: [{$count: "total",},],
+            data: [{$sort: {createdAt: -1,},},
+                {$skip: skip,},
+                {$limit: limit,},
+            ],
+        },
+    });
+
+    const result = await ReturnRequestModel.aggregate(pipeline);
+    const totalResults = result[0].metadata[0]?.total || 0;
+
+    return {
+        metadata: {
+            totalResults,
+            totalPages: Math.ceil(totalResults / limit),
+            currentPage: page,
+            limit,
+            hasNextPage: page < Math.ceil(totalResults / limit),
+            hasPrevPage: page > 1,
+        },
+
+        data: result[0].data,
+    };
+}
 
     /// APPROVE
     async approveRequest(requestId, vendorId) {

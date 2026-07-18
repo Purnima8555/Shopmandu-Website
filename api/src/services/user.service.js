@@ -81,31 +81,31 @@ async getAllUsers(queryData) {
     //
     // UPDATE USER PROFILE
     //
-    async updateUser(userId, updateData, file) {
+    // async updateUser(userId, updateData, file) {
 
-        const user = await UserModel.findById(userId);
+    //     const user = await UserModel.findById(userId);
 
-        if (!user) {
-        throw new NotFoundError("User not found");
-        }
+    //     if (!user) {
+    //     throw new NotFoundError("User not found");
+    //     }
 
-        const updatePayload = { ...updateData };
-        // Upload avatar
-        if (file) {
-            const uploaded = await CloudinaryUpload.uploadSingleImage(file, "upload");
+    //     const updatePayload = { ...updateData };
+    //     // Upload avatar
+    //     if (file) {
+    //         const uploaded = await CloudinaryUpload.uploadSingleImage(file, "upload");
 
-        if (uploaded?.secure_url) {
-            updatePayload.avatar = uploaded.secure_url;
-        }}
+    //     if (uploaded?.secure_url) {
+    //         updatePayload.avatar = uploaded.secure_url;
+    //     }}
 
-        const updatedUser = await UserModel.findByIdAndUpdate(
-        userId,
-        { $set: updatePayload },
-        { new: true }
-        );
+    //     const updatedUser = await UserModel.findByIdAndUpdate(
+    //     userId,
+    //     { $set: updatePayload },
+    //     { new: true }
+    //     );
 
-        return updatedUser;
-    }
+    //     return updatedUser;
+    // }
 
     //
     // DELETE USER PROFILE
@@ -122,6 +122,40 @@ async getAllUsers(queryData) {
         return {
         message: "Account deleted successfully",
         };
+    }
+
+    // update avatar
+    async updateUserAvatar(avatar, userId) {
+
+        const uploadedAvatar =
+            await CloudinaryUpload.uploadSingleImage(
+                avatar,
+                "upload"
+            );
+
+        const user = await UserModel.findByIdAndUpdate(
+            userId,
+            {
+                avatar: uploadedAvatar.secure_url,
+            },
+            {
+                returnDocument: "after",
+            }
+        );
+
+        if (!user) {
+            throw new NotFoundError("User not found.");
+        }
+
+        return user;
+    }
+
+    // Update user name
+    async updateUserName(userName, _id) {
+    return await UserModel.findByIdAndUpdate(
+        _id,
+        { userName },
+        { returnDocument: "after" },);
     }
 }
 

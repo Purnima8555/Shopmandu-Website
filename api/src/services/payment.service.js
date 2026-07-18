@@ -174,7 +174,8 @@ class PaymentService {
 
             return {
                 success: true,
-                message: "Stripe payment verified successfully."
+                message: "Stripe payment verified successfully.",
+                orderNumber: order.orderNumber
             };
 
         } catch (error) {
@@ -291,7 +292,7 @@ class PaymentService {
 
 
     /// request for refund
-
+    
 }
 
 

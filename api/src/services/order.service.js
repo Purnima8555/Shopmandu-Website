@@ -51,6 +51,7 @@ class OrderServices {
             /// shipping fee calculate
             const shippingFee = calculateShipping({ orderAmount: grandTotal.subTotal, weightKg: grandTotal.totalWeight, volumeCm3: grandTotal.totalVolume, zone: "local" });
 
+            // console.log(shippingFee.totalShippingFee)
             /// tax calculate
             const tax = calculateTax(grandTotal.subTotal)
             /// discount price calculate from copun
@@ -65,7 +66,7 @@ class OrderServices {
 
 
 
-            console.log(couponUsed)
+            // console.log(couponUsed)
 
             if (couponUsed) {
                 discount = couponDiscount.discountAmount
@@ -152,6 +153,7 @@ class OrderServices {
             }
             return {
                 success: true,
+                message: "order Create Succesfull!",
                 masterOrder,
             };
 
@@ -167,123 +169,169 @@ class OrderServices {
     //// order history
     async customerOrderHistory(userId, data) {
 
-        const page = parseInt(data.page, 10) || 1;
-        const limit = parseInt(data.limit, 10) || 10;
-        const skip = (page - 1) * limit; // Number of items to skip
-        const filter = { userId }
+            const page = parseInt(data.page, 10) || 1;
+            const limit = parseInt(data.limit, 10) || 10;
+            const skip = (page - 1) * limit; // Number of items to skip
+            const filter = { customerId: userId };
 
-        /// apply filter, paginated, get order with filter.
-        if (data.paymentStatus) {
-            filter.paymentStatus = data.paymentStatus
-        }
-        if (data.orderStatus) {
-            filter.orderStatus = data.orderStatus
-        }
-        if (data.paymentMethod) {
-            filter.paymentMethod = data.paymentMethod
-        }
+            /// apply filter, paginated, get order with filter.
+            if (data.paymentStatus) {
+                filter.paymentStatus = data.paymentStatus
+            }
+            if (data.orderStatus) {
+                filter.orderStatus = data.orderStatus
+            }
+            if (data.paymentMethod) {
+                filter.paymentMethod = data.paymentMethod
+            }
 
-        const [orderData, totalDocuments] = await Promise.all([
-            OrderModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
-            OrderModel.countDocuments(filter)
-        ])
-        const totalPages = Math.ceil(totalDocuments / limit)
+            const [orderData, totalDocuments] = await Promise.all([
+                OrderModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+                OrderModel.countDocuments(filter)
+            ])
+            const totalPages = Math.ceil(totalDocuments / limit)
 
-        return {
-            metadata: {
-                totalResults: totalDocuments,
-                totalPages: totalPages,
-                currentPage: page,
-                limit: limit,
-                hasNextPage: page < totalPages,
-                hasPrevPage: page > 1
-            },
-            data: orderData
+            return {
+                metadata: {
+                    totalResults: totalDocuments,
+                    totalPages: totalPages,
+                    currentPage: page,
+                    limit: limit,
+                    hasNextPage: page < totalPages,
+                    hasPrevPage: page > 1
+                },
+                data: orderData
+            }
         }
-    }
 
     /// pending unpade order get 
     async unpaidOrderGet(userId) {
-        /// get unpade order
-        const order = await OrderModel.find({
-            customerId: userId,
-            paymentStatus: paymentStatus.UNPAID,
-            paymentMethod: paymentMethod.ONLINE,
-            orderStatus: orderStatus.PENDING
-        }).sort({ createAt: -1 }).lean()
-        return order;
-    }
+            /// get unpade order
+            const order = await OrderModel.find({
+                customerId: userId,
+                paymentStatus: paymentStatus.UNPAID,
+                paymentMethod: paymentMethod.ONLINE,
+                orderStatus: orderStatus.PENDING
+            }).sort({ createAt: -1 }).lean()
+            return order;
+        }
 
     /// customer order detail
     async orderDetail(userId, orderId) {
 
-        //// get order.
+        // Get order and items
         const [order, orderItems] = await Promise.all([
-            OrderModel.findOne({ _id: orderId, customerId: userId }).populate("paymentId").lean(),
+            OrderModel.findOne({
+                _id: orderId,
+                customerId: userId,
+            })
+                .populate("paymentId")
+                .lean(),
+
             OrderItemsModel.find({
-                orderId
-            }).populate("vendorId", "userName")
+                orderId,
+            })
+                .populate("vendorId", "userName")
                 .populate({
                     path: "products.productId",
-                    select: "productName slug images"
-                }).lean()
+                    select: "productName slug images",
+                })
+                .lean(),
         ]);
 
         if (!order) {
             throw new NotFoundError("Order not found.");
         }
 
+        // Fetch every return request belonging to this order
+        const returnRequests = await ReturnRequestModel.find({
+            orderId,
+        }).lean();
+
+        // Attach return request information to every product
+        const updatedOrderItems = orderItems.map((orderItem) => {
+
+            const products = orderItem.products.map((product) => {
+
+                const request = returnRequests.find((item) =>
+                    item.orderItemId.toString() === orderItem._id.toString() &&
+                    item.productId.toString() === product.productId._id.toString()
+                );
+
+                return {
+                    ...product,
+
+                    hasReturnRequest: !!request,
+
+                    returnRequest: request
+                        ? {
+                            _id: request._id,
+                            status: request.status,
+                            quantity: request.quantity,
+                            reason: request.reason,
+                            createdAt: request.createdAt,
+                        }
+                        : null,
+                };
+            });
+
+            return {
+                ...orderItem,
+                products,
+            };
+        });
+
         return {
             order,
-            orderItems
+            orderItems: updatedOrderItems,
         };
     }
 
     //// order cancels
     async orderCancel(userId, orderId) {
-        const session = await mongoose.startSession();
+            const session = await mongoose.startSession();
 
-        try {
-            session.startTransaction();
-            const userOrder = await OrderModel.findOneAndUpdate(
-                { _id: orderId, customerId: userId, orderStatus: orderStatus.PENDING },
-                {
-                    $set: {
-                        orderStatus: orderStatus.CANCELLED
+            try {
+                session.startTransaction();
+                const userOrder = await OrderModel.findOneAndUpdate(
+                    { _id: orderId, customerId: userId, orderStatus: orderStatus.PENDING },
+                    {
+                        $set: {
+                            orderStatus: orderStatus.CANCELLED
+                        }
+                    },
+                    {
+                        returnDocument: "after",
+                        session
                     }
-                },
-                {
-                    returnDocument: "after",
-                    session
+                );
+
+
+                if (!userOrder) {
+                    throw new BadRequestError("Order cannot be cancelled anymore");
                 }
-            );
 
+                // restore stock
+                await restoreProductStock(userOrder.items);
 
-            if (!userOrder) {
-                throw new BadRequestError("Order cannot be cancelled anymore");
+                // update vendor orders
+                await OrderItemsModel.updateMany(
+                    { orderId: userOrder._id },
+                    { $set: { orderItemsStatus: orderStatus.CANCELLED } },
+                    { session }
+                );
+
+                await session.commitTransaction();
+                session.endSession();
+
+                return { message: "Order canceled successfully." };
+
+            } catch (error) {
+                await session.abortTransaction();
+                session.endSession();
+                throw error
             }
-
-            // restore stock
-            await restoreProductStock(userOrder.items);
-
-            // update vendor orders
-            await OrderItemsModel.updateMany(
-                { orderId: userOrder._id },
-                { $set: { orderItemsStatus: orderStatus.CANCELLED } },
-                { session }
-            );
-
-            await session.commitTransaction();
-            session.endSession();
-
-            return { message: "Order canceled successfully." };
-
-        } catch (error) {
-            await session.abortTransaction();
-            session.endSession();
-            throw error
         }
-    }
 
     //// get vendor all order 
     async getAllOrderByVendorId(vendorId, queryData) {
@@ -361,26 +409,397 @@ class OrderServices {
     //// admin get spacefic order by id
     async getOrderById(orderId) {
 
-        const order = await OrderModel.findById(orderId)
-            .populate("customerId", "userName email mobile")
-            .populate("paymentId");
+            const order = await OrderModel.findById(orderId)
+                .populate("customerId", "userName email mobile")
+                .populate("paymentId");
 
-        if (!order) {
-            throw new NotFoundError("Order not found.");
+            if (!order) {
+                throw new NotFoundError("Order not found.");
+            }
+
+            const orderItems = await OrderItemsModel.find({
+                orderId: order._id
+            })
+                .populate("vendorId", "userName email")
+                .populate({
+                    path: "products.productId",
+                    select: "productName slug images"
+                });
+
+            return {
+                order,
+                orderItems
+            };
+    }
+
+    // vendor status update and automatically update master
+    async updateOrderItemStatus(vendorId, orderItemId, status) {
+
+        const allowed = [
+            orderStatus.PROCESSING,
+            orderStatus.OUT_FOR_DELIVERY,
+            orderStatus.DELIVERED,
+            orderStatus.CANCELLED
+        ];
+
+        if (!allowed.includes(status)) {
+            throw new BadRequestError("Invalid status update");
         }
 
-        const orderItems = await OrderItemsModel.find({
-            orderId: order._id
-        })
-            .populate("vendorId", "userName email")
-            .populate({
-                path: "products.productId",
-                select: "productName slug images"
-            });
+        const now = new Date();
+        const update = {
+            orderItemsStatus: status
+        };
+
+        if (status === orderStatus.PROCESSING) update.processedAt = now;
+        if (status === orderStatus.OUT_FOR_DELIVERY) update.shippedAt = now;
+        if (status === orderStatus.DELIVERED) update.deliveredAt = now;
+
+        const orderItem = await OrderItemsModel.findOneAndUpdate(
+            { _id: orderItemId, vendorId },
+            { $set: update },
+            { new: true }
+        );
+
+        if (!orderItem) {
+            throw new NotFoundError("Order item not found");
+        }
+
+        const items = await OrderItemsModel.find({
+            orderId: orderItem.orderId
+        });
+
+        const statuses = items.map(i => i.orderItemsStatus);
+
+        const masterStatus =
+            statuses.every(s => s === orderStatus.DELIVERED)
+                ? orderStatus.DELIVERED
+            : statuses.every(s => s === orderStatus.CANCELLED)
+                ? orderStatus.CANCELLED
+            : statuses.some(s => s === orderStatus.OUT_FOR_DELIVERY)
+                ? orderStatus.OUT_FOR_DELIVERY
+            : statuses.some(s => s === orderStatus.PROCESSING)
+                ? orderStatus.PROCESSING
+            : orderStatus.PARTIALLY_SHIPPED;
+
+        await OrderModel.findByIdAndUpdate(orderItem.orderId, {
+            orderStatus: masterStatus
+        });
+
+        return orderItem;
+    }
+
+    /// admin getAllOrders with filter
+    async getAllOrders(queryData) {
+
+        const page = parseInt(queryData.page, 10) || 1;
+        const limit = parseInt(queryData.limit, 10) || 10;
+        const skip = (page - 1) * limit;
+
+        const filter = {};
+
+        if (queryData.orderStatus) {
+            filter.orderStatus = queryData.orderStatus;
+        }
+
+        if (queryData.paymentStatus) {
+            filter.paymentStatus = queryData.paymentStatus;
+        }
+
+        if (queryData.paymentMethod) {
+            filter.paymentMethod = queryData.paymentMethod;
+        }
+
+        const [orders, totalDocuments] = await Promise.all([
+
+            OrderModel.find(filter)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .populate("customerId", "userName email")
+                .lean(),
+
+            OrderModel.countDocuments(filter)
+
+        ]);
+
+        const totalPages = Math.ceil(totalDocuments / limit);
 
         return {
-            order,
-            orderItems
+            metadata: {
+                totalResults: totalDocuments,
+                totalPages,
+                currentPage: page,
+                limit,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1
+            },
+
+            data: orders
+        };
+    }
+
+    // admin stausUpdate
+    async adminUpdateOrderStatus(orderId, status) {
+
+        const ADMIN_ALLOWED_STATUSES = [
+            orderStatus.PROCESSING,
+            orderStatus.OUT_FOR_DELIVERY,
+            orderStatus.DELIVERED,
+            orderStatus.RETURNED,
+        ];
+
+        const order = await OrderModel.findById(orderId);
+        if (!order) throw new NotFoundError("Order not found");
+
+        // block statuses
+        if (!ADMIN_ALLOWED_STATUSES.includes(status)) {
+            throw new BadRequestError(
+                `Admin cannot manually set status to ${status}`
+            );
+        }
+
+        order.orderStatus = status;
+
+        if (status === "PROCESSING") order.deliveredAt = new Date();
+        if (status === "DELIVERED") order.deliveredAt = new Date();
+        if (status === "OUT_FOR_DELIVERY") order.shippedAt = new Date();
+        if (status === "RETURNED") order.returnedAt = new Date();
+
+        await order.save();
+        return order;
+    }
+
+    /// cusotmer invoice
+    async generateCustomerInvoice(orderId, userId) {
+
+        const order = await OrderModel.findOne({
+            _id: orderId,
+            customerId: userId
+        }).lean();
+
+        if (!order) throw new NotFoundError("Order not found");
+
+        const qr = await QR(
+            `${order.orderNumber}`
+        );
+
+        const html = customerInvoiceTemplate({
+            orderNumber: order.orderNumber,
+            customerName: "Customer",
+            orderStatus: order.orderStatus,
+            items: order.items,
+            totalAmount: order.totalAmount,
+            qr
+        });
+
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+
+        await page.setContent(html);
+
+        const pdf = await page.pdf({
+            format: "A4",
+            printBackground: true
+        });
+
+        await browser.close();
+
+        return pdf;
+    }
+
+    async generateVendorInvoice(orderItemId, vendorId) {
+
+        const orderItem = await OrderItemsModel.findOne({
+            _id: orderItemId,
+            vendorId
+        }).lean();
+
+        if (!orderItem) throw new NotFoundError("Order item not found");
+
+        const qr = await QR(
+            `${orderItemId}`
+        );
+
+        const html = vendorInvoiceTemplate({
+            orderItemId,
+            vendorName: "Vendor",
+            products: orderItem.products,
+            totalPrice: orderItem.totalPrice,
+            qr
+        });
+
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+
+        await page.setContent(html);
+
+        const pdf = await page.pdf({
+            format: "A4",
+            printBackground: true
+        });
+
+        await browser.close();
+        return pdf;
+    }
+
+    /// vendor dashboard sales summary
+    async getVendorSalesSummary(vendorId, query = {}) {
+        const { filter: dateFilter, period } = buildDateFilter(query);
+        const [orders, refundedRequests] = await Promise.all([
+
+            OrderItemsModel.find({
+                vendorId,
+                ...dateFilter
+            }).lean(),
+
+            ReturnRequestModel.find({
+                vendorId,
+                status: "REFUNDED",
+                ...dateFilter
+            }).lean()
+
+        ]);
+
+        let totalRevenue = 0;
+
+        const summary = {
+            totalOrders: orders.length,
+            pendingOrders: 0,
+            confirmedOrders: 0,
+            processingOrders: 0,
+            partiallyShippedOrders: 0,
+            outForDeliveryOrders: 0,
+            deliveredOrders: 0,
+            cancelledOrders: 0
+        };
+
+        for (const order of orders) {
+
+            switch (order.orderItemsStatus) {
+
+                case orderStatus.PENDING:
+                    summary.pendingOrders++;
+                    break;
+
+                case orderStatus.CONFIRMED:
+                    summary.confirmedOrders++;
+                    break;
+
+                case orderStatus.PROCESSING:
+                    summary.processingOrders++;
+                    break;
+
+                case orderStatus.PARTIALLY_SHIPPED:
+                    summary.partiallyShippedOrders++;
+                    break;
+
+                case orderStatus.OUT_FOR_DELIVERY:
+                    summary.outForDeliveryOrders++;
+                    break;
+
+                case orderStatus.DELIVERED:
+                    summary.deliveredOrders++;
+                    totalRevenue += order.totalPrice;
+                    break;
+
+                case orderStatus.CANCELLED:
+                    summary.cancelledOrders++;
+                    break;
+            }
+        }
+
+        for (const refund of refundedRequests) {
+            totalRevenue -= refund.refundAmount;
+        }
+
+        return {
+            period,
+            ...summary,
+            totalRevenue,
+            averageOrderValue:
+                summary.deliveredOrders > 0
+                    ? Number((totalRevenue / summary.deliveredOrders).toFixed(2))
+                    : 0
+        };
+    }
+
+    /// admin dashboard sales summary
+    async getAdminSalesSummary(query = {}) {
+
+        const { filter: dateFilter, period } = buildDateFilter(query);
+
+        const [orders, refundedRequests] = await Promise.all([
+
+            OrderModel.find(dateFilter).lean(),
+
+            ReturnRequestModel.find({
+                status: "REFUNDED",
+                ...dateFilter
+            }).lean()
+
+        ]);
+
+        let grossSales = 0;
+
+        const summary = {
+            totalOrders: orders.length,
+            pendingOrders: 0,
+            confirmedOrders: 0,
+            processingOrders: 0,
+            partiallyShippedOrders: 0,
+            outForDeliveryOrders: 0,
+            deliveredOrders: 0,
+            cancelledOrders: 0
+        };
+
+        for (const order of orders) {
+
+            switch (order.orderStatus) {
+
+                case orderStatus.PENDING:
+                    summary.pendingOrders++;
+                    break;
+
+                case orderStatus.CONFIRMED:
+                    summary.confirmedOrders++;
+                    break;
+
+                case orderStatus.PROCESSING:
+                    summary.processingOrders++;
+                    break;
+
+                case orderStatus.PARTIALLY_SHIPPED:
+                    summary.partiallyShippedOrders++;
+                    break;
+
+                case orderStatus.OUT_FOR_DELIVERY:
+                    summary.outForDeliveryOrders++;
+                    break;
+
+                case orderStatus.DELIVERED:
+                    summary.deliveredOrders++;
+                    grossSales += order.totalAmount;
+                    break;
+
+                case orderStatus.CANCELLED:
+                    summary.cancelledOrders++;
+                    break;
+            }
+        }
+
+        for (const refund of refundedRequests) {
+            grossSales -= refund.refundAmount;
+        }
+
+        return {
+            period,
+            ...summary,
+            grossSales,
+            averageOrderValue:
+                summary.deliveredOrders > 0
+                    ? Number((grossSales / summary.deliveredOrders).toFixed(2))
+                    : 0
         };
     }
 

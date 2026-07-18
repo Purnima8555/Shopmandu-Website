@@ -1,38 +1,76 @@
+
 import api from "./axios";
 
+/// Customer - Create return request
+export const createReturnRequestApi = async (formData) => {
+    const res = await api.post(
+        "/api/return",
+        formData,
+        {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        }
+    );
 
-//// Get all vendor order requests
-export const getVendorRequestsApi = async (params = {}) => {
-  const response = await api.get("/api/vendor", {
-    params,
-  });
-
-  return response.data;
+    return res.data;
 };
 
-//// Approve request
-export const approveRequestApi = async (requestId) => {
-  const response = await api.patch(
-    `/api/${requestId}/approve`
-  );
+/// Customer - Get my return requests
+export const getCustomerReturnRequestsApi = async (params = {}) => {
+    const res = await api.get(
+        "/api/return/customer",
+        { params }
+    );
 
-  return response.data;
+    return res.data;
 };
 
-//// Reject request
-export const rejectRequestApi = async (requestId) => {
-  const response = await api.patch(
-    `/api/${requestId}/reject`
-  );
+/// Vendor - Get return requests
+export const getVendorReturnRequestsApi = async (params = {}) => {
+    const res = await api.get(
+        "/api/return/vendor",
+        {
+            params,
+        }
+    );
 
-  return response.data;
+    return res.data;
 };
 
-//// Refund request
-export const refundRequestApi = async (requestId) => {
-  const response = await api.patch(
-    `/api/${requestId}/refund`
-  );
+/// Vendor - Approve
+export const approveReturnRequestApi = async (id) => {
+    const res = await api.patch(
+        `/api/return/${id}/approve`
+    );
 
-  return response.data;
+    return res.data;
+};
+
+/// Vendor - Reject
+export const rejectReturnRequestApi = async (id) => {
+    const res = await api.patch(
+        `/api/return/${id}/reject`
+    );
+
+    return res.data;
+};
+
+/// Vendor - Refund
+export const refundReturnRequestApi = async (id) => {
+    const res = await api.patch(
+        `/api/return/${id}/refund`
+    );
+
+    return res.data;
+};
+
+/// Admin
+export const getAllReturnRequestsApi = async (params = {}) => {
+    const res = await api.get(
+        "/api/return/admin",
+        { params }
+    );
+
+    return res.data;
 };

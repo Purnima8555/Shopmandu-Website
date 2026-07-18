@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { navItems } from "../data";
 import { KycStatusTag } from "../ui/KycStatusTag";
@@ -15,11 +15,19 @@ export default function Sidebar({
   const [productsMenuOpen, setProductsMenuOpen] = useState(true);
   const [ordersMenuOpen, setOrdersMenuOpen] = useState(true);
   const { shop } = useShopStore();
-  const { vendorKycStatus } = useVendorStore();
+  const { vendorKycStatus, getVendorKycStatus } = useVendorStore();
 
   const handleTabClick = (tabId) => {
     setCurrentTab(tabId);
   };
+
+useEffect(() => {
+  const fetchKycStatus = async () => {
+    await getVendorKycStatus();
+  };
+
+  fetchKycStatus();
+}, []);
 
   return (
     <aside

@@ -44,7 +44,7 @@ export default function Header({ onAddProductClick, searchQuery,setSearchQuery,o
           <button
             onClick={() => {
               setShowProfileDropdown(!showProfileDropdown)}}
-            className="flex items-center gap-3 p-1.5 pr-3 hover:bg-bg-surface rounded-[10px] transition-all text-left"
+            className="flex items-center gap-3 p-1.5 pr-3 hover:bg-bg-surface rounded-[10px] transition-all text-left cursor-pointer"
           >
             <img 
               src={user.avatar} 

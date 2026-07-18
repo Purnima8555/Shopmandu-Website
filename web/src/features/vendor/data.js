@@ -1,42 +1,54 @@
-
-
-import { ArrowLeftRight, CheckCircle2, LayoutDashboard, Package, PlusCircle, SettingsIcon, ShoppingBag, Store, DollarSign, ShoppingCart, RotateCcw, TrendingUp, AlertCircle, } from "lucide-react"
+import {
+  ArrowLeftRight,
+  CheckCircle2,
+  LayoutDashboard,
+  Package,
+  PlusCircle,
+  SettingsIcon,
+  ShoppingBag,
+  Store,
+  DollarSign,
+  ShoppingCart,
+  RotateCcw,
+  TrendingUp,
+  AlertCircle,
+} from "lucide-react";
 
 export const navItems = [
   {
-    id: 'dashboard',
-    label: 'Dashboard',
+    id: "dashboard",
+    label: "Dashboard",
     icon: LayoutDashboard,
   },
   {
-    id: 'shop',
-    label: 'Shop',
+    id: "shop",
+    label: "Shop",
     icon: Store,
     isGroup: true,
     subItems: [
-      { id: 'shop-profile', label: 'Shop Profile', icon: Store },
-      { id: 'kyc-verification', label: 'KYC Verification', icon: CheckCircle2 }
-    ]
+      { id: "shop-profile", label: "Shop Profile", icon: Store },
+      { id: "kyc-verification", label: "KYC Verification", icon: CheckCircle2 },
+    ],
   },
   {
-    id: 'products',
-    label: 'Products',
+    id: "products",
+    label: "Products",
     icon: Package,
     isGroup: true,
     subItems: [
-      { id: 'all-products', label: 'All Products', icon: Package },
-      { id: 'add-product', label: 'Add Product', icon: PlusCircle }
-    ]
+      { id: "all-products", label: "All Products", icon: Package },
+      { id: "add-product", label: "Add Product", icon: PlusCircle },
+    ],
   },
   {
-    id: 'orders',
-    label: 'Orders',
+    id: "orders",
+    label: "Orders",
     icon: ShoppingBag,
     isGroup: true,
     subItems: [
-      { id: 'all-orders', label: 'All Orders', icon: ShoppingBag },
-      { id: 'returns', label: 'Returns', icon: ArrowLeftRight }
-    ]
+      { id: "all-orders", label: "All Orders", icon: ShoppingBag },
+      { id: "returns", label: "Returns", icon: ArrowLeftRight },
+    ],
   },
   // {
   //   id: 'analytics',
@@ -44,13 +56,11 @@ export const navItems = [
   //   icon: BarChart3,
   // },
   {
-    id: 'settings',
-    label: 'Settings',
+    id: "settings",
+    label: "Settings",
     icon: SettingsIcon,
-  }
+  },
 ];
-
-
 
 export const getDashboardSummary = (summary, productsSummary) => [
   {
@@ -108,7 +118,6 @@ export const getDashboardSummary = (summary, productsSummary) => [
 ];
 
 export const filterOptions = {
-
   statuses: [
     { label: "Status: All", value: "ALL" },
     { label: "Active", value: "ACTIVE" },
@@ -136,15 +145,160 @@ export const filterOptions = {
 };
 
 export const filterOrders = [
-  { label: "All Orders", value: "", },
-  { label: "Pending", value: "PENDING", },
-  { label: "Confirmed", value: "CONFIRMED", },
-  { label: "Processing", value: "PROCESSING", },
-  { label: "Partially Shipped", value: "PARTIALLY_SHIPPED", },
-  { label: "Out for Delivery", value: "OUT_FOR_DELIVERY", },
-  { label: "Delivered", value: "DELIVERED", },
-  { label: "Cancelled", value: "CANCELLED", },
-  { label: "Return Requested", value: "RETURN_REQUESTED", },
-  { label: "Returned", value: "RETURNED", },
-  { label: "Failed", value: "FAILED", },
+  { label: "All Orders", value: "" },
+  { label: "Pending", value: "PENDING" },
+  { label: "Confirmed", value: "CONFIRMED" },
+  { label: "Processing", value: "PROCESSING" },
+  { label: "Partially Shipped", value: "PARTIALLY_SHIPPED" },
+  { label: "Out for Delivery", value: "OUT_FOR_DELIVERY" },
+  { label: "Delivered", value: "DELIVERED" },
+  { label: "Cancelled", value: "CANCELLED" },
+  { label: "Return Requested", value: "RETURN_REQUESTED" },
+  { label: "Returned", value: "RETURNED" },
+  { label: "Failed", value: "FAILED" },
 ];
+
+export const MONTHS = [
+  { value: 1, label: "January" },
+  { value: 2, label: "February" },
+  { value: 3, label: "March" },
+  { value: 4, label: "April" },
+  { value: 5, label: "May" },
+  { value: 6, label: "June" },
+  { value: 7, label: "July" },
+  { value: 8, label: "August" },
+  { value: 9, label: "September" },
+  { value: 10, label: "October" },
+  { value: 11, label: "November" },
+  { value: 12, label: "December" },
+];
+
+export const ORDER_STYLE = {
+  PENDING: { tone: "warning", label: "Pending" },
+  PROCESSING: { tone: "warning", label: "Processing" },
+  CONFIRMED: { tone: "info", label: "Confirmed" },
+  OUT_FOR_DELIVERY: { tone: "info", label: "Out For Delivery" },
+  DELIVERED: { tone: "success", label: "Delivered" },
+  CANCELLED: { tone: "danger", label: "Cancelled" },
+  RETURNED: { tone: "neutral", label: "Returned" },
+};
+
+export const STATUS_STYLES = {
+  success: "bg-success/10 text-success border border-success/20",
+  warning: "bg-warning/10 text-warning border border-warning/20",
+  danger: "bg-danger/10 text-danger border border-danger/20",
+  info: "bg-blue-500/10 text-blue-600 border border-blue-500/20",
+  neutral: "bg-muted text-muted-foreground border border-border",
+};
+
+export const VENDOR_STATUSES = [
+  "PENDING",
+  "CONFIRMED",
+  "PROCESSING",
+  "OUT_FOR_DELIVERY",
+  "DELIVERED",
+  "CANCELLED",
+  "RETURNED",
+];
+
+export const VENDOR_STATUS_TRANSITIONS = {
+  PENDING: [
+    "PENDING",
+    "CONFIRMED",
+    "OUT_FOR_DELIVERY",
+    "DELIVERED",
+    "CANCELLED",
+  ],
+  CONFIRMED: [
+    "CONFIRMED",
+    "PROCESSING",
+    "OUT_FOR_DELIVERY",
+    "DELIVERED",
+    "CANCELLED",
+  ],
+  PROCESSING: ["PROCESSING", "OUT_FOR_DELIVERY", "DELIVERED"],
+  OUT_FOR_DELIVERY: ["OUT_FOR_DELIVERY", "DELIVERED"],
+  DELIVERED: ["DELIVERED"],
+  CANCELLED: ["CANCELLED"],
+  RETURN_REQUESTED: ["RETURN_REQUESTED"],
+  RETURNED: ["RETURNED"],
+  FAILED: ["FAILED"],
+};
+
+export const ORDER_STATUS = {
+  PENDING: { tone: "warning", label: "Pending" },
+  PROCESSING: { tone: "warning", label: "Processing" },
+  CONFIRMED: { tone: "info", label: "Confirmed" },
+  OUT_FOR_DELIVERY: { tone: "info", label: "Out For Delivery" },
+  DELIVERED: { tone: "success", label: "Delivered" },
+  CANCELLED: { tone: "danger", label: "Cancelled" },
+  RETURNED: { tone: "neutral", label: "Returned" },
+};
+
+export const PAYMENT_STATUS = {
+  PAID: { tone: "success", label: "Paid" },
+  PENDING: { tone: "warning", label: "Pending" },
+  FAILED: { tone: "danger", label: "Failed" },
+  REFUNDED: { tone: "info", label: "Refunded" },
+  UNPAID: { tone: "neutral", label: "Unpaid" },
+  EXPIRED: { tone: "neutral", label: "Expired" },
+};
+
+export const RETURN_STATUS = {
+  PENDING: {
+    tone: "warning",
+    label: "Pending",
+  },
+
+  APPROVED: {
+    tone: "info",
+    label: "Approved",
+  },
+
+  REJECTED: {
+    tone: "danger",
+    label: "Rejected",
+  },
+
+  REFUNDED: {
+    tone: "success",
+    label: "Refunded",
+  },
+};
+
+export const RETURN_FILTERS = [
+  {
+    label: "All Returns",
+    value: "",
+  },
+
+  {
+    label: "Pending",
+    value: "PENDING",
+  },
+
+  {
+    label: "Approved",
+    value: "APPROVED",
+  },
+
+  {
+    label: "Rejected",
+    value: "REJECTED",
+  },
+
+  {
+    label: "Refunded",
+    value: "REFUNDED",
+  },
+];
+
+export const RETURN_STATUS_TRANSITIONS = {
+  PENDING: ["PENDING", "APPROVED", "REJECTED"],
+
+  APPROVED: ["APPROVED", "REFUNDED"],
+
+  REJECTED: ["REJECTED"],
+
+  REFUNDED: ["REFUNDED"],
+};

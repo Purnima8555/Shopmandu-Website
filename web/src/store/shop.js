@@ -1,7 +1,7 @@
 
 
 import { create } from "zustand"
-import {changeMyShopStatus, getKycStatus, getMyShop, updateShopInfo, uploadShopBanner, uploadShopLogo, searchShopsApi, createShop,} from "../api/shop"
+import {changeMyShopStatus, getKycStatus, getMyShop, updateShopInfo, uploadShopBanner, uploadShopLogo, searchShopsApi, createShop, updateShopStatusApi,} from "../api/shop"
 import { addProductImagesApi, createProduct, deleteProductImageApi, getAllMyProducts, getProductsSummary, updateProductInfoApi } from "../api/product.api";
 
 
@@ -9,6 +9,7 @@ const useShopStore = create((set) => ({
 
     ///states
     shop: [],
+    shops: [],
     loading: true,
     kycStatus: null,
     productsSummary: null,
@@ -18,7 +19,7 @@ const useShopStore = create((set) => ({
 
     //// create shop
 
-    createShop: async (shopData) => { 
+    createShop: async (shopData) => {
 
         try {
             const res = await createShop(shopData);
@@ -172,23 +173,23 @@ const useShopStore = create((set) => ({
         }
     },
 
-    updateShopStatus: async (statusPayload) => {
-        try {
-            set({ loading: true });
-            const res = await changeMyShopStatus(statusPayload);
-            set((state) => ({
-                shop: {
-                    ...state.shop,
-                    ShopStatus: res?.data?.ShopStatus || res?.data?.status || statusPayload.status
-                },
-                loading: false,
-            }));
-            return res?.data;
-        } finally{
+    // updateShopStatus: async (statusPayload) => {
+    //     try {
+    //         set({ loading: true });
+    //         const res = await changeMyShopStatus(statusPayload);
+    //         set((state) => ({
+    //             shop: {
+    //                 ...state.shop,
+    //                 ShopStatus: res?.data?.ShopStatus || res?.data?.status || statusPayload.status
+    //             },
+    //             loading: false,
+    //         }));
+    //         return res?.data;
+    //     } finally{
             
-            set({ loading: false });
-        }
-    },
+    //         set({ loading: false });
+    //     }
+    // },
 
     // Get all shops
     getAllShops: async (params = {}) => {
@@ -210,62 +211,83 @@ const useShopStore = create((set) => ({
         }
     },
 
+    // Update shop status
+    updateShopStatus: async (shopId, status) => {
+        try {
+            set({ loading: true });
+
+            const res = await updateShopStatusApi(shopId, {
+                status,
+            });
+
+            // Refresh shop list
+            await useShopStore.getState().getAllShops();
+
+            return res;
+        } catch (error) {
+            throw error.response?.data || error;
+        } finally {
+            set({ loading: false });
+        }
+    },
+
+
     // Update product information
-  updateProductInfo: async (productId, productData) => {
-    set({ loading: true });
+    updateProductInfo: async (productId, productData) => {
+        set({ loading: true });
 
-    try {
-      const res = await updateProductInfoApi(productId, productData);
+        try {
+        const res = await updateProductInfoApi(productId, productData);
 
-      set((state) => ({
-        myProducts: state.myProducts.map((product) =>
-          product._id === res.data._id ? res.data : product
-        ),
-      }));
+        set((state) => ({
+            myProducts: state.myProducts.map((product) =>
+            product._id === res.data._id ? res.data : product
+            ),
+        }));
 
-      return res;
-    } finally {
-      set({ loading: false });
-    }
-  },
+        return res;
+        } finally {
+        set({ loading: false });
+        }
+    },
 
-  // Add product images
-  addProductImages: async (productId, formData) => {
-    set({ loading: true });
+    // Add product images
+    addProductImages: async (productId, formData) => {
+        set({ loading: true });
 
-    try {
-      const res = await addProductImagesApi(productId, formData);
+        try {
+        const res = await addProductImagesApi(productId, formData);
 
-      set((state) => ({
-        myProducts: state.myProducts.map((product) =>
-          product._id === res.data._id ? res.data : product
-        ),
-      }));
+        set((state) => ({
+            myProducts: state.myProducts.map((product) =>
+            product._id === res.data._id ? res.data : product
+            ),
+        }));
 
-      return res;
-    } finally {
-      set({ loading: false });
-    }
-  },
+        return res;
+        } finally {
+        set({ loading: false });
+        }
+    },
 
-  // Delete product image
-  deleteProductImage: async (productId, imageUrl) => {
-    set({ loading: true });
+    // Delete product image
+    deleteProductImage: async (productId, imageUrl) => {
+        set({ loading: true });
 
-    try {
-      const res = await deleteProductImageApi(productId, imageUrl);
+        try {
+        const res = await deleteProductImageApi(productId, imageUrl);
 
-      set((state) => ({
-        myProducts: state.myProducts.map((product) =>
-          product._id === res.data._id ? res.data : product
-        ),
-      }));
+        set((state) => ({
+            myProducts: state.myProducts.map((product) =>
+            product._id === res.data._id ? res.data : product
+            ),
+        }));
 
-      return res;
-    } finally {
-      set({ loading: false });
-    }
-  },
+        return res;
+        } finally {
+        set({ loading: false });
+        }
+    },
 
 
 }))

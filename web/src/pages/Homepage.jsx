@@ -6,6 +6,7 @@ import Button from "../components/ui/Button";
 import { getFlashSaleProductsApi } from "../api/product.api";
 import ExploreProducts from "./Home/ExploreProducts";
 import BestSelling from "./Home/BestSelling";
+import { useNavigate } from "react-router-dom";
 
 
 function HomePage() {
@@ -20,6 +21,8 @@ function HomePage() {
       console.error("Error fetching flash sale products:", error);
     }
   };
+
+  const navigate = useNavigate()
 
 
   return (
@@ -46,7 +49,7 @@ function HomePage() {
             </p>
 
             <div className="flex flex-wrap gap-4 mt-10 animation-fade-in animation-delay-300">
-              <Button size="lg" onClick={flashSaleProducts} className="px-12 cursor-pointer">
+              <Button size="lg" onClick={()=>{flashSaleProducts(); navigate('/products')}} className="px-12 cursor-pointer">
                 Shop Now
               </Button>
             </div>

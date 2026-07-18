@@ -22,6 +22,8 @@ const Navbar = () => {
 
   // console.log(user);
   // const { loading } = useAuthStore();
+  const hideCustomerActions =
+    user?.roles?.includes("VENDOR") || user?.roles?.includes("ADMIN");
 
   return (
     <header className=" sticky top-0 z-50 bg-[var(--glass-bg  backdrop-blur-md  border-b border-border shadow-xs relative ">
@@ -100,29 +102,32 @@ const Navbar = () => {
               Login
             </Button>
           )}
-
+          
           {isAuthenticated && (
             <div className="flex items-center gap-2">
-              {/* Wishlist Link */}
-              <Link
-                to="/"
-                className="p-1 rounded-full hover:bg-surface transition"
-              >
-                <IoIosHeartEmpty size={20} />
-              </Link>
+              {!hideCustomerActions && (
+                <>
+                  {/* Wishlist Link */}
+                  <Link
+                    to="/wishlist"
+                    className="p-1 rounded-full hover:bg-surface transition"
+                  >
+                    <IoIosHeartEmpty size={20} />
+                  </Link>
 
-              {/* Cart Link */}
-              <Link
-                to="/cart"
-                className="relative p-1 rounded-full hover:bg-surface transition"
-              >
-                <PiShoppingCartSimple size={20} />
+                  {/* Cart Link */}
+                  <Link
+                    to="/cart"
+                    className="relative p-1 rounded-full hover:bg-surface transition"
+                  >
+                    <PiShoppingCartSimple size={20} />
 
-                {/* Cart Count */}
-                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-white text-xs flex items-center justify-center">
-                  2
-                </span>
-              </Link>
+                    <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-white text-xs flex items-center justify-center">
+                      2
+                    </span>
+                  </Link>
+                </>
+              )}
 
               <UserAccountMenu
                 user={user}
@@ -132,7 +137,6 @@ const Navbar = () => {
               />
             </div>
           )}
-
           {/* Hamburger Menu */}
           <button
             onClick={() => setMobileMenue(!mobileMenue)}

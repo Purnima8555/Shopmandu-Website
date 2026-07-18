@@ -6,11 +6,15 @@ import {
     updateOrderStatusApi,
     getAdminSalesSummaryApi,
     getAdminSalesTrendApi,
+    getCustomerOrderHistoryApi,
+    getCustomerOrderDetailApi,
     getVendorOrdersApi,
     getVendorSalesSummaryApi,
     getVendorSalesTrendApi,
     updateOrderItemStatusApi,
     getVendorInvoiceApi,
+    getCustomerInvoiceApi,
+    cancelCustomerOrderApi,
 } from "../api/order.api";
 
 const useOrderStore = create((set, get) => ({
@@ -20,6 +24,7 @@ const useOrderStore = create((set, get) => ({
     orderMetadata: {},
 
     selectedOrder: null,
+customerSelectedOrder: null,
 
     salesSummary: null,
     salesTrend: null,
@@ -51,52 +56,48 @@ const useOrderStore = create((set, get) => ({
     // Get order by ID
     getOrderById: async (orderId) => {
         try {
-            set({ loading: true });
+        set({ loading: true });
 
-            const res = await getOrderByIdApi(orderId);
+        const res = await getOrderByIdApi(orderId);
 
-            set({
-                selectedOrder: {
-                    ...res.data.order,
+        set({
+            selectedOrder: {
+            ...res.data.order,
 
-                    items: res.data.orderItems.flatMap((item) =>
-                        item.products.map((product) => ({
-                            productName: product.productId?.productName,
-                            productImage: product.productId?.images?.[0],
-                            quantity: product.quantity,
-                            price: product.price,
-                            total: product.quantity * product.price,
-                            variant: product.variant,
-                        })),
-                    ),
-                },
-            });
+            items: res.data.orderItems.flatMap((item) =>
+                item.products.map((product) => ({
+                productName: product.productId?.productName,
+                productImage: product.productId?.images?.[0],
+                quantity: product.quantity,
+                price: product.price,
+                total: product.quantity * product.price,
+                variant: product.variant,
+                })),
+            ),
+            },
+        });
 
-            return res;
-        } catch (error) {
-            throw error.response?.data || error;
+        return res;
         } finally {
-            set({ loading: false });
+        set({ loading: false });
         }
     },
 
     // Update Order Status
     updateOrderStatus: async (orderId, status) => {
         try {
-            set({ loading: true });
+        set({ loading: true });
 
-            const res = await updateOrderStatusApi({
-                orderId,
-                status,
-            });
+        const res = await updateOrderStatusApi({
+            orderId,
+            status,
+        });
 
-            await get().getAllOrders();
+        await get().getAllOrders();
 
-            return res;
-        } catch (error) {
-            throw error.response?.data || error;
+        return res;
         } finally {
-            set({ loading: false });
+        set({ loading: false });
         }
     },
 
@@ -112,8 +113,6 @@ const useOrderStore = create((set, get) => ({
             });
 
             return res;
-        } catch (error) {
-            throw error.response?.data || error;
         } finally {
             set({ loading: false });
         }
@@ -131,8 +130,41 @@ const useOrderStore = create((set, get) => ({
             });
 
             return res;
-        } catch (error) {
-            throw error.response?.data || error;
+        } finally {
+            set({ loading: false });
+        }
+    },
+
+    // customer history
+    getCustomerOrderHistory: async (params = {}) => {
+        try {
+            set({ loading: true });
+
+            const res = await getCustomerOrderHistoryApi(params);
+
+            set({
+            orders: res.orders?.data || [],
+            metadata: res.orders?.metadata || {},
+            });
+
+            return res;
+        } finally {
+            set({ loading: false });
+        }
+    },
+
+    // Customer Order Detail
+    getCustomerOrderDetail: async (orderId) => {
+        try {
+            set({ loading: true });
+
+            const res = await getCustomerOrderDetailApi(orderId);
+
+            set({
+                customerSelectedOrder: res.data,
+                });
+
+            return res;
         } finally {
             set({ loading: false });
         }
@@ -172,7 +204,6 @@ const useOrderStore = create((set, get) => ({
             set({ loading: false });
         }
     },
-
 
     // Vendor Sales Trend
     getVendorSalesTrend: async (params = {}) => {
@@ -227,6 +258,51 @@ const useOrderStore = create((set, get) => ({
 
             link.remove();
             window.URL.revokeObjectURL(url);
+        } finally {
+            set({ loading: false });
+        }
+    },
+
+    // Download Customer Invoice
+    downloadCustomerInvoice: async (orderId) => {
+        try {
+            set({ loading: true });
+
+            const pdfBlob = await getCustomerInvoiceApi(orderId);
+
+            const url = window.URL.createObjectURL(pdfBlob);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `invoice-${orderId}.pdf`;
+
+            document.body.appendChild(link);
+            link.click();
+
+            link.remove();
+
+            window.URL.revokeObjectURL(url);
+        } finally {
+            set({ loading: false });
+        }
+    },
+
+    // Cancel customer order
+    cancelCustomerOrder: async (orderId) => {
+        try {
+            set({ loading: true });
+
+            const res = await cancelCustomerOrderApi(orderId);
+
+            // Refresh the order history
+            await get().getCustomerOrderHistory();
+
+            // Refresh the currently opened order if it exists
+            if (get().customerSelectedOrder?.order?._id === orderId) {
+                await get().getCustomerOrderDetail(orderId);
+            }
+
+            return res;
         } finally {
             set({ loading: false });
         }

@@ -23,10 +23,7 @@ const orderPlace = async (req, res, next) => {
     try {
         const order = await orderService.placeNewOrder(userId, cartData)
 
-        res.status(200).json({
-            message: "Order Create.",
-            data: order
-        })
+        res.status(200).json(order)
 
     } catch (error) {
         await client.del(orderKey);
@@ -59,7 +56,7 @@ const getOrderHistory = async (req, res, next) => {
 
         const data = req.query
         const userId = req.user._id
-        console.log(data, userId)
+        // console.log(data, userId)
         const orders = await orderService.customerOrderHistory(userId, data)
 
         res.status(200).json({
@@ -198,7 +195,6 @@ const adminUpdateOrderStatus = async (req, res, next) => {
         });
 
     } catch (error) {
-         console.error(error);
         next(error);
     }
 };
@@ -287,8 +283,8 @@ const getAdminSalesTrend = async (req, res, next) => {
 
 const getVendorSalesTrend = async (req, res, next) => {
     try {
-
-        const vendorId = req.user.userId;
+        // console.log(req.user);
+        const vendorId = req.user._id;
 
         const data = await orderService.getVendorSalesTrend(
             vendorId,
