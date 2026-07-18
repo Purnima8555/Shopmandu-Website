@@ -2,13 +2,14 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { CiSearch } from "react-icons/ci";
 import Button from "../ui/Button";
 import { FaBars, FaTimes } from "react-icons/fa";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import NavLinks from "../ui/NavLinks";
 import { navLinks } from "../data/navigation";
 import useAuthStore from "../../store/authStore";
 import { PiShoppingCartSimple } from "react-icons/pi";
 import { IoIosHeartEmpty } from "react-icons/io";
 import UserAccountMenu from "../ui/UserAccountMenu";
+import useCartStore from "../../store/cartStore";
 // import Loader from "../common/Loader";
 
 const Navbar = () => {
@@ -19,9 +20,17 @@ const Navbar = () => {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   const { isAuthenticated, user, logout } = useAuthStore();
+  const { cartCount, getCart } = useCartStore();
+  const totalItems = cartCount();
 
   // console.log(user);
   // const { loading } = useAuthStore();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      getCart();
+    }
+  }, [isAuthenticated, getCart]);
 
   return (
     <header className=" sticky top-0 z-50 bg-[var(--glass-bg  backdrop-blur-md  border-b border-border shadow-xs relative ">
@@ -119,9 +128,11 @@ const Navbar = () => {
                 <PiShoppingCartSimple size={20} />
 
                 {/* Cart Count */}
-                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-white text-xs flex items-center justify-center">
-                  2
-                </span>
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-white">
+                    {totalItems}
+                  </span>
+                )}
               </Link>
 
               <UserAccountMenu

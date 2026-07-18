@@ -139,3 +139,26 @@ export const KYC_STYLE = {
   reject: { tone: "danger", label: "Rejected" },
   rejected: { tone: "danger", label: "Rejected" },
 };
+
+
+export const ADMIN_EDITABLE_STATUSES = [
+  "PROCESSING",
+  "OUT_FOR_DELIVERY",
+  "DELIVERED",
+];
+
+export const ADMIN_STATUS_TRANSITIONS = {
+  PENDING: [],
+
+  CONFIRMED: ["PROCESSING"],
+
+  PROCESSING: ["OUT_FOR_DELIVERY", "DELIVERED"],
+
+  OUT_FOR_DELIVERY: ["DELIVERED"],
+
+  DELIVERED: [],
+
+  CANCELLED: [],
+
+  RETURNED: [],
+};

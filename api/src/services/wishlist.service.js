@@ -11,7 +11,7 @@ import { NotFoundError, BadRequestError } from "../utils/AppError.js";
 export const getWishlistService = async (userId) => {
   const wishlist = await WishlistModel.findOne({ user_id: userId }).populate(
     "items.productId",
-    "name images price discountPrice discountPercent stock rating brand slug",
+    "name images price discountPrice discountPercent stock rating brand slug totalReviews",
   );
 
   // Return empty wishlist shape if none exists yet

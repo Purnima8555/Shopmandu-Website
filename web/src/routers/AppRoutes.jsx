@@ -67,13 +67,12 @@ export default function AppRoutes() {
 
         {/*  any authenticated user  */}
         <Route element={<AuthenticatedRoute />}>
-          <Route path="cart" element={<CartPage />} />
-          <Route path="wishlist" element={<WishlistPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="checkout" element={<CheckoutPage />} />
           {/* USER only route, nested one level deeper for the role check */}
           <Route element={<RoleProtectedRoute roles={[Roles.USER_ROLE]} />}>
-            <Route path="user/dashboard" element={<div>User dashboard</div>} />
+            <Route path="cart" element={<CartPage />} />
+            <Route path="wishlist" element={<WishlistPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="checkout" element={<CheckoutPage />} />
 
           </Route>
         </Route>

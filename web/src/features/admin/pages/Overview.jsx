@@ -1,7 +1,6 @@
 import {
     CheckCircle2,
     DollarSign,
-    MoreHorizontal,
     Package,
     ShoppingCart,
 } from "lucide-react";
@@ -24,6 +23,7 @@ import { MONTHS } from "../data";
 /*  Helpers  */
 
 const CURRENT_YEAR = new Date().getFullYear();
+const CURRENT_MONTH = new Date().getMonth() + 1;
 
 const YEARS = Array.from(
   { length: CURRENT_YEAR - 2020 + 1 },
@@ -161,7 +161,11 @@ const AdminDashboardPage = () => {
               className="rounded-xl border border-border bg-card px-4 py-2 outline-none"
             >
               {MONTHS.map((m) => (
-                <option key={m.value} value={m.value}>
+                <option
+                  key={m.value}
+                  value={m.value}
+                  disabled={year === CURRENT_YEAR && m.value > CURRENT_MONTH}
+                >
                   {m.label}
                 </option>
               ))}
@@ -223,12 +227,6 @@ const AdminDashboardPage = () => {
                   {MONTHS.find((m) => m.value === month)?.label} {year}
                 </p>
               </div>
-
-              <ButtonRounded
-                variant="ghost"
-                size="default"
-                icon={MoreHorizontal}
-              />
             </div>
 
             {/* Revenue Summary */}

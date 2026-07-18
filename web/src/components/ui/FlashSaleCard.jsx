@@ -11,169 +11,169 @@ import useWishlistStore from "../../store/wishlistStore";
 import useCartStore from "../../store/cartStore";
 
 const FlashSaleCard = ({
-  _id,
-  name = "Products",
-  price = 0,
-  discountPrice = 0,
-  rating = 1,
-  images = [],
-  tag = "New",
-  totalReviews = 0,
-  flashSales = false,
-  discountPercent = 0,
-  slug = "",
+    _id,
+    name = "Products",
+    price = 0,
+    discountPrice = 0,
+    rating = 1,
+    images = [],
+    tag = "New",
+    totalReviews = 0,
+    flashSales = false,
+    discountPercent = 0,
+    slug = "",
 }) => {
-  const navigate = useNavigate();
+    const navigate = useNavigate();
 
-  // Wishlist
-  const {
-    wishlist,
-    getWishlist,
-    addToWishlist,
-    removeFromWishlist,
-    isInWishlist,
-  } = useWishlistStore();
+    // Wishlist
+    const {
+        wishlist,
+        getWishlist,
+        addToWishlist,
+        removeFromWishlist,
+        isInWishlist,
+    } = useWishlistStore();
 
-  // Cart
-  const {
-    cart,
-    getCart,
-    addToCart,
-    isInCart,
-  } = useCartStore();
+    // Cart
+    const {
+        cart,
+        getCart,
+        addToCart,
+        isInCart,
+    } = useCartStore();
 
-  useEffect(() => {
-    if (wishlist.length === 0) {
-      getWishlist();
-    }
+    useEffect(() => {
+        if (wishlist.length === 0) {
+            getWishlist();
+        }
 
-    if (cart.items?.length === 0) {
-      getCart();
-    }
-  }, []);
+        if (cart.items?.length === 0) {
+            getCart();
+        }
+    }, []);
 
-  const handleCardClick = (productSlug) => {
-    navigate(`/products/${productSlug}`);
-  };
+    const handleCardClick = (productSlug) => {
+        navigate(`/products/${productSlug}`);
+    };
 
-  const handleWishlistClick = async (e) => {
-    e.stopPropagation();
+    const handleWishlistClick = async (e) => {
+        e.stopPropagation();
 
-    try {
-      if (isInWishlist(_id)) {
-        await removeFromWishlist(_id);
-      } else {
-        await addToWishlist(_id);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleAddToCart = async (e) => {
-    e.stopPropagation();
-
-    try {
-      if (!isInCart(_id)) {
-        await addToCart(_id, 1);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  return (
-    <div
-      onClick={() => handleCardClick(slug)}
-      className="group bg-card rounded-sm border border-border shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
-    >
-      {/* Image */}
-      <div className="relative bg-surface p-3 h-72 overflow-hidden">
-        <img
-          src={images?.[0]}
-          alt={name}
-          className="w-full h-full rounded-sm object-cover transition duration-300 group-hover:scale-102"
-        />
-
-        {/* Badge */}
-        <span
-          className={`absolute left-5 top-6 px-3 py-1 rounded-lg text-sm font-semibold text-white ${
-            flashSales ? "bg-red-500" : "bg-green-600"
-          }`}
-        >
-          {flashSales ? `-${discountPercent}%` : tag}
-        </span>
-
-        {/* Wishlist */}
-        <div className="absolute right-5 top-4">
-          <ButtonRounded
-            icon={isInWishlist(_id) ? IoIosHeart : IoIosHeartEmpty}
-            variant="outline"
-            onClick={handleWishlistClick}
-            className="bg-white shadow-lg cursor-pointer"
-            iconSize={28}
-            iconClassName={
-              isInWishlist(_id)
-                ? "text-red-600"
-                : "text-gray-500"
+        try {
+            if (isInWishlist(_id)) {
+                await removeFromWishlist(_id);
+            } else {
+                await addToWishlist(_id);
             }
-          />
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const handleAddToCart = async (e) => {
+        e.stopPropagation();
+
+        try {
+            if (!isInCart(_id)) {
+                await addToCart(_id, 1);
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    return (
+        <div
+            onClick={() => handleCardClick(slug)}
+            className="group cursor-pointer overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:shadow-md"
+        >
+            {/* Image */}
+            <div className="relative h-72 overflow-hidden bg-surface p-3">
+                <img
+                    src={images?.[0]}
+                    alt={name}
+                    className="h-full w-full rounded-xl object-cover transition duration-300 group-hover:scale-105"
+                />
+
+                {/* Badge */}
+                <span
+                    className={`absolute left-3 top-3 rounded-lg px-3 py-1 text-sm font-semibold text-white ${
+                        flashSales ? "bg-[#B3543E]" : "bg-green-600"
+                    }`}
+                >
+                    {flashSales ? `−${discountPercent}%` : tag}
+                </span>
+
+                {/* Wishlist */}
+                <div className="absolute right-3 top-3">
+                    <ButtonRounded
+                        icon={isInWishlist(_id) ? IoIosHeart : IoIosHeartEmpty}
+                        variant="outline"
+                        onClick={handleWishlistClick}
+                        className="cursor-pointer bg-white shadow-lg"
+                        iconSize={22}
+                        iconClassName={
+                            isInWishlist(_id)
+                                ? "text-[#B3543E]"
+                                : "text-muted-foreground"
+                        }
+                    />
+                </div>
+
+                {/* Add to Cart */}
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                    <Button
+                        size="sm"
+                        variant={isInCart(_id) ? "primary" : "secondary"}
+                        className="cursor-pointer rounded-full"
+                        icon={isInCart(_id) ? BsCheckCircleFill : FiShoppingCart}
+                        iconPosition="left"
+                        iconsize={13}
+                        onClick={handleAddToCart}
+                    >
+                        {isInCart(_id) ? "In cart" : "Add to cart"}
+                    </Button>
+                </div>
+            </div>
+
+            {/* Product Info */}
+            <div className="p-4">
+                <h3 className="text-md min-h-[40px] font-semibold text-foreground line-clamp-2">
+                    {name}
+                </h3>
+
+                <div className="mt-1 flex items-center gap-2">
+                    <span className="text-xl font-bold text-primary">
+                        Rs. {discountPrice}
+                    </span>
+
+                    {price > discountPrice && discountPercent !== 0 && (
+                        <span className="text-lg text-muted-foreground line-through">
+                            Rs. {price}
+                        </span>
+                    )}
+                </div>
+
+                {/* Rating */}
+                <div className="mt-2 flex items-center gap-1">
+                    {[...Array(5)].map((_, index) => (
+                        <FaStar
+                            key={index}
+                            className={
+                                index < rating
+                                    ? "text-[#B7893F]"
+                                    : "text-muted-foreground/25"
+                            }
+                        />
+                    ))}
+
+                    <span className="ml-2 text-sm text-muted-foreground">
+                        ({totalReviews})
+                    </span>
+                </div>
+            </div>
         </div>
-
-        {/* Add to Cart */}
-        <div className="absolute left-1/2 bottom-2 -translate-x-1/2 translate-y-20 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-          <Button
-            size="sm"
-            variant={isInCart(_id) ? "primary" : "secondary"}
-            className="rounded-full cursor-pointer"
-            icon={isInCart(_id) ? BsCheckCircleFill : FiShoppingCart}
-            iconPosition="left"
-            iconsize={13}
-            onClick={handleAddToCart}
-          >
-            {isInCart(_id) ? "In Cart" : "Add To Cart"}
-          </Button>
-        </div>
-      </div>
-
-      {/* Product Info */}
-      <div className="p-4">
-        <h3 className="font-semibold text-md text-foreground line-clamp-2 min-h-[40px]">
-          {name}
-        </h3>
-
-        <div className="flex items-center gap-2 mt-2">
-          <span className="text-xl font-bold text-primary">
-            RS. {discountPrice}
-          </span>
-
-          {price > discountPrice && discountPercent !== 0 && (
-            <span className="text-lg text-muted-foreground line-through">
-              RS. {price}
-            </span>
-          )}
-        </div>
-
-        {/* Rating */}
-        <div className="flex items-center gap-1 mt-4">
-          {[...Array(5)].map((_, index) => (
-            <FaStar
-              key={index}
-              className={
-                index < rating
-                  ? "text-yellow-400"
-                  : "text-gray-300"
-              }
-            />
-          ))}
-
-          <span className="ml-2 text-sm text-muted-foreground">
-            ({totalReviews})
-          </span>
-        </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default FlashSaleCard;

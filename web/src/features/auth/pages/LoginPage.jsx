@@ -55,7 +55,7 @@ const loginHandelSubmit = async (data) => {
 
 
 
-  const continueWithGoogle = async () => {
+  const continueWithGoogle = async () => { 
     const url = await generateGoogleOauthUrl();
     window.location.href = url;
   };

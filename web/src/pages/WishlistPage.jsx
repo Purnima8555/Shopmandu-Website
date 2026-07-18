@@ -41,6 +41,7 @@ const WishlistPage = () => {
 
     return {
       id: product._id,
+      slug: product.slug,
       name: product.name,
       price: product.price,
       discountPrice:

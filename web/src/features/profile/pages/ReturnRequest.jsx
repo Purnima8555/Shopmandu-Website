@@ -26,8 +26,6 @@ const STATUS_CONFIG = {
     REFUNDED: { label: "Refunded", tone: "info" },
 };
 
-// Progress flow for the timeline. REJECTED is a terminal branch handled
-// separately rather than as a step, since it doesn't lead to "Refunded".
 const TIMELINE_STEPS = [
     { key: "SUBMITTED", label: "Request submitted" },
     { key: "PENDING", label: "Under review" },
