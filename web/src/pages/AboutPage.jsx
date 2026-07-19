@@ -1,17 +1,16 @@
 import React from 'react';
 import { FaUsers, FaBullseye, FaCheckCircle, FaFilm, FaTicketAlt, FaHeart, FaClock, FaShoppingBag } from 'react-icons/fa';
 
+import img1 from '../assets/images/img1.png';
+import img2 from '../assets/images/img2.png';
+import img3 from '../assets/images/img3.jpg';
+import img4 from '../assets/images/img4.png';
+
 const images = {
-  hero1:
-    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800",
-  hero2:
-    "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800",
-  hero3:
-    "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800",
-  hero4:
-    "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1200",
-  founder:
-    "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=700",
+  img1,
+  img2,
+  img3,
+  img4,
 };
 
 const AboutPage = () => {
@@ -122,7 +121,7 @@ const AboutPage = () => {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
                     <div className="absolute bottom-5 left-4 right-3 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                      <div className="text-sm font-bold">Shop spaces</div>
+                      <div className="text-sm font-bold">Safe and Swift Delivery</div>
                       <div className="text-xs text-white/80">Exclusive offers</div>
                     </div>
                   </div>
@@ -135,7 +134,7 @@ const AboutPage = () => {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
                     <div className="absolute bottom-5 left-4 right-3 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                      <div className="text-sm font-bold">Various Categories</div>
+                      <div className="text-sm font-bold">Customer Assistance</div>
                       <div className="text-xs text-white/80">Ultimate Quality</div>
                     </div>
                   </div>
@@ -150,8 +149,8 @@ const AboutPage = () => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
                   <div className="absolute bottom-6 left-4 right-3 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                    <div className="text-lg font-bold">Complete Package</div>
-                    <div className="text-sm text-white/80">Food & More</div>
+                    <div className="text-lg font-bold">Shopmandu Workplace</div>
+                    <div className="text-sm text-white/80">Professional setting</div>
                   </div>
                 </div>
               </div>
@@ -277,7 +276,7 @@ const AboutPage = () => {
         </div>
       </section>
       
-      <style jsx>{`
+      <style>{`
         @keyframes float {
           0%, 100% { transform: translateY(0px) rotate(0deg); }
           33% { transform: translateY(-10px) rotate(120deg); }
