@@ -1,25 +1,11 @@
 import { ImageIcon, Info, Minus, Plus, Upload, X } from "lucide-react";
 import { useMemo, useState } from "react";
-
 import Button from "../../../components/ui/Button";
 import Modal from "../../../components/ui/Modal";
+import { RETURN_REASONS } from "../data";
 
-const RETURN_REASONS = [
-  { value: "DEFECTIVE", label: "Defective product" },
-  { value: "WRONG_ITEM", label: "Wrong item" },
-  { value: "SIZE_ISSUE", label: "Size issue" },
-  { value: "NOT_AS_DESCRIBED", label: "Not as described" },
-  { value: "CHANGE_OF_MIND", label: "Changed my mind" },
-  { value: "OTHER", label: "Other" },
-];
 
-export default function ReturnForm({
-  order,
-  orderItems,
-  onSubmit,
-  loading,
-  onClose,
-}) {
+export default function ReturnForm({ order, orderItems, onSubmit, loading, onClose}) {
   const products = useMemo(() => {
     return orderItems.flatMap((vendorGroup) =>
       vendorGroup.products.map((product) => ({
@@ -289,7 +275,7 @@ export default function ReturnForm({
                   className="flex items-center gap-2 rounded-full bg-[#F1F0EC] py-1.5 pl-3 pr-2 text-xs text-[#23241F]"
                 >
                   <ImageIcon size={13} className="text-[#6B6A63]" />
-                  <span className="max-w-[140px] truncate">{image.name}</span>
+                  <span className="max-w-35 truncate">{image.name}</span>
                   <button
                     type="button"
                     onClick={() => removeImage(index)}

@@ -8,8 +8,10 @@ export const createCouponApi = async (data) => {
 };
 
 /// Get all coupons
-export const getAllCouponsApi = async () => {
-    const res = await api.get("/api/coupon");
+export const getAllCouponsApi = async (params = {}) => {
+    const res = await api.get("/api/coupon", {
+        params,
+    });
     return res.data;
 };
 

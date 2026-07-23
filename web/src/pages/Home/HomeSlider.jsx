@@ -48,10 +48,10 @@ const HomeSlider = () => {
                 {homeBannerSlider.map((item, index) => (
                   <div
                     key={index}
-                    className="relative min-w-full h-[500px] bg-gradient-to-br from-primary-light to-card"
+                    className="relative min-w-full h-125 bg-linear-to-br from-primary-light to-card"
                   >
                     {/* Background Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 via-black/30 to-transparent z-10" />
+                    <div className="absolute inset-0 bg-linear-to-r from-black/60 via-black/30 to-transparent z-10" />
 
                     {/* Image */}
                     <img

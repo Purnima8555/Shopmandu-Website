@@ -1,5 +1,7 @@
-import React from 'react';
-import { FaUsers, FaBullseye, FaCheckCircle, FaFilm, FaTicketAlt, FaHeart, FaClock, FaShoppingBag } from 'react-icons/fa';
+
+
+
+import { FaUsers, FaBullseye, FaCheckCircle,  FaTicketAlt, FaHeart, FaClock, FaShoppingBag } from 'react-icons/fa';
 
 import img1 from '../assets/images/img1.png';
 import img2 from '../assets/images/img2.png';
@@ -18,7 +20,7 @@ const AboutPage = () => {
     <div className="font-sans text-gray-800 min-h-screen">
       
       {/* Minimalist Dark Banner */}
-      <div className="relative mt-1 overflow-hidden bg-gradient-to-b from-slate-800 via-slate-700 to-slate-600 pt-10 pb-48">
+      <div className="relative mt-1 overflow-hidden bg-linear-to-t from-slate-800 via-slate-700 to-slate-600 pt-10 pb-48">
         {/* Geometric Background Pattern */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-0 left-0 w-full h-full"
@@ -31,7 +33,7 @@ const AboutPage = () => {
         </div>
         
         {/* Floating Particles */}
-        <div className="absolute inset-0">
+        {/* <div className="absolute inset-0">
           {[...Array(12)].map((_, i) => (
             <div
               key={i}
@@ -44,7 +46,7 @@ const AboutPage = () => {
               }}
             />
           ))}
-        </div>
+        </div> */}
 
         {/* Main Content with Split Layout */}
         <div className="relative z-10 px-6 md:px-16 max-w-7xl mx-auto">
@@ -104,7 +106,7 @@ const AboutPage = () => {
                     alt=" "
                     className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                  <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
                   <div className="absolute bottom-5 left-5 right-4 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                     <div className="text-sm font-bold">Smart Purchase</div>
                     <div className="text-xs text-white/80">Premium Experience</div>
@@ -119,7 +121,7 @@ const AboutPage = () => {
                       alt=" "
                       className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                    <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
                     <div className="absolute bottom-5 left-4 right-3 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                       <div className="text-sm font-bold">Safe and Swift Delivery</div>
                       <div className="text-xs text-white/80">Exclusive offers</div>
@@ -132,7 +134,7 @@ const AboutPage = () => {
                       alt=" "
                       className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                    <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
                     <div className="absolute bottom-5 left-4 right-3 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                       <div className="text-sm font-bold">Customer Assistance</div>
                       <div className="text-xs text-white/80">Ultimate Quality</div>
@@ -147,7 +149,7 @@ const AboutPage = () => {
                     alt=" "
                     className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                  <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
                   <div className="absolute bottom-6 left-4 right-3 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                     <div className="text-lg font-bold">Shopmandu Workplace</div>
                     <div className="text-sm text-white/80">Professional setting</div>

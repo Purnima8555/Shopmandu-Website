@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import useAuthStore from "../../../store/authStore";
+
 import { Save, Shield, User, Camera, Loader2 } from "lucide-react";
 import Input from "../../../components/ui/Input";
 import Button from "../../../components/ui/Button";
@@ -9,6 +9,7 @@ import { dismissToast, showSuccess } from "../../../utils/toast";
 import sendApiRequest from "../../../utils/sendApiRequest";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { updateUserName } from "../../../schemas/auth.validation";
+import useAuthStore from "../../auth/store/auth.store";
 
 const AccountSetting = () => {
   const { user, loading } = useAuthStore();
@@ -88,16 +89,16 @@ const AccountSetting = () => {
     <div className="space-y-8 max-w-4xl mx-auto animation-fade-in animation-delay-200">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-[#1F2937]">
+        <h1 className="text-3xl font-bold tracking-tight text-text-primary">
           Account Settings
         </h1>
-        <p className="text-sm text-[#64748B] mt-1">
+        <p className="text-sm text-text-secondary mt-1">
           Configure your personal login credentials and profile picture.
         </p>
       </div>
 
       <div className="bg-white p-6 rounded-2xl border border-[#DBE4EC] shadow-sm space-y-6">
-        <h3 className="font-bold text-lg text-[#1F2937] border-b border-slate-50 pb-3 flex items-center gap-2">
+        <h3 className="font-bold text-lg text-text-primary border-b border-slate-50 pb-3 flex items-center gap-2">
           <User className="w-5 h-5 text-[#6A89A7]" />
           Personal Profile
         </h3>
@@ -133,10 +134,10 @@ const AccountSetting = () => {
 
           <div className="flex flex-col items-center sm:items-start gap-3">
             <div>
-              <h4 className="font-bold text-[#1F2937] text-lg">
+              <h4 className="font-bold text-text-primary text-lg">
                 Profile Image
               </h4>
-              <p className="text-xs text-[#64748B]">
+              <p className="text-xs text-text-secondary">
                 JPG, PNG, WEBP or AVIF. Max 5MB
               </p>
             </div>
@@ -205,7 +206,7 @@ const AccountSetting = () => {
       </div>
 
       <div className="bg-white p-6 rounded-2xl border border-[#DBE4EC] shadow-sm space-y-6">
-        <h3 className="font-bold text-lg text-[#1F2937] border-b border-slate-50 pb-3 flex items-center gap-2">
+        <h3 className="font-bold text-lg text-text-primary border-b border-slate-50 pb-3 flex items-center gap-2">
           <Shield className="w-5 h-5 text-[#6A89A7]" />
           Security Credentials
         </h3>

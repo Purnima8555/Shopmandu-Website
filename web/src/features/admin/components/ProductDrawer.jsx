@@ -2,7 +2,6 @@
 import Drawer from "../../../components/ui/Drawer";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import Button from "../../../components/ui/Button";
-import ButtonRounded from "../../../components/ui/ButtonRounded";
 
 const ProductDrawer = ({ product, onClose }) => {
   if (!product) return null;

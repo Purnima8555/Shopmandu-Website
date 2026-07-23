@@ -21,9 +21,7 @@ export const createProductCategory = async (req, res, next) => {
 
 export const getAllProductCategories = async (req, res, next) => {
     try {
-        const categories = await categoryService.getAllCategories(
-            req.query
-        );
+        const categories = await categoryService.getAllCategories(req.query);
 
         res.status(200).json( categories);
     } catch (error) {

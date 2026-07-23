@@ -23,7 +23,8 @@ import client from "./config/redis.config.js"
 import paymentRouters from "./routes/payment.route.js"
 
 import couponRouters from "./routes/coupon.route.js"
-import categoryRoters from "./routes/category.route.js"
+import categoryRouters from "./routes/category.route.js"
+import contactUsRouters from "./routes/contactUs.route.js"
 import { errorMiddleware, RouteNotFoundMiddleware } from "./middleware/error.middleware.js";
 import helmet from "helmet"
 import cors from "cors"
@@ -64,7 +65,7 @@ app.use("/api", paymentRouters)
 app.use("/api/coupon", couponRouters)
 
 /// category Routers
-app.use("/api/category", categoryRoters)
+app.use("/api/category", categoryRouters)
 /// User Routes
 app.use("/api", userRouters);
 /// AI routes
@@ -74,11 +75,14 @@ app.use("/api/return", returnRouters);
 /// review routes
 app.use("/api/reviews", reviewRouters);
 
+/// contact us router 
+app.use("/api", contactUsRouters)
+
 /// error handel
 app.use(RouteNotFoundMiddleware);
 app.use(errorMiddleware);
 
-app.listen(PORT, "0.0.0.0", async () => {
+app.listen(PORT, async () => {
   await connectRedis()
   await cloudinaryConnect()
   await connectDB();

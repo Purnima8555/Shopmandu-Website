@@ -1,14 +1,14 @@
 import { forwardRef } from "react";
 
-const Input = forwardRef(({ className = "",  size = "default",  variant = "default",  type = "text",  label,  error,  helperText, placeholder="", icon: Icon, iconSize=14,  disabled = false,  ...props}, ref) => {
+const Input = forwardRef(( { className = "", size = "default", variant = "default", type = "text", multiline = false, label, error, helperText, placeholder = "", icon: Icon, iconSize = 14, disabled = false, rows = 5, ...props},ref) => {
     const baseWrapper = "flex flex-col gap-1 w-full";
-    const baseInput ="w-full outline-none transition-all duration-200 rounded-xl border bg-card text-foreground placeholder:text-muted-foreground disabled:opacity-50 disabled:cursor-not-allowed";
+
+    const baseInput =
+      "w-full outline-none transition-all duration-200 rounded-xl border bg-card text-foreground placeholder:text-muted-foreground disabled:opacity-50 disabled:cursor-not-allowed";
 
     const variants = {
       default: "border-border focus:border-primary focus:ring-2 focus:ring-primary-light",
-
       ghost: "border-transparent bg-surface focus:border-primary focus:ring-2 focus:ring-primary-light",
-
       outline: "border-border bg-transparent focus:border-primary",
     };
 
@@ -18,24 +18,43 @@ const Input = forwardRef(({ className = "",  size = "default",  variant = "defau
       lg: "px-5 py-4 text-lg",
     };
 
+    const inputClasses = `
+      ${baseInput}
+      ${variants[variant]}
+      ${sizes[size]}
+      ${multiline ? "resize-y min-h-32" : ""}
+      ${error ? "border-red-500 focus:border-red-500 focus:ring-red-200" : ""}
+    `;
+
     return (
       <div className={`${baseWrapper} ${className}`}>
-        {label && ( <label className="text-sm font-medium text-foreground flex items-center gap-2"> {Icon && <Icon size={iconSize} />}  {label} </label> )}
-
-        <input ref={ref} type={type} disabled={disabled} placeholder={placeholder}
-          className={`
-            ${baseInput}
-            ${variants[variant]}
-            ${sizes[size]}
-            ${error ? "border-red-500 focus:border-red-500 focus:ring-red-200" : ""} `}
-          {...props}/>
-
-        {error && (
-          <span className="text-xs text-red-500">
-            {error}
-          </span>
+        {label && (
+          <label className="text-sm font-medium text-foreground flex items-center gap-2">
+            {Icon && <Icon size={iconSize} />}
+            {label}
+          </label>
         )}
 
+        {multiline ? (
+          <textarea
+            ref={ref}
+            rows={rows}
+            disabled={disabled}
+            placeholder={placeholder}
+            className={inputClasses}
+            {...props}
+          />
+        ) : (
+          <input
+            ref={ref}
+            type={type}
+            disabled={disabled}
+            placeholder={placeholder}
+            className={inputClasses}
+            {...props}
+          />
+        )}
+        {error && <span className="text-xs text-red-500">{error}</span>}
         {helperText && !error && (
           <span className="text-xs text-muted-foreground">{helperText}</span>
         )}
@@ -43,7 +62,6 @@ const Input = forwardRef(({ className = "",  size = "default",  variant = "defau
     );
   }
 );
-
 Input.displayName = "Input";
 
 export default Input;

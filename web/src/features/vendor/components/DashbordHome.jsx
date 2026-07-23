@@ -1,30 +1,12 @@
-import {
-    CheckCircle2,
-    DollarSign,
-    MoreHorizontal,
-    Package,
-    ShoppingCart,
-} from "lucide-react";
-
+import {CheckCircle2,DollarSign,Package, ShoppingCart,} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import {Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,} from "recharts";
 
-import {
-    Area,
-    AreaChart,
-    CartesianGrid,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
-} from "recharts";
-
-import ButtonRounded from "../../../components/ui/ButtonRounded";
-import DashbordHomeHead from "../ui/DashbordHomeHead";
-import useOrderStore from "../../../store/orderStore";
 import { MONTHS } from "../data";
+import useOrderStore from "../../order/store/order.store";
+import DashbordHomeHead from "../ui/dashboard/DashbordHomeHead";
 
-/* -------------------------------- Helpers -------------------------------- */
-
+/*  Helpers  */
 const CURRENT_YEAR = new Date().getFullYear();
 const CURRENT_MONTH = new Date().getMonth() + 1;
 
@@ -79,7 +61,7 @@ const DashboardHome = () => {
 
         getVendorSalesSummary(params);
         getVendorSalesTrend(params);
-    }, [month, year]);
+    }, [month, year, getVendorSalesSummary, getVendorSalesTrend]);
 
     /* KPI Cards */
 

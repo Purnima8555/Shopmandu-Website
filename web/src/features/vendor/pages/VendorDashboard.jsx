@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
-import useShopStore from "../../../store/shop";
+
 import TabRander from "../components/TabRander";
-import useOrderStore from "../../../store/orderStore";
+import useOrderStore from "../../order/store/order.store";
+import useVendorProductManageStore from "../store/vendorManageProduct.store";
+import useShopStore from "../../shop/store/shop.store";
+
 
 const VendorDashboard = () => {
   const getMyshop = useShopStore((state) => state.getMyshop);
   const getMyKycStatus = useShopStore((state) => state.getMyKycStatus);
-  const getProductsSummary = useShopStore((state) => state.getProductsSummary);
+  const getProductsSummary = useVendorProductManageStore((state) => state.getProductsSummary);
   // const getAllMyProducts = useShopStore((state)=> state.getAllMyProducts)
   const { loading } = useShopStore();
 
@@ -16,7 +19,7 @@ const VendorDashboard = () => {
 
   useEffect(() => {
     getVendorSalesSummary();
-  }, []);
+  }, [getVendorSalesSummary]);
 
   useEffect(() => {
     getMyshop();
@@ -30,16 +33,16 @@ const VendorDashboard = () => {
   const [currentTab, setCurrentTab] = useState("dashboard");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [editingProduct, setEditingProduct] = useState(undefined);
+  // const [editingProduct, setEditingProduct] = useState(undefined);
 
   const handleAddProductHeaderClick = () => {
-    setEditingProduct(undefined);
+    // setEditingProduct(undefined);
     setCurrentTab("add-product");
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#1F2937] antialiased flex">
-      {/* 1. Left Sidebar Navigation */}
+    <div className="min-h-screen bg-bg-main text-text-primary antialiased flex">
+      {/*  Left Sidebar Navigation */}
       <Sidebar
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}

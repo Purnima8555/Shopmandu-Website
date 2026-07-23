@@ -1,9 +1,11 @@
 import { GoArrowRight } from "react-icons/go";
 import Button from "../../components/ui/Button";
-import useProductStore from "../../store/productStore";
+
 import { useEffect } from "react";
-import FlashSaleCard from "../../components/ui/FlashSaleCard";
+
 import Loader from "../../components/common/Loader";
+import useProductStore from "../../features/product/store/product.store";
+import ProductCard from "../../components/ui/ProductCard";
 // import Loader from "../../components/common/Loader";
 
 export default function BestSelling() {
@@ -58,7 +60,7 @@ export default function BestSelling() {
       {bestSellingProducts > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-7">
           {bestSellingProducts?.map((product) => (
-            <FlashSaleCard key={product._id} {...product} />
+            <ProductCard key={product._id} {...product} />
           ))}
         </div>
       )}

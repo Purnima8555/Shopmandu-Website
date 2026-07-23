@@ -3,19 +3,7 @@ import { FiX } from "react-icons/fi";
 import Input from "../../../components/ui/Input";
 import Button from "../../../components/ui/Button";
 import { addAddressApi, updateAddressApi } from "../../../api/address.api";
-
-const ADDRESS_TYPES = ["HOME", "OFFICE", "BILLING", "SHOP", "PICKUP", "OTHER"];
-
-const emptyForm = {
-  addressType: "HOME",
-  location: "",
-  city: "",
-  state: "",
-  mobile: "",
-  pincode: "",
-  landmark: "",
-  isDefault: false,
-};
+import { ADDRESS_TYPES, emptyForm } from "../data";
 
 // address: pass an existing address object to edit, or null/undefined to add a new one
 export const AddressFormModal = ({ isOpen, onClose, onSaved, address }) => {

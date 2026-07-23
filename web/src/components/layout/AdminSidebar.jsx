@@ -19,15 +19,15 @@ export default function AdminSidebar({
 
   return (
     <>
-      {/* ================= Mobile Backdrop ================= */}
+      {/* Mobile Backdrop  */}
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm md:hidden"
         />
       )}
 
-      {/* ================= Sidebar ================= */}
+      {/*  Sidebar  */}
       <aside
         className={`
           fixed left-0 top-0 z-50
@@ -54,7 +54,7 @@ export default function AdminSidebar({
           }
         `}
       >
-        {/* ================= Mobile Close Button ================= */}
+        {/*  Mobile Close Button  */}
         <button
           onClick={() => setMobileOpen(false)}
           className="absolute right-4 top-5 rounded-lg p-2 hover:bg-muted md:hidden"
@@ -62,7 +62,7 @@ export default function AdminSidebar({
           <X size={20} />
         </button>
 
-        {/* ================= Desktop Collapse ================= */}
+        {/*  Desktop Collapse  */}
         <button
           onClick={() => setCollapsed((v) => !v)}
           aria-label={
@@ -79,7 +79,7 @@ export default function AdminSidebar({
           )}
         </button>
 
-        {/* ================= Logo ================= */}
+        {/*  Logo  */}
         <div
           onClick={() => {
             navigate("/");
@@ -105,27 +105,27 @@ export default function AdminSidebar({
           )}
         </div>
 
-        {/* ================= Navigation ================= */}
-        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4">
+        {/*  Navigation  */}
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2">
           {ADMIN_NAV.map((section, index) => (
             <div
               key={index}
               className={
                 section.title
-                  ? "mt-6 first:mt-0"
+                  ? "mt-4 first:mt-0"
                   : ""
               }
             >
               {section.title &&
                 (collapsed ? (
-                  <div className="mx-2 my-3 border-t border-border" />
+                  <div className="mx-2 my-2 border-t border-border" />
                 ) : (
                   <p className="mb-2 px-4 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                     {section.title}
                   </p>
                 ))}
 
-              <div className="space-y-0.5">
+              <div className="space-y-0.2">
                 {section.items.map(
                   ({
                     label,
@@ -134,7 +134,7 @@ export default function AdminSidebar({
                   }) => (
                     <div
                       key={label}
-                      className="group relative"
+                      className="group relative!"
                     >
                       <NavLink
                         to={path}
@@ -179,7 +179,7 @@ export default function AdminSidebar({
 
                       {/* Tooltip */}
                       {collapsed && (
-                        <span className="pointer-events-none absolute left-full top-1/2 z-20 ml-2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-foreground px-2.5 py-1.5 text-xs font-medium text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                       <span className="pointer-events-none absolute left-full top-1/2 z-9999 ml-2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-foreground px-2.5 py-1.5 text-xs font-medium text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
                           {label}
                         </span>
                       )}

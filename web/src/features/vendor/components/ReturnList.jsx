@@ -1,20 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  CheckCircle,
-  Clock,
-  DollarSign,
-  XCircle,
-} from "lucide-react";
+import { CheckCircle, Clock, DollarSign, XCircle } from "lucide-react";
 
 import SummaryCard from "../ui/SummaryCard";
 import SearchInput from "../../../components/ui/SearchInput";
 import Selecter from "../../../components/ui/Selecter";
 import VendorPagination from "../ui/VendorPagination";
-import ReturnTable from "../ui/ReturnTable";
-import ReturnView from "../ui/ReturnView";
+import ReturnTable from "../ui/return/ReturnTable";
+import ReturnView from "../ui/return/ReturnView";
 
-import useReturnStore from "../../../store/returnStore";
 import { RETURN_FILTERS } from "../data";
+import useVendorReturnManage from "../store/vendroManageReturn.store";
 
 export const ReturnList = () => {
   const {
@@ -24,7 +19,7 @@ export const ReturnList = () => {
     selectedReturn,
     setSelectedReturn,
     getVendorReturnRequests,
-  } = useReturnStore();
+  } = useVendorReturnManage();
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -49,13 +44,7 @@ export const ReturnList = () => {
       search: searchInput,
       status: selectedStatus,
     });
-  }, [
-    page,
-    limit,
-    searchInput,
-    selectedStatus,
-    getVendorReturnRequests,
-  ]);
+  }, [page, limit, searchInput, selectedStatus, getVendorReturnRequests]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -65,22 +54,25 @@ export const ReturnList = () => {
     return () => clearTimeout(timeout);
   }, [fetchReturns]);
 
-  const summary = useMemo(() => ({
-    pending: returns.filter((r) => r.status === "PENDING").length,
-    approved: returns.filter((r) => r.status === "APPROVED").length,
-    rejected: returns.filter((r) => r.status === "REJECTED").length,
-    refunded: returns.filter((r) => r.status === "REFUNDED").length,
-  }), [returns]);
+  const summary = useMemo(
+    () => ({
+      pending: returns.filter((r) => r.status === "PENDING").length,
+      approved: returns.filter((r) => r.status === "APPROVED").length,
+      rejected: returns.filter((r) => r.status === "REJECTED").length,
+      refunded: returns.filter((r) => r.status === "REFUNDED").length,
+    }),
+    [returns],
+  );
 
   return (
     <div className="space-y-8 animate-fade-in relative">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-[#1F2937]">
+        <h1 className="text-3xl font-bold tracking-tight text-text-primary">
           Return Requests
         </h1>
 
-        <p className="mt-1 text-sm text-[#64748B]">
+        <p className="mt-1 text-sm text-text-secondary">
           Review disputes, approve returns and process customer refunds.
         </p>
       </div>
@@ -137,15 +129,9 @@ export const ReturnList = () => {
           </div>
 
           <div className="md:col-span-2">
-            <Selecter
-              value={selectedStatus}
-              onChange={handleFilterChange}
-            >
+            <Selecter value={selectedStatus} onChange={handleFilterChange}>
               {RETURN_FILTERS.map((status) => (
-                <option
-                  key={status.value}
-                  value={status.value}
-                >
+                <option key={status.value} value={status.value}>
                   {status.label}
                 </option>
               ))}
@@ -154,7 +140,7 @@ export const ReturnList = () => {
         </div>
 
         <VendorPagination
-          data={returns}
+
           metadata={metadata}
           page={page}
           setPage={setPage}

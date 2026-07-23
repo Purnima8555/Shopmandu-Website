@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import useAuthStore from "../../../store/authStore";
+
 import { Save, Shield, User, Camera, Loader2 } from "lucide-react";
 import Input from "../../../components/ui/Input";
 import Button from "../../../components/ui/Button";
@@ -9,6 +9,25 @@ import { dismissToast, showSuccess } from "../../../utils/toast";
 import sendApiRequest from "../../../utils/sendApiRequest";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { updateUserName } from "../../../schemas/auth.validation";
+import useAuthStore from "../../auth/store/auth.store";
+
+
+function SectionHeading({ eyebrow, title }) {
+  return (
+    <div className="mb-6">
+      <div>
+        {eyebrow && (
+          <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
+            {eyebrow}
+          </p>
+        )}
+        <h2 className="text-xl font-semibold tracking-tight text-[#1F2937]">
+          {title}
+        </h2>
+      </div>
+    </div>
+  );
+}
 
 const Settings = () => {
     const { user, loading } = useAuthStore();
@@ -77,24 +96,8 @@ const Settings = () => {
     showSuccess(res.message || "Password reset link sent.");
   };
     
-const displayFont = { fontFamily: "'Fraunces', Georgia, serif" };
 
-function SectionHeading({ eyebrow, title }) {
-  return (
-    <div className="mb-6">
-      <div>
-        {eyebrow && (
-          <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
-            {eyebrow}
-          </p>
-        )}
-        <h2 className="text-xl font-semibold tracking-tight text-[#1F2937]">
-          {title}
-        </h2>
-      </div>
-    </div>
-  );
-}
+
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">

@@ -1,16 +1,14 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import Modal from "../../../components/ui/Modal";
 import Input from "../../../components/ui/Input";
 import Button from "../../../components/ui/Button";
 
-import useCategoryStore from "../../../store/categoryStore";
 import { createCategorySchema } from "../../../schemas/category.validation";
-
 import sendApiRequest from "../../../utils/sendApiRequest";
 import { dismissToast, showSuccess } from "../../../utils/toast";
+import useCategoryStore from "../../product/store/category.store";
 
 const CreateCategoryModal = ({ category, onClose }) => {
   const {

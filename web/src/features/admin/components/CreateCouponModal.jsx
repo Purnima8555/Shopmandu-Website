@@ -6,11 +6,11 @@ import Modal from "../../../components/ui/Modal";
 import Input from "../../../components/ui/Input";
 import Button from "../../../components/ui/Button";
 
-import useCouponStore from "../../../store/couponStore";
 import { createCouponSchema } from "../../../schemas/coupon.validation";
 
 import sendApiRequest from "../../../utils/sendApiRequest";
 import { dismissToast, showSuccess } from "../../../utils/toast";
+import useCouponStore from "../../checkout/store/coupon.store";
 
 const CreateCouponModal = ({ onClose, coupon = null }) => {
   const { createCoupon, updateCoupon, loading } = useCouponStore();

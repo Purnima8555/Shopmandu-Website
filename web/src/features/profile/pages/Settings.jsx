@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import useAuthStore from "../../../store/authStore";
+
 import { Save, Shield, User, Camera, Loader2 } from "lucide-react";
 import Input from "../../../components/ui/Input";
 import Button from "../../../components/ui/Button";
@@ -9,6 +9,8 @@ import { dismissToast, showSuccess } from "../../../utils/toast";
 import sendApiRequest from "../../../utils/sendApiRequest";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { updateUserName } from "../../../schemas/auth.validation";
+import useAuthStore from "../../auth/store/auth.store";
+import { SectionHeading } from "../utils/profileHelper";
 
 const Settings = () => {
     const { user, loading } = useAuthStore();
@@ -77,24 +79,7 @@ const Settings = () => {
     showSuccess(res.message || "Password reset link sent.");
   };
     
-const displayFont = { fontFamily: "'Fraunces', Georgia, serif" };
 
-function SectionHeading({ eyebrow, title }) {
-  return (
-    <div className="mb-6">
-      <div>
-        {eyebrow && (
-          <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
-            {eyebrow}
-          </p>
-        )}
-        <h2 className="text-xl font-semibold tracking-tight text-[#1F2937]">
-          {title}
-        </h2>
-      </div>
-    </div>
-  );
-}
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
@@ -104,7 +89,7 @@ function SectionHeading({ eyebrow, title }) {
       />
 
       <div className="bg-white p-6 rounded-2xl border border-[#DBE4EC] shadow-sm space-y-6">
-        <h3 className="font-bold text-lg text-[#1F2937] border-b border-slate-50 pb-3 flex items-center gap-2">
+        <h3 className="font-bold text-lg text-text-primary border-b border-slate-50 pb-3 flex items-center gap-2">
           <User className="w-5 h-5 text-[#6A89A7]" />
           Personal Profile
         </h3>
@@ -145,8 +130,8 @@ function SectionHeading({ eyebrow, title }) {
 
           <div className="flex flex-col items-center sm:items-start gap-3">
             <div>
-              <h4 className="font-bold text-[#1F2937] text-lg">Profile Image</h4>
-              <p className="text-xs text-[#64748B]">JPG, PNG, WEBP or AVIF. Max 5MB</p>
+              <h4 className="font-bold text-text-primary text-lg">Profile Image</h4>
+              <p className="text-xs text-text-secondary">JPG, PNG, WEBP or AVIF. Max 5MB</p>
             </div>
 
             {selectedFile && (
@@ -210,7 +195,7 @@ function SectionHeading({ eyebrow, title }) {
       </div>
 
       <div className="bg-white p-6 rounded-2xl border border-[#DBE4EC] shadow-sm space-y-6">
-        <h3 className="font-bold text-lg text-[#1F2937] border-b border-slate-50 pb-3 flex items-center gap-2">
+        <h3 className="font-bold text-lg text-text-primary border-b border-slate-50 pb-3 flex items-center gap-2">
           <Shield className="w-5 h-5 text-[#6A89A7]" />
           Security Credentials
         </h3>

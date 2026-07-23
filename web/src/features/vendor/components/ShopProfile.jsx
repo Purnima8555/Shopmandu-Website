@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import useShopStore from "../../../store/shop";
+
 import {
   Save,
   Upload,
@@ -16,8 +16,9 @@ import { shopSchema } from "../../../schemas/shop.validation";
 import { getFormDetails } from "../util/shopProfile.helper";
 import sendApiRequest from "../../../utils/sendApiRequest";
 
-import CreateShopDrawer from "../ui/CreateShopDrawer";
-import useVendorStore from "../../../store/vendorStore";
+import CreateShopDrawer from "../ui/shop/CreateShopDrawer";
+import useVendorStore from "../store/vendor.store";
+import useShopStore from "../../shop/store/shop.store";
 
 const KYC_STATUS = Object.freeze({
   APPROVED: "APPROVE",
@@ -32,7 +33,7 @@ const ShopProfile = () => {
     updateShopLogo,
     updateShopBanner,
     updateShopInfo,
-    updateShopStatus,
+    updateVendorShopStatus,
   } = useShopStore();
 
   const { vendorKycStatus } = useVendorStore();
@@ -125,7 +126,7 @@ const ShopProfile = () => {
     setIsUpdatingStatus(true);
     const newStatus = shop.ShopStatus === "ACTIVE" ? "CLOSED" : "ACTIVE";
     const res = await sendApiRequest(() =>
-      updateShopStatus({ status: newStatus }),
+      updateVendorShopStatus({ status: newStatus }),
     );
     setIsUpdatingStatus(false);
     if (!res) return;
@@ -157,10 +158,10 @@ const ShopProfile = () => {
       {/* ── Page Header ── */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#1F2937]">
+          <h1 className="text-3xl font-bold tracking-tight text-text-primary">
             Shop Profile
           </h1>
-          <p className="text-sm text-[#64748B] mt-1">
+          <p className="text-sm text-text-secondary mt-1">
             Configure your public storefront banner, logo, and details.
           </p>
         </div>
@@ -172,7 +173,7 @@ const ShopProfile = () => {
             iconPosition="left"
             iconsize={18}
             onClick={() => setCreateShopOpen(true)}
-            className="cursor-pointer flex-shrink-0"
+            className="cursor-pointer shrink-0"
           >
             Create Shop
           </Button>
@@ -246,7 +247,7 @@ const ShopProfile = () => {
               />
             </div>
             <div className="mb-2">
-              <h3 className="font-bold text-lg text-[#1F2937]">
+              <h3 className="font-bold text-lg text-text-primary">
                 {shop?.shopName}
               </h3>
               {selectedLogo && (
@@ -261,9 +262,9 @@ const ShopProfile = () => {
           </div>
 
           {/* Status toggle */}
-          <div className="flex items-center gap-4 rounded-xl border border-[#DBE4EC] bg-[#F1F5F9] p-4">
+          <div className="flex items-center gap-4 rounded-xl border border-[#DBE4EC] bg-bg-surface p-4">
             <div>
-              <span className="block text-[10px] font-bold uppercase text-[#64748B]">
+              <span className="block text-[10px] font-bold uppercase text-text-secondary">
                 Status
               </span>
               <div className="flex items-center gap-2">
@@ -311,10 +312,10 @@ const ShopProfile = () => {
         className="bg-white p-6 rounded-2xl border border-[#DBE4EC] shadow-sm space-y-8"
       >
         <div className="border-b border-slate-50 pb-4">
-          <h3 className="font-bold text-lg text-[#1F2937]">
+          <h3 className="font-bold text-lg text-text-primary">
             Business Information
           </h3>
-          <p className="text-xs text-[#64748B]">
+          <p className="text-xs text-text-secondary">
             Updating these details will update your public storefront
             information.
           </p>
@@ -323,7 +324,7 @@ const ShopProfile = () => {
         {/* KYC lock notice — only visible when form is locked */}
         {isFormLocked && (
           <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-            <span className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-amber-400 mt-1.5" />
+            <span className="h-2 w-2 shrink-0 rounded-full bg-amber-400 mt-1.5" />
             <p className="text-xs text-amber-800 leading-relaxed">
               <span className="font-bold">Editing is disabled.</span>{" "}
               {kycStatus === KYC_STATUS.APPROVED && !shop?._id
@@ -403,7 +404,7 @@ const ShopProfile = () => {
           />
 
           <div className="md:col-span-2">
-            <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#64748B]">
+            <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-text-secondary">
               Shop Description
             </label>
             <textarea
@@ -429,7 +430,7 @@ const ShopProfile = () => {
             disabled={isUploading.info || isFormLocked}
             icon={Save}
             type="submit"
-            className={`min-w-[150px] ${isFormLocked ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+            className={`min-w-37.5 ${isFormLocked ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
           >
             {isUploading.info ? "Processing..." : "Save Changes"}
           </Button>

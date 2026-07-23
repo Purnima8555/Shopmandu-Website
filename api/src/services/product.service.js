@@ -222,14 +222,80 @@ class ProductService {
 
     //// get product by slug
     async getProductBySlug(productSlug) {
-
-        const product = await ProductModel.findOne({ slug: productSlug }, { vendorId: 0 })
+        const product = await ProductModel.findOne({ slug: productSlug }, { vendorId: 0 }).populate("shopId", "slugs shopName")
         if (!product) {
             throw new NotFoundError("Product not found")
         }
-
         return product
     }
+
+    //// search product and shop by there name as will as filter and sort 
+
+    async searchProductAndShop(query) {
+        const page = parseInt(query.page, 10) || 1;
+        const limit = parseInt(query.limit, 10) || 12;
+        const skip = (page - 1) * limit;
+
+        const keyword = query.search?.trim();
+
+        const productFilter = {
+            productStatus: productStatus.ACTIVE,
+        };
+
+        const shopFilter = {
+            ShopStatus: ShopStatus.ACTIVE_STATUS,
+        };
+
+        if (keyword) {
+            productFilter.name = {
+                $regex: keyword,
+                $options: "i",
+            };
+
+            shopFilter.shopName = {
+                $regex: keyword,
+                $options: "i",
+            };
+        }
+
+        const [products, shops, totalProducts, totalShops] = await Promise.all([
+            ProductModel.find(productFilter)
+                .populate("shopId", "shopName slugs logo")
+                .populate("categoryId", "name slug")
+                .skip(skip)
+                .limit(limit),
+
+            ShopModel.find(shopFilter)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+
+            ProductModel.countDocuments(productFilter),
+            ShopModel.countDocuments(shopFilter),
+        ]);
+
+        return {
+            metadata: {
+                currentPage: page,
+                limit,
+
+                totalProducts,
+                totalProductPages: Math.ceil(totalProducts / limit),
+                hasNextProductPage: page < Math.ceil(totalProducts / limit),
+                hasPrevProductPage: page > 1,
+
+                totalShops,
+                totalShopPages: Math.ceil(totalShops / limit),
+                hasNextShopPage: page < Math.ceil(totalShops / limit),
+                hasPrevShopPage: page > 1,
+            },
+
+            products,
+            shops,
+        };
+    }
+
+
 
     // get product by shop id
     async getProductByShop(shopId, data) {

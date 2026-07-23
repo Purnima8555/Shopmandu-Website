@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { navItems } from "../data";
-import { KycStatusTag } from "../ui/KycStatusTag";
-import useShopStore from "../../../store/shop";
-import useVendorStore from "../../../store/vendorStore";
+import { KycStatusTag } from "../ui/vendorKyc/KycStatusTag";
+
+import useVendorStore from "../store/vendor.store";
+import useShopStore from "../../shop/store/shop.store";
+
 
 export default function Sidebar({
   currentTab,
@@ -27,7 +29,7 @@ useEffect(() => {
   };
 
   fetchKycStatus();
-}, []);
+}, [getVendorKycStatus]);
 
   return (
     <aside
@@ -46,7 +48,7 @@ useEffect(() => {
               className="w-10 h-10 rounded-xl object-cover border border-[#DBE4EC]"
             />
             <div className="flex flex-col min-w-0">
-              <span className="font-sans font-semibold text-[#1F2937] text-sm truncate leading-tight">
+              <span className="font-sans font-semibold text-text-primary text-sm truncate leading-tight">
                 {shop.shopName}
               </span>
               <div className="mt-1">
@@ -88,7 +90,7 @@ useEffect(() => {
                 {!isCollapsed && (
                   <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="w-full relative text-left px-3 py-2 text-xs font-semibold text-[#64748B] uppercase tracking-wider flex items-center justify-between hover:text-[#1F2937] transition-colors"
+                    className="w-full relative text-left px-3 py-2 text-xs font-semibold text-text-secondary uppercase tracking-wider flex items-center justify-between hover:text-text-primary transition-colors"
                   >
                     <span>{item.label}</span>
                     <span className="text-[10px] transition-all duration-300 ">
@@ -121,7 +123,7 @@ useEffect(() => {
                           // title={isCollapsed ? sub.label : ''}
                         >
                           <Icon
-                            className={`w-5 h-5 flex-shrink-0 ${isSubActive ? "text-primary" : "text-text-secondary group-hover:text-text-primary"}`}
+                            className={`w-5 h-5 shrink-0 ${isSubActive ? "text-primary" : "text-text-secondary group-hover:text-text-primary"}`}
                           />
                           {!isCollapsed && (
                             <span className="truncate">{sub.label}</span>
@@ -153,7 +155,7 @@ useEffect(() => {
                 // title={isCollapsed ? item.label : ''}
               >
                 <Icon
-                  className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-primary" : "text-text-secondary group-hover:text-text-primary"}`}
+                  className={`w-5 h-5 shrink-0 ${isActive ? "text-primary" : "text-text-secondary group-hover:text-text-primary"}`}
                 />
                 {!isCollapsed && <span className="truncate">{item.label}</span>}
                 {isCollapsed && (
@@ -171,7 +173,7 @@ useEffect(() => {
       <div className="p-4 border-t border-[#DBE4EC]">
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="w-full flex items-center justify-center gap-2 py-2 px-3 hover:bg-[#F1F5F9] text-[#64748B] hover:text-[#1F2937] rounded-xl transition-all font-medium text-sm"
+          className="w-full flex items-center justify-center gap-2 py-2 px-3 hover:bg-bg-surface text-text-secondary hover:text-text-primary rounded-xl transition-all font-medium text-sm"
         >
           {isCollapsed ? (
             <>

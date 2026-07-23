@@ -1,8 +1,9 @@
 import { FiTrash2, FiShoppingCart, FiCheck } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
 
-import useCartStore from "../../../store/cartStore";
+
 import { useNavigate } from "react-router-dom";
+import useCartStore from "../../cart/store/cart.store";
 
 const TAG_STYLES = {
     NEW: "bg-primary",
@@ -23,9 +24,9 @@ export const WishlistProductCard = ({
     onAddToCart,
 }) => {
     const hasDiscount = price > discountPrice;
-    const discountPercent = hasDiscount
-        ? Math.round(((price - discountPrice) / price) * 100)
-        : 0;
+    // const discountPercent = hasDiscount
+    //     ? Math.round(((price - discountPrice) / price) * 100)
+    //     : 0;
 
     const { isInCart } = useCartStore();
     const inCart = isInCart(id);

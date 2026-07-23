@@ -14,10 +14,11 @@ import Button from "../../../components/ui/Button";
 import Drawer from "../../../components/ui/Drawer";
 import StatusBadge from "../../../components/ui/StatusBadge";
 
-import useVendorStore from "../../../store/vendorStore";
-import { dismissToast, showSuccess } from "../../../utils/toast";
 
-// ---------------- Section Header ----------------
+import { dismissToast, showSuccess } from "../../../utils/toast";
+import useManageVendorStore from "../store/adminManageVendor.store";
+
+//  Section Header 
 const SectionHeader = ({ icon: Icon, children }) => (
   <div className="mb-3 flex items-center gap-2">
     <Icon className="h-4 w-4 text-muted-foreground" />
@@ -25,7 +26,7 @@ const SectionHeader = ({ icon: Icon, children }) => (
   </div>
 );
 
-// ---------------- Field ----------------
+//  Field 
 const Field = ({ label, value, mono = false }) => (
   <div>
     <p className="text-xs text-muted-foreground">{label}</p>
@@ -36,7 +37,7 @@ const Field = ({ label, value, mono = false }) => (
   </div>
 );
 
-// ---------------- Avatar Initials ----------------
+//  Avatar Initials 
 const getInitials = (name) =>
   name
     ?.split(" ")
@@ -46,22 +47,19 @@ const getInitials = (name) =>
     .join("") || "?";
 
 const VendorDrawer = ({ vendor, onClose, kycDetail }) => {
-  if (!vendor) return null;
-
-  const { approveVendorKyc, rejectVendorKyc, getVendorById, getAllVendors } =
-    useVendorStore();
-
   // Dropdown value
   const [decision, setDecision] = useState("pending");
   // Reject textarea
   const [reason, setReason] = useState("");
   // Controls whether the reject textarea is visible
   const [showRejectForm, setShowRejectForm] = useState(false);
+  const { approveVendorKyc, rejectVendorKyc, getVendorById, getAllVendors } =useManageVendorStore();
+
 
   useEffect(() => {
     if (!vendor) return;
 
-    const currentStatus = vendor.kycStatus?.toLowerCase() || " ";
+    const currentStatus = vendor.kycStatus?.toLowerCase() || "";
 
     setDecision(currentStatus);
     setReason("");
@@ -70,7 +68,12 @@ const VendorDrawer = ({ vendor, onClose, kycDetail }) => {
     setShowRejectForm(false);
   }, [vendor]);
 
-  // ---------------- Approve ----------------
+  if (!vendor) return null;
+
+
+
+
+  //  Approve 
   const handleApprove = async () => {
     try {
       await approveVendorKyc(vendor._id);
@@ -88,7 +91,7 @@ const VendorDrawer = ({ vendor, onClose, kycDetail }) => {
     }
   };
 
-  // ---------------- Reject ----------------
+  //  Reject 
   const handleReject = async () => {
     if (!reason.trim()) {
       alert("Please enter a rejection reason.");
@@ -118,7 +121,7 @@ const VendorDrawer = ({ vendor, onClose, kycDetail }) => {
     }
   };
 
-  // ---------------- Dropdown ----------------
+  //  Dropdown 
   const handleDecisionChange = async (e) => {
     const value = e.target.value;
 
@@ -138,7 +141,7 @@ const VendorDrawer = ({ vendor, onClose, kycDetail }) => {
     setShowRejectForm(false);
   };
 
-  // ---------------- Status Badge ----------------
+  //  Status Badge 
   const accountTone =
     {
       ACTIVE: "success",
@@ -147,7 +150,7 @@ const VendorDrawer = ({ vendor, onClose, kycDetail }) => {
       DEACTIVATED: "neutral",
     }[vendor.accountStatus?.toUpperCase()] || "neutral";
 
-  // ---------------- Images ----------------
+  //  Images 
   const frontImage = kycDetail?.frontSideImageURL;
   const backImage = kycDetail?.backSideImageURL;
 
@@ -160,7 +163,7 @@ const VendorDrawer = ({ vendor, onClose, kycDetail }) => {
     >
       <div className="space-y-8">
         <div className="grid grid-cols-3 gap-6">
-          {/* ================= LEFT COLUMN ================= */}
+          {/*  LEFT COLUMN  */}
           <div className="space-y-5">
             <section className="rounded-xl border border-border bg-card p-5">
               {/* Avatar + Status */}
@@ -204,7 +207,7 @@ const VendorDrawer = ({ vendor, onClose, kycDetail }) => {
                 </div>
               </div>
 
-              {/* ================= Reject Form ================= */}
+              {/*  Reject Form  */}
               {showRejectForm && (
                 <div className="mt-6 rounded-xl border border-primary/30 bg-primary/5 p-4">
                   <h4 className="text-sm font-semibold text-destructive">
@@ -241,7 +244,7 @@ const VendorDrawer = ({ vendor, onClose, kycDetail }) => {
                 </div>
               )}
 
-              {/* ================= Saved Rejection Message ================= */}
+              {/*  Saved Rejection Message  */}
               {!showRejectForm &&
                 vendor.rejectionReason &&
                 vendor.kycStatus?.toUpperCase() !== "APPROVE" && (
@@ -256,7 +259,7 @@ const VendorDrawer = ({ vendor, onClose, kycDetail }) => {
                   </div>
                 )}
 
-              {/* ================= Identity Information ================= */}
+              {/*  Identity Information  */}
               <div className="mt-6 border-t border-border pt-6">
                 <SectionHeader icon={IdCard}>
                   Identity Information
@@ -287,9 +290,9 @@ const VendorDrawer = ({ vendor, onClose, kycDetail }) => {
             </section>
           </div>
 
-          {/* ================= RIGHT COLUMN ================= */}
+          {/*  RIGHT COLUMN  */}
           <div className="col-span-2 space-y-6">
-            {/* ================= Vendor Information ================= */}
+            {/*  Vendor Information  */}
             <section>
               <SectionHeader icon={Mail}>Vendor Information</SectionHeader>
 
@@ -311,7 +314,7 @@ const VendorDrawer = ({ vendor, onClose, kycDetail }) => {
               </div>
             </section>
 
-            {/* ================= Bank Details ================= */}
+            {/*  Bank Details  */}
             <section>
               <SectionHeader icon={Banknote}>Bank Details</SectionHeader>
 
@@ -333,7 +336,7 @@ const VendorDrawer = ({ vendor, onClose, kycDetail }) => {
               </div>
             </section>
 
-            {/* ================= Uploaded Documents ================= */}
+            {/*  Uploaded Documents  */}
 
             <section>
               <SectionHeader icon={FileText}>Uploaded Documents</SectionHeader>
@@ -391,7 +394,7 @@ const VendorDrawer = ({ vendor, onClose, kycDetail }) => {
           </div>
         </div>
 
-        {/* ================= Footer ================= */}
+        {/*  Footer  */}
         <section className="flex items-center gap-2 border-t border-border pt-4 text-xs text-muted-foreground">
           <Calendar className="h-3.5 w-3.5" />
           <span>

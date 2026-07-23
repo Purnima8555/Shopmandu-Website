@@ -1,149 +1,159 @@
 import { useState } from "react";
-import { FiPhone, FiMail } from "react-icons/fi";
+import { FiPhone, FiMail, FiMapPin } from "react-icons/fi";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import { dismissToast, showSuccess, showError } from "../utils/toast";
-// import { submitContactForm } from "../api/contactApi";
+import { sendContactEmail } from "../api/contactUs.api";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { contactUsSchema } from "../schemas/contactUsForm.validation";
 
 const ContactPage = () => {
-  const [formData, setFormData] = useState({ name: "", email: "", phone: "", message: "" });
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(contactUsSchema),
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState({});
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setFieldErrors({});
+  const onSubmit = async (data) => {
     setIsSubmitting(true);
-
     try {
-      await submitContactForm(formData);
+      const response = await sendContactEmail(data);
       dismissToast();
-      showSuccess("Your message has been sent. We'll get back to you soon.");
-      setFormData({ name: "", email: "", phone: "", message: "" });
+      showSuccess(
+        response.message ||
+          "Your message has been sent. We'll get back to you soon.",
+      );
+      reset();
     } catch (err) {
       dismissToast();
-      if (err.fieldErrors) setFieldErrors(err.fieldErrors);
-      showError(err.message || "Something went wrong. Please try again.");
+      const response = err.response?.data;
+      showError(
+        response?.message ||
+          "Failed to send your message. Please try again later.",
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 max-w-7xl">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 mb-8">
-          <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary-light text-primary">
-            <FiPhone size={16} />
-          </span>
-          <span className="text-sm text-muted-foreground">Contact Us</span>
+    <div className="min-h-screen bg-gray-50/50 dark:bg-background">
+      <div className="container mx-auto px-4 py-12 lg:py-20 max-w-7xl">
+        {/* Header Section */}
+        <div className="max-w-2xl mb-12">
+          <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+            Get in touch
+          </h1>
+          <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
+            Have questions about our products or need assistance? Our team is
+            here to help you every step of the way.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8">
-          {/* Contact details */}
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-            <div className="flex items-start gap-4">
-              <span className="flex items-center justify-center w-11 h-11 rounded-full bg-primary text-white flex-shrink-0">
-                <FiPhone size={18} />
-              </span>
-              <div>
-                <h3 className="font-semibold text-foreground">Call To Us</h3>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  We are available 24/7, 7 days a week.
-                </p>
-                <p className="mt-1 text-sm text-foreground">Phone: +977 11112222</p>
-              </div>
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+          {/* Contact Details Panel */}
+          <div className="lg:col-span-4 space-y-6">
+            <div className="p-8 bg-primary rounded-3xl text-white shadow-xl shadow-primary/20">
+              <h3 className="text-2xl font-semibold mb-6">
+                Contact Information
+              </h3>
 
-            <div className="my-6 border-t border-border" />
+              <div className="space-y-8">
+                <div className="flex gap-4">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md shrink-0">
+                    <FiPhone size={24} />
+                  </div>
+                  <div>
+                    <p className="text-white/70 text-sm">Call us directly</p>
+                    <p className="font-medium text-lg">+977 11112222</p>
+                    <p className="text-sm text-white/60">
+                      Mon-Fri from 9am to 6pm
+                    </p>
+                  </div>
+                </div>
 
-            <div className="flex items-start gap-4">
-              <span className="flex items-center justify-center w-11 h-11 rounded-full bg-primary text-white flex-shrink-0">
-                <FiMail size={18} />
-              </span>
-              <div>
-                <h3 className="font-semibold text-foreground">Write To Us</h3>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Fill out our form and we will contact you within 24 hours.
-                </p>
-                <p className="mt-1 text-sm text-foreground">Email: customer@shopmandu.com</p>
-                <p className="text-sm text-foreground">Email: support@shopmandu.com</p>
+                <div className="flex gap-4">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md shrink-0">
+                    <FiMail size={24} />
+                  </div>
+                  <div>
+                    <p className="text-white/70 text-sm">Email support</p>
+                    <p className="font-medium text-lg text-break">
+                      example@shopmandu.com
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md shrink-0">
+                    <FiMapPin size={24} />
+                  </div>
+                  <div>
+                    <p className="text-white/70 text-sm">Our Location</p>
+                    <p className="font-medium text-lg">Kathmandu, Nepal</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Contact form */}
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <Input
-                    name="name"
-                    placeholder="Your Name"
-                    variant="ghost"
-                    required
-                    value={formData.name}
-                    onChange={handleChange}
-                  />
-                  {fieldErrors.name && (
-                    <p className="mt-1 text-xs text-red-500">{fieldErrors.name}</p>
-                  )}
-                </div>
-                <div>
-                  <Input
-                    name="email"
-                    type="email"
-                    placeholder="Your Email"
-                    variant="ghost"
-                    required
-                    value={formData.email}
-                    onChange={handleChange}
-                  />
-                  {fieldErrors.email && (
-                    <p className="mt-1 text-xs text-red-500">{fieldErrors.email}</p>
-                  )}
-                </div>
-                <div>
-                  <Input
-                    name="phone"
-                    type="tel"
-                    placeholder="Your Phone"
-                    variant="ghost"
-                    required
-                    value={formData.phone}
-                    onChange={handleChange}
-                  />
-                  {fieldErrors.phone && (
-                    <p className="mt-1 text-xs text-red-500">{fieldErrors.phone}</p>
-                  )}
-                </div>
-              </div>
+          {/* Contact Form Card */}
+          <div className="lg:col-span-8  bg-card border border-border rounded-3xl p-8 sm:p-10 shadow-sm">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-15">
+              <Input
+                label="Full Name"
+                placeholder="Enter your full name"
+                variant="outline"
+                className="h-12 bg-gray-50/50 dark:bg-accent/50"
+                error={errors.name?.message}
+                {...register("name")}
+              />
 
-              <div>
-                <Input
-                  name="message"
-                  placeholder="Your Message"
-                  variant="ghost"
-                  multiline
-                  rows={7}
-                  required
-                  value={formData.message}
-                  onChange={handleChange}
-                />
-                {fieldErrors.message && (
-                  <p className="mt-1 text-xs text-red-500">{fieldErrors.message}</p>
-                )}
-              </div>
+              <Input
+                label="Email Address"
+                type="email"
+                placeholder="example@gmail.com"
+                variant="outline"
+                className="h-12 bg-gray-50/50 dark:bg-accent/50"
+                error={errors.email?.message}
+                {...register("email")}
+              />
 
-              <div className="flex justify-end">
-                <Button type="submit" className="px-8 cursor-pointer" disabled={isSubmitting}>
-                  {isSubmitting ? "Sending..." : "Send Message"}
+              <Input
+                label="Phone Number"
+                type="tel"
+                placeholder="+977 98XXXXXXXX"
+                variant="outline"
+                className="h-12 bg-gray-50/50 dark:bg-accent/50"
+                error={errors.phone?.message}
+                {...register("phone")}
+              />
+
+              <Input
+                label="Message"
+                placeholder="Tell us how we can help..."
+                variant="outline"
+                multiline={true}
+                rows={6}
+                className="bg-gray-50/50 dark:bg-accent/50"
+                error={errors.message?.message}
+                {...register("message")}
+              />
+
+              <div className="pt-3">
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full md:w-auto min-w-45"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Sending Message..." : "Send Message"}
                 </Button>
               </div>
             </form>

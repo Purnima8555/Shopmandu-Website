@@ -1,9 +1,10 @@
-import React, { useState } from "react";
-import { Edit3, ChevronRight, Mail, Phone } from "lucide-react";
+import  { useState } from "react";
+import { Edit3, Mail, Phone } from "lucide-react";
 
 import ProfileTabs from "../components/ProfileTabs";
 import Button from "../../../components/ui/Button";
-import useAuthStore from "../../../store/authStore";
+import useAuthStore from "../../auth/store/auth.store";
+
 
 const displayFont = {
     fontFamily: "'Fraunces', Georgia, serif",

@@ -6,7 +6,6 @@ const Popup = ({
     children,
     isOpen,
     onClose,
-
     showFooter = false,
     confirmText = "Confirm",
     cancelText = "Cancel",

@@ -1,6 +1,6 @@
 import * as couponService from "../services/coupon.service.js";
 
-// POST /coupons — create
+// POST create
 export const createCoupon = async (req, res, next) => {
     try {
         const coupon = await couponService.createCouponService(req.user._id, req.body);
@@ -10,11 +10,11 @@ export const createCoupon = async (req, res, next) => {
     }
 };
 
-// GET /coupons — list all
+//// GET coupons  list all
 export const getAllCoupons = async (req, res, next) => {
     try {
-        const coupons = await couponService.getAllCouponsService();
-        res.status(200).json({ success: true, data: coupons });
+        const result = await couponService.getAllCouponsService(req.query);
+        res.status(200).json(result);
     } catch (error) {
         next(error);
     }

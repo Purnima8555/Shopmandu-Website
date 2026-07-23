@@ -79,7 +79,7 @@ const ExploreByCategory = () => {
 function CategoryCard({ title }) {
   return (
     <div className="group relative flex h-40 cursor-pointer items-center justify-center overflow-hidden rounded-2xl bg-primary-light transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-      <div className="absolute inset-0 bg-gradient-to-br from-black/5 to-black/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      <div className="absolute inset-0 bg-linear-to-br from-black/5 to-black/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
       <h3 className="relative z-10 text-3xl font-serif text-foreground">
         {title}
       </h3>

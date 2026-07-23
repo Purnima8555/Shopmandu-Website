@@ -9,7 +9,8 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Popup from "../../components/ui/Popup";
-import useAuthStore from "../../store/authStore";
+import useAuthStore from "../../features/auth/store/auth.store";
+
 
 const AdminHeader = ({ mobileOpen, setMobileOpen }) => {
   const { user, logout } = useAuthStore();
@@ -63,7 +64,7 @@ const AdminHeader = ({ mobileOpen, setMobileOpen }) => {
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-border bg-[var(--glass-bg)] shadow-xs backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b border-border bg-(--glass-bg) shadow-xs backdrop-blur-md">
         <div className="flex h-16 items-center justify-between px-4 md:px-8">
 
           {/* Left Side */}

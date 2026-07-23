@@ -5,11 +5,13 @@ import { FaBars, FaTimes } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import NavLinks from "../ui/NavLinks";
 import { navLinks } from "../data/navigation";
-import useAuthStore from "../../store/authStore";
+
 import { PiShoppingCartSimple } from "react-icons/pi";
 import { IoIosHeartEmpty } from "react-icons/io";
 import UserAccountMenu from "../ui/UserAccountMenu";
-import useCartStore from "../../store/cartStore";
+import useCartStore from "../../features/cart/store/cart.store";
+import useAuthStore from "../../features/auth/store/auth.store";
+
 // import Loader from "../common/Loader";
 
 const Navbar = () => {
@@ -77,7 +79,7 @@ const Navbar = () => {
                 <CiSearch size={24} />
               </button>
             ) : (
-              <div className="fixed left-0 right-0 top-0 z-[60] bg-card border-b border-border p-4 shadow-lg animation-fade-in duration-300">
+              <div className="fixed left-0 right-0 top-0 z-60 bg-card border-b border-border p-4 shadow-lg animation-fade-in duration-300">
                 <div className="relative">
                   <input
                     autoFocus

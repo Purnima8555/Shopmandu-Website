@@ -7,11 +7,12 @@ import Popup from "../../../components/ui/Popup";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import OrderDrawer from "../components/OrderDrawer";
 
-import useOrderStore from "../../../store/orderStore";
+
 import sendApiRequest from "../../../utils/sendApiRequest";
 import { dismissToast, showSuccess } from "../../../utils/toast";
 import { ADMIN_STATUS_TRANSITIONS, ORDER_STYLE, PAYMENT_STYLE, STATUS_STYLES, TABS, } from "../data";
 import AdminPagination from "../components/AdminPagination";
+import useOrderStore from "../../order/store/order.store";
 
 const OrdersPage = () => {
   const {
@@ -192,7 +193,7 @@ const OrdersPage = () => {
                 };
               
               const allowedStatuses = ADMIN_STATUS_TRANSITIONS[order.orderStatus] || [];
-              const canUpdateStatus = allowedStatuses.length > 0;
+              // const canUpdateStatus = allowedStatuses.length > 0;
 
               return (
                 <tr

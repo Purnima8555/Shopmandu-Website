@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 
 import ButtonRounded from "../../../components/ui/ButtonRounded";
 import StatusBadge from "../../../components/ui/StatusBadge";
-import usePaymentStore from "../../../store/paymentStore";
+
 import ViewPaymentModal from "../components/PaymentViewModal";
 import Selecter from "../../../components/ui/Selecter";
 import {
@@ -16,11 +16,12 @@ import {
   paymentStatusOption,
 } from "../data";
 import AdminPagination from "../components/AdminPagination";
+import useAdminMangePaymentStore from "../store/adminManagePayment.store";
 
 const PaymentsPage = () => {
   const [selectedPayment, setSelectedPayment] = useState(null);
 
-  const { payments, paymentMetadata, getAllPayments } = usePaymentStore();
+  const { payments, paymentMetadata, getAllPayments } = useAdminMangePaymentStore();
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);

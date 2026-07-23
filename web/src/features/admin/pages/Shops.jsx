@@ -1,12 +1,13 @@
 import { LayoutGrid, List } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import useShopStore from "../../../store/shop";
+
 import sendApiRequest from "../../../utils/sendApiRequest";
 
-import ShopGrid from "../components/ShopGrid";
-import ShopList from "../components/ShopList";
-import ViewShopModal from "../components/ShopViewModal";
+import ShopGrid from "../components/shop/ShopGrid";
+import ShopList from "../components/shop/ShopList";
+import ViewShopModal from "../components/shop/ShopViewModal";
+import useShopStore from "../../shop/store/shop.store";
 
 export default function ShopsPage() {
   const [view, setView] = useState("grid");
@@ -16,7 +17,7 @@ export default function ShopsPage() {
 
   useEffect(() => {
     sendApiRequest(() => getAllShops());
-  }, []);
+  }, [getAllShops]);
 
   if (loading) {
     return (

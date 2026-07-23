@@ -15,17 +15,17 @@ import api from "./axios";
 // )
 
 export const createShop = async (shopData) => {
-//     const formData = objectToFormData(shopData);
+        //     const formData = objectToFormData(shopData);
 
-    const response = await api.post("/api/shop/create", shopData);
+        const response = await api.post("/api/shop/create", shopData);
 
-    return response.data;
+        return response.data;
 };
 
 
 export const getMyShop = async () => {
 
- 
+
 
         const response = await api.get(`/api/vendor/my-shop`);
         return response?.data
@@ -37,16 +37,16 @@ export const getMyShop = async () => {
 
 /// update shop banner
 export const uploadShopBanner = async (banner) => {
-    
+
         const res = await api.patch(`/api/shop/banner-update`, banner)
 
         return res?.data
- 
+
 }
 
 /// update shop banner
 export const uploadShopLogo = async (logo) => {
-  
+
         const res = await api.patch(`/api/shop/logo-update`, logo)
 
         return res?.data
@@ -61,26 +61,26 @@ export const getKycStatus = async () => {
         const response = await api.get(`/api/vendor/kyc/status`);
         return response
 
-  
+
 }
 
 
 //// go online and selling product
 export const changeMyShopStatus = async (status) => {
-  
+
 
         const changeShopStatus = await api.patch("/api/shop/status-update", status)
         return changeShopStatus.data
 
-   
+
 }
 /// update shop information
 export const updateShopInfo = async (shopData) => {
-   
+
         console.log(shopData)
         const updatedShop = await api.put("/api/shop/update", shopData)
         return updatedShop.data
- 
+
 }
 
 
@@ -90,7 +90,7 @@ export const updateShopInfo = async (shopData) => {
 /// get shop by slug
 export const searchShopsApi = async (params) => {
         const res = await api.get("/api/shops/search", {
-        params,
+                params,
         });
 
         return res.data;
@@ -111,7 +111,7 @@ export const getShopBySlugApi = async (slug) => {
 
 /// get products belonging to a shop (public shop details page)
 export const getProductsByShopApi = async (shopId, params = {}) => {
-        console.log(params)
+        // console.log(params)
         const res = await api.get(`/api/shop/products/${shopId}`, {
                 params,
         });

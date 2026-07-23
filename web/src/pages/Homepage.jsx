@@ -14,9 +14,8 @@ function HomePage() {
   /// simply get flash sale products and display in console
   const flashSaleProducts = async () => {
     try {
-      const data = await getFlashSaleProductsApi({});
-  
-      console.log("Flash Sale Products:", data);
+      await getFlashSaleProductsApi({});
+      // console.log("Flash Sale Products:", data);
     } catch (error) {
       console.error("Error fetching flash sale products:", error);
     }

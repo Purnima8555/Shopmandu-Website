@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 // Store, Components, Constants
-import useVendorStore from "../../../store/vendorStore";
+
 import Input from "../../../components/ui/Input";
 import Button from "../../../components/ui/Button";
 import vendorkycSchema from "../../../schemas/vendorKyc.validation";
@@ -23,14 +23,16 @@ import {
   REJECTED_STATUS,
   NOT_SUBMITTED,
 } from "../util/kycConstants";
-import KycImageModal from "../ui/KycImageModal";
-import KycFileUploader from "../ui/KycFileUploader";
-import KycStatusBanner from "../ui/KycStatusBanner";
-import KycProgressTimeline from "../ui/KycProgressTimeline";
-import KycRejectionCard from "../ui/KycRejectionCard";
+import KycImageModal from "../ui/vendorKyc/KycImageModal";
+import KycFileUploader from "../ui/vendorKyc/KycFileUploader";
+
+import KycProgressTimeline from "../ui/vendorKyc/KycProgressTimeline";
+import KycRejectionCard from "../ui/vendorKyc/KycRejectionCard";
 import Loader from "../../../components/common/Loader";
 import sendApiRequest from "../../../utils/sendApiRequest";
 import { dismissToast, showSuccess } from "../../../utils/toast";
+import useVendorStore from "../store/vendor.store";
+import KycStatusBanner from "../ui/vendorKyc/KycStatusBanner";
 
 const KycVerifiaction = () => {
   const {
@@ -90,10 +92,10 @@ const KycVerifiaction = () => {
     setLocalLoading(true);
     setNotSubmitted(false);
     try {
-      const statusRes = await getVendorKycStatus();  /// send request to backend for checked kyc status.
+      const statusRes = await getVendorKycStatus(); /// send request to backend for checked kyc status.
 
       if (statusRes && statusRes.kycStatus) {
-        const kycData = await getVendorKyc();  /// send request to backend for get kyc details data.
+        const kycData = await getVendorKyc(); /// send request to backend for get kyc details data.
         if (kycData) {
           reset({
             fullName: kycData.fullName,

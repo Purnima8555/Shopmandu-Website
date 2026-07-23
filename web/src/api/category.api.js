@@ -7,8 +7,10 @@ export const createCategoryApi = async (data) => {
 };
 
 /// Get all categories
-export const getAllCategoriesApi = async () => {
-    const res = await api.get("/api/category");
+export const getAllCategoriesApi = async (params = {}) => {
+    const res = await api.get("/api/category", {
+        params,
+    });
     return res.data;
 };
 

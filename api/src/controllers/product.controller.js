@@ -397,6 +397,22 @@ const generateProductDescription = async (req, res, next) => {
   }
 };
 
+/// search product and shop 
+
+const searchProductAndShop = async (req, res, next) => {
+  try {
+    const results = await productService.searchProductAndShop(req.query);
+    return res.status(200).json({
+      success: true,
+      message: "Search results fetched successfully.",
+      data: results,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 
 export {
   createProduct,
@@ -421,4 +437,5 @@ export {
   getTopProductsVendor,
   getMyProductSummary,
   generateProductDescription,
+  searchProductAndShop,
 };
