@@ -5,25 +5,27 @@ import { ArrowLeft, Save, Sparkles, Package, Truck, Layers, Image as ImageIcon, 
 import Input from "../../../components/ui/Input";
 import Button from "../../../components/ui/Button";
 import Selecter from "../../../components/ui/Selecter";
-import useProductStore from "../../../store/productStore";
-import useShopStore from "../../../store/shop";
+
+
 import { dismissToast, showSuccess } from "../../../utils/toast";
 // import Loader from "../../../components/common/Loader";
 import { productSchema } from "../../../schemas/product.validation";
 import sendApiRequest from "../../../utils/sendApiRequest";
 import { generateProductDescription } from "../../../api/aiGenerate.api";
+import useCategoryStore from "../../product/store/category.store";
+import useVendorProductManageStore from "../store/vendorManageProduct.store";
 
 const AddProduct = ({ onBack, editingProduct }) => {
 
   /// get all state.
-  const { categories } = useProductStore();
+  const { categories } = useCategoryStore();
   const {
     createNewProduct,
     loading,
     updateProductInfo,
     addProductImages,
     deleteProductImage,
-  } = useShopStore();
+  } = useVendorProductManageStore();
 
   /// for selected file.
   const [selectedFiles, setSelectedFiles] = useState([]);

@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { MapPin, Plus, MoreHorizontal, Edit2, Trash2,} from "lucide-react";
 
-import useAddressStore from "../../../store/addressStore";
+
 import Button from "../../../components/ui/Button";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import AddAddress from "../components/AddAddress";
 
 import sendApiRequest from "../../../utils/sendApiRequest";
 import { showSuccess } from "../../../utils/toast";
+import useAddressStore from "../store/address.store";
 
 function SectionHeading({ eyebrow, title, action }) {
     return (
@@ -125,7 +126,7 @@ export default function MyAddresses() {
 
     useEffect(() => {
         getAddresses();
-    }, []);
+    }, [getAddresses]);
 
     // Open modal in edit mode
     const handleEdit = (address) => {

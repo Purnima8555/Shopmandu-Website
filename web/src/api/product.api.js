@@ -56,14 +56,7 @@ export const getAllMyProducts = async (params = {}) => {
 };
 
 
-//// get all categoryes
 
-export const getAllProductCategories = async () => {
-    const categories = await api.get("/api/category")
-    return categories?.data?.categories
-
-
-}
 
 //// create product 
 

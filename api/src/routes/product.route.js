@@ -9,7 +9,8 @@ import {
     addProductImage, createProduct, deleteProduct, deleteProductImage, getAllFlashSalesProducts, getAllProductForPublic, getMyProducts,
     getMyProductsById, getMyProductSummary, getProductByShop, getProductBySlug, getProductsById, onFlashSale, productVideoUpload,
     removeFromFlashSale, updateProductImage, updateProductInfo, updateStatus, getTopProductsPublic, getTopProducts, getTopProductsVendor,
-    generateProductDescription } from "../controllers/product.controller.js";
+    generateProductDescription, 
+    searchProductAndShop} from "../controllers/product.controller.js";
 import {productSchema, updateProductSchema} from "../libs/schema/product.schema.js";
 import { upload, videoUpload } from "../middleware/multer.middleware.js"
 
@@ -74,6 +75,9 @@ router.patch("/product/flash-sale/remove/:id", auth, roleBasedAuth(Roles.VENDOR_
 
 // get all flash sale products for public
 router.get("/products/flash-sale", getAllFlashSalesProducts);
+
+// search product and shop 
+router.get("/search", searchProductAndShop);
 
 export default router;
 

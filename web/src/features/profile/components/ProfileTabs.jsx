@@ -1,16 +1,10 @@
 
 // Import tab content components
+import { tabs } from "../data";
 import MyAddresses from "../pages/MyAddresses";
 import MyOrders from "../pages/MyOrders";
 import ReturnRequest from "../pages/ReturnRequest";
 import Settings from "../pages/Settings";
-
-const tabs = [
-  { key: "orders", label: "Orders" },
-  { key: "addresses", label: "Addresses" },
-  { key: "returns", label: "Return Requests" },
-  { key: "settings", label: "Settings" },
-];
 
 export default function ProfileTabs({ activeTab, setActiveTab }) {
   return (

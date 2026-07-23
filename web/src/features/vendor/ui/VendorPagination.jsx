@@ -5,7 +5,6 @@ import Selecter from "../../../components/ui/Selecter";
 
 
 const VendorPagination = ({
-  data = [],
   metadata,
   page,
   setPage,
@@ -68,7 +67,7 @@ const VendorPagination = ({
           <ChevronLeft size={16} />
         </button>
 
-        <div className="min-w-[90px] text-center text-xs font-semibold text-text-secondary">
+        <div className="min-w-22.5 text-center text-xs font-semibold text-text-secondary">
           Page {metadata?.currentPage || 1} of {metadata?.totalPages || 1}
         </div>
 

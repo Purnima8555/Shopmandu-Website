@@ -1,8 +1,9 @@
 import Button from "../../components/ui/Button";
 import { GoArrowRight } from "react-icons/go";
-import { countdown } from "./data";
-import useProductStore from "../../store/productStore";
-import FlashSaleCard from "../../components/ui/FlashSaleCard";
+
+
+import useProductStore from "../../features/product/store/product.store";
+import ProductCard from "../../components/ui/ProductCard";
 
 const FlashSale = () => {
 
@@ -58,7 +59,7 @@ const FlashSale = () => {
       {/* Products */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-7">
         {flashSalesProduct?.map((product) => (
-          <FlashSaleCard key={product._id} {...product} />
+          <ProductCard key={product._id} {...product} />
         ))}
       </div>
 

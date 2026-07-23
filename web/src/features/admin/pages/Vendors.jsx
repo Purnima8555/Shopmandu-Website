@@ -7,10 +7,11 @@ import { useEffect, useState } from "react";
 
 import ButtonRounded from "../../../components/ui/ButtonRounded";
 import StatusBadge from "../../../components/ui/StatusBadge";
-import useVendorStore from "../../../store/vendorStore";
+
 import VendorDrawer from "../components/VendorDrawer";
 import { KYC_STYLE } from "../data";
 import AdminPagination from "../components/AdminPagination";
+import useManageVendorStore from "../store/adminManageVendor.store";
 
 const VendorsPage = () => {
   const {
@@ -20,13 +21,12 @@ const VendorsPage = () => {
     getVendorById,
     selectedVendor,
     kycDetail,
-  } = useVendorStore();
+  } = useManageVendorStore();
 
   const [kycFilter, setKycFilter] = useState("All");
   const [imageError, setImageError] = useState({});
   const [search, setSearch] = useState("");
 
-  // const [selectedVendor, setSelectedVendor] = useState(null);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
 
@@ -132,7 +132,6 @@ const VendorsPage = () => {
         </div>
 
         <AdminPagination
-          data={allVendors}
           metadata={allVendorsMetadata}
           page={page}
           setPage={setPage}
@@ -258,7 +257,7 @@ const VendorsPage = () => {
         vendor={selectedVendor}
         kycDetail={kycDetail}
         onClose={() =>
-          useVendorStore.setState({
+          useManageVendorStore.setState({
             selectedVendor: null,
           })
         }

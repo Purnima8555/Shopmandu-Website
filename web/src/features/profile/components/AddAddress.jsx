@@ -1,34 +1,16 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-    Building2,
-    Home,
-    MapPin,
-    MoreHorizontal,
-    PackageCheck,
-    Receipt,
-    Store,
-} from "lucide-react";
+import {MapPin} from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Modal from "../../../components/ui/Modal";
-
 import { addAddressSchema } from "../../../schemas/address.validation";
-import useAddressStore from "../../../store/addressStore";
-
 import sendApiRequest from "../../../utils/sendApiRequest";
 import { showSuccess } from "../../../utils/toast";
+import useAddressStore from "../store/address.store";
+import { addressTypes } from "../data";
 
-const addressTypes = [
-  { value: "HOME", label: "Home", icon: Home },
-  { value: "OFFICE", label: "Office", icon: Building2 },
-  { value: "BILLING", label: "Billing", icon: Receipt },
-  { value: "SHOP", label: "Shop", icon: Store },
-  { value: "PICKUP", label: "Pickup point", icon: PackageCheck },
-  { value: "OTHER", label: "Other", icon: MoreHorizontal },
-];
 
 export default function AddAddress({ address, onClose }) {
   const addAddress = useAddressStore((state) => state.addAddress);

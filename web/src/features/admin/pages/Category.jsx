@@ -1,4 +1,4 @@
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import Button from "../../../components/ui/Button";
@@ -7,21 +7,29 @@ import StatusBadge from "../../../components/ui/StatusBadge";
 
 import CreateCategoryModal from "../components/CreateCategoryModal";
 
-import useCategoryStore from "../../../store/categoryStore";
 import sendApiRequest from "../../../utils/sendApiRequest";
 import { dismissToast, showSuccess } from "../../../utils/toast";
 import { STATUS_STYLE } from "../data";
+import useCategoryStore from "../../product/store/category.store";
+import AdminPagination from "../components/AdminPagination";
 
 const CategoriesPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
 
-  const { categories, getAllCategories, deleteCategory } =
-    useCategoryStore();
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+
+  const { categories, categoryMetadata, getAllCategories, deleteCategory } = useCategoryStore();
 
   useEffect(() => {
-    sendApiRequest(() => getAllCategories());
-  }, []);
+    getAllCategories({
+      page,
+      limit,
+      search,
+    });
+  }, [page, limit, search, getAllCategories]);
 
   const handleCreate = () => {
     setEditingCategory(null);
@@ -94,6 +102,40 @@ const CategoriesPage = () => {
 
       {/* Table */}
       <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="mb-6 ounded-xl border border-border bg-card p-4 shadow-sm">
+          {/* Search */}
+          <div className="relative w-full md:max-w-sm">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search category..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              className="w-full rounded-lg border border-border bg-background py-2.5 pl-10 pr-4 text-sm transition-colors outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+
+          {/* Pagination */}
+            <AdminPagination
+              metadata={categoryMetadata}
+              page={page}
+              setPage={setPage}
+              limit={limit}
+              setLimit={setLimit}
+              refreshData={() =>
+                getAllCategories({
+                  page,
+                  limit,
+                  search,
+                })
+              }
+            />
+      
+        </div>
+
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">

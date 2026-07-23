@@ -7,19 +7,19 @@ import { useEffect, useState } from "react";
 import ButtonRounded from "../../../components/ui/ButtonRounded";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import UserDrawer from "../components/UserDrawer";
-import useUserStore from "../../../store/userStore";
+
 import { ROLE_STYLE, VERIFY_STYLE } from "../data";
 import AdminPagination from "../components/AdminPagination";
+import useAdimManageUser from "../store/adimGetUser.store";
 
 const UsersPage = () => {
   const [roleFilter, setRoleFilter] = useState("All");
-  const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [imageError, setImageError] = useState({});
   const [limit, setLimit] = useState(10);
-
-  const { users, metadata, getUsers } = useUserStore();
+  const [imageError, setImageError] = useState({});
+  const { users, metadata, getUsers } = useAdimManageUser();
 
   useEffect(() => {
     getUsers({
@@ -81,7 +81,6 @@ const UsersPage = () => {
         </div>
 
         <AdminPagination
-          data={users}
           metadata={metadata}
           page={page}
           setPage={setPage}

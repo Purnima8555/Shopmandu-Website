@@ -1,60 +1,14 @@
-import {
-    CheckCircle2,
-    DollarSign,
-    MoreHorizontal,
-    Package,
-    ShoppingCart,
-} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import {
-    Area,
-    AreaChart,
-    CartesianGrid,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
-} from "recharts";
-
-import ButtonRounded from "../../../components/ui/ButtonRounded";
-import useOrderStore from "../../../store/orderStore";
-import { MONTHS } from "../data";
-
-/*  Helpers  */
-
-const CURRENT_YEAR = new Date().getFullYear();
-
-const YEARS = Array.from(
-  { length: CURRENT_YEAR - 2020 + 1 },
-  (_, i) => CURRENT_YEAR - i,
-);
-
-const formatCurrency = (value = 0) =>
-  `Rs.${Number(value).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-
-function ChartTooltip({ active, payload, label }) {
-  if (!active || !payload?.length) return null;
-
-  return (
-    <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-lg">
-      <p className="text-xs text-muted-foreground">{label}</p>
-
-      <p className="mt-1 text-lg font-semibold">
-        {formatCurrency(payload[0].value)}
-      </p>
-    </div>
-  );
-}
+import {  Area,  AreaChart,  CartesianGrid,  ResponsiveContainer,  Tooltip,  XAxis,  YAxis,} from "recharts";
+import { adminSummaryCard, MONTHS, orderStatusProgress } from "../data";
+import useOrderStore from "../../order/store/order.store";
+import { CURRENT_MONTH, CURRENT_YEAR, formatCurrency, YEARS } from "../utils/adminHelper";
+import { ChartTooltip } from "../utils/adminHelperComponent";
 
 /*  Component  */
-
 const AdminDashboardPage = () => {
   const today = new Date();
-
   const [month, setMonth] = useState(today.getMonth() + 1);
   const [year, setYear] = useState(today.getFullYear());
 
@@ -63,79 +17,24 @@ const AdminDashboardPage = () => {
     salesSummary,
     salesTrend,
     getAdminSalesSummary,
-    getAdminSalesTrend,
+    getAdminSalesTrend
   } = useOrderStore();
 
   useEffect(() => {
-    const params = {
-      month,
-      year,
-    };
-
+    const params = {month,year};
     getAdminSalesSummary(params);
     getAdminSalesTrend(params);
-  }, [month, year]);
+  }, [month, year, getAdminSalesTrend, getAdminSalesSummary]); /// getAdminSalesTrend, getAdminSalesSummary
 
+  //// create Admin Dashboard 2 summary card.
   const kpis = useMemo(() => {
     if (!salesSummary) return [];
-
-    return [
-      {
-        title: "Gross Sales",
-        value: formatCurrency(salesSummary.grossSales),
-        subtitle: salesSummary.period,
-        icon: DollarSign,
-      },
-      {
-        title: "Total Orders",
-        value: salesSummary.totalOrders,
-        subtitle: "Orders received",
-        icon: ShoppingCart,
-      },
-      {
-        title: "Delivered Orders",
-        value: salesSummary.deliveredOrders,
-        subtitle: "Successfully delivered",
-        icon: CheckCircle2,
-      },
-      {
-        title: "Average Order Value",
-        value: formatCurrency(salesSummary.averageOrderValue),
-        subtitle: "Per delivered order",
-        icon: Package,
-      },
-    ];
+    return adminSummaryCard(salesSummary)
   }, [salesSummary]);
-
+  //// order status create
   const orderStatus = useMemo(() => {
     if (!salesSummary) return [];
-
-    return [
-      {
-        label: "Pending",
-        value: salesSummary.pendingOrders,
-      },
-      {
-        label: "Confirmed",
-        value: salesSummary.confirmedOrders,
-      },
-      {
-        label: "Processing",
-        value: salesSummary.processingOrders,
-      },
-      {
-        label: "Out For Delivery",
-        value: salesSummary.outForDeliveryOrders,
-      },
-      {
-        label: "Delivered",
-        value: salesSummary.deliveredOrders,
-      },
-      {
-        label: "Cancelled",
-        value: salesSummary.cancelledOrders,
-      },
-    ];
+    return orderStatusProgress(salesSummary);
   }, [salesSummary]);
 
   return (
@@ -161,7 +60,11 @@ const AdminDashboardPage = () => {
               className="rounded-xl border border-border bg-card px-4 py-2 outline-none"
             >
               {MONTHS.map((m) => (
-                <option key={m.value} value={m.value}>
+                <option
+                  key={m.value}
+                  value={m.value}
+                  disabled={year === CURRENT_YEAR && m.value > CURRENT_MONTH}
+                >
                   {m.label}
                 </option>
               ))}
@@ -180,8 +83,7 @@ const AdminDashboardPage = () => {
           </div>
         </div>
 
-        {/* KPI Cards */}
-
+        {/* KPI Cards/ admin summary card */}
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
           {kpis.map((item) => {
             const Icon = item.icon;
@@ -223,12 +125,6 @@ const AdminDashboardPage = () => {
                   {MONTHS.find((m) => m.value === month)?.label} {year}
                 </p>
               </div>
-
-              <ButtonRounded
-                variant="ghost"
-                size="default"
-                icon={MoreHorizontal}
-              />
             </div>
 
             {/* Revenue Summary */}
@@ -290,9 +186,7 @@ const AdminDashboardPage = () => {
                       tickLine={false}
                       axisLine={false}
                     />
-
                     <Tooltip content={<ChartTooltip />} />
-
                     <Area
                       type="monotone"
                       dataKey="revenue"
@@ -375,7 +269,6 @@ const AdminDashboardPage = () => {
                 <span className="text-muted-foreground">
                   Average Order Value
                 </span>
-
                 <span className="font-semibold">
                   {loading
                     ? "--"
@@ -389,5 +282,4 @@ const AdminDashboardPage = () => {
     </div>
   );
 };
-
 export default AdminDashboardPage;

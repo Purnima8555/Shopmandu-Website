@@ -5,7 +5,8 @@ import Button from "../../../components/ui/Button";
 import { resendEmailVerifyOtp } from "../../../api/auth.api";
 import { dismissToast, showSuccess } from "../../../utils/toast";
 import sendApiRequest from "../../../utils/sendApiRequest";
-import useAuthStore from "../../../store/authStore";
+import useAuthStore from "../store/auth.store";
+
 
 const VerifyEmailPage = () => {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);

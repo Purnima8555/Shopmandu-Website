@@ -1,102 +1,11 @@
-import {
-  AlertTriangle,
-  Calendar,
-  CheckCircle2,
-  CreditCard,
-  MapPin,
-  Package,
-  RotateCcw,
-  Store,
-} from "lucide-react";
-
+import {Calendar,CreditCard,MapPin,Package,RotateCcw,Store,} from "lucide-react";
 import Button from "../../../components/ui/Button";
 import Modal from "../../../components/ui/Modal";
 import StatusBadge from "../../../components/ui/StatusBadge";
-import { RETURN_STATUS, STATUS, STEPS } from "../data";
+import { RETURN_STATUS, STATUS, } from "../data";
 import { useNavigate } from "react-router-dom";
+import { InfoCard, OrderStepper } from "../utils/profileHelper";
 
-function stepIndex(status) {
-  if (status === "PARTIALLY_SHIPPED") return 2;
-  const i = STEPS.findIndex((s) => s.key === status);
-  return i === -1 ? 0 : i;
-}
-
-function OrderStepper({ status }) {
-  const isTerminalIssue = status === "CANCELLED" || status === "FAILED";
-
-  if (isTerminalIssue) {
-    return (
-      <div className="flex items-center gap-3 rounded-2xl border border-[#EFD9D2] bg-[#FBF3F0] px-5 py-4">
-        <AlertTriangle size={18} className="shrink-0 text-[#B3543E]" />
-        <p className="text-sm text-[#6B6A63]">
-          This order was{" "}
-          <span className="font-medium text-[#B3543E]">
-            {status === "CANCELLED" ? "cancelled" : "marked as failed"}
-          </span>{" "}
-          and is not currently in progress.
-        </p>
-      </div>
-    );
-  }
-
-  const current = stepIndex(status);
-
-  return (
-    <div className="flex items-center">
-      {STEPS.map((step, i) => {
-        const done = i < current;
-        const active = i === current;
-        return (
-          <div
-            key={step.key}
-            className="flex flex-1 items-center last:flex-none"
-          >
-            <div className="flex flex-col items-center gap-2">
-              <div
-                className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
-                  done || active
-                    ? "bg-primary text-white"
-                    : "bg-[#F1F0EC] text-[#6B6A63]"
-                }`}
-              >
-                {done ? <CheckCircle2 size={15} /> : i + 1}
-              </div>
-              <span
-                className={`text-[11px] font-medium whitespace-nowrap ${
-                  done || active ? "text-[#23241F]" : "text-[#6B6A63]"
-                }`}
-              >
-                {step.label}
-              </span>
-            </div>
-            {i < STEPS.length - 1 && (
-              <div
-                className={`mx-2 h-0.5 flex-1 rounded-full ${
-                  done ? "bg-primary" : "bg-[#E7E3D8]"
-                }`}
-              />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function InfoCard({ icon: Icon, title, children, action }) {
-  return (
-    <div className="rounded-2xl border border-[#E7E3D8] bg-white p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="flex items-center gap-2 text-sm font-semibold text-[#23241F]">
-          <Icon size={16} className="text-primary" />
-          {title}
-        </h3>
-        {action}
-      </div>
-      {children}
-    </div>
-  );
-}
 
 export default function OrderDetail({
   order,
@@ -218,7 +127,7 @@ export default function OrderDetail({
               </InfoCard>
             </div>
 
-            {/* ================= Products ================= */}
+            {/*  Products  */}
 
             <div>
               <div className="mb-4 flex items-center justify-between">
@@ -313,7 +222,7 @@ export default function OrderDetail({
             </div>
           </div>
 
-          {/* ================= Summary ================= */}
+          {/*  Summary  */}
 
           <div className="lg:col-span-1">
             <div className="sticky top-6 rounded-2xl border border-[#E7E3D8] bg-white p-5">
@@ -348,8 +257,8 @@ export default function OrderDetail({
               </div>
 
               <div className="relative my-4 h-px border-t-2 border-dashed border-[#E7E3D8]">
-                <span className="absolute -left-[29px] -top-3 h-4 w-4 rounded-full bg-[#FAF9F6]" />
-                <span className="absolute -right-[29px] -top-3 h-4 w-4 rounded-full bg-[#FAF9F6]" />
+                <span className="absolute -left-7.25 -top-3 h-4 w-4 rounded-full bg-[#FAF9F6]" />
+                <span className="absolute -right-7.25 -top-3 h-4 w-4 rounded-full bg-[#FAF9F6]" />
               </div>
 
               <div className="flex justify-between text-base font-semibold text-[#23241F]">

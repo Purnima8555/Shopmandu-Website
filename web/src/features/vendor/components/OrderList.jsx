@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import SummaryCard from "../ui/SummaryCard";
 import SearchInput from "../../../components/ui/SearchInput";
 import Selecter from "../../../components/ui/Selecter";
-import OrderTable from "../ui/OrderTable";
+import OrderTable from "../ui/order/OrderTable";
 import VendorPagination from "../ui/vendorPagination";
 import VendorOrderDrawer from "../components/OrderDrawer";
 
 import { filterOrders } from "../data";
-import useOrderStore from "../../../store/orderStore";
+import useOrderStore from "../../order/store/order.store";
 
 const OrderList = () => {
   const [searchInput, setSearchInput] = useState("");
@@ -76,11 +76,11 @@ const OrderList = () => {
     <div className="space-y-8 animate-fade-in relative">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-[#1F2937]">
+        <h1 className="text-3xl font-bold tracking-tight text-text-primary">
           Store Orders
         </h1>
 
-        <p className="text-sm text-[#64748B] mt-1">
+        <p className="text-sm text-text-secondary mt-1">
           Fulfill incoming custom requests, trigger track codes, and oversee
           billing.
         </p>
@@ -138,15 +138,9 @@ const OrderList = () => {
           </div>
 
           <div className="md:col-span-2">
-            <Selecter
-              value={selectedStatus}
-              onChange={handleFilterChange}
-            >
+            <Selecter value={selectedStatus} onChange={handleFilterChange}>
               {filterOrders.map((order) => (
-                <option
-                  key={order.value}
-                  value={order.value}
-                >
+                <option key={order.value} value={order.value}>
                   {order.label}
                 </option>
               ))}
@@ -155,7 +149,6 @@ const OrderList = () => {
         </div>
 
         <VendorPagination
-          data={vendorOrders}
           metadata={vendorOrderMetadata}
           page={currentPage}
           setPage={setCurrentPage}
@@ -166,10 +159,7 @@ const OrderList = () => {
       </div>
 
       {/* Orders Table */}
-      <OrderTable
-        orders={vendorOrders}
-        onView={setSelectedOrder}
-      />
+      <OrderTable orders={vendorOrders} onView={setSelectedOrder} />
 
       {/* Drawer */}
       <VendorOrderDrawer

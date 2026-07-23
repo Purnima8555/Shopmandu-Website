@@ -222,19 +222,237 @@ class ProductService {
 
     //// get product by slug
     async getProductBySlug(productSlug) {
-
-        const product = await ProductModel.findOne({ slug: productSlug }, { vendorId: 0 })
+        const product = await ProductModel.findOne({ slug: productSlug }, { vendorId: 0 }).populate("shopId", "slugs shopName")
         if (!product) {
             throw new NotFoundError("Product not found")
         }
-
         return product
     }
 
+    //// search product and shop by there name as will as filter and sort 
+
+    async searchProductAndShop(query) {
+        const page = parseInt(query.page, 10) || 1;
+        const limit = parseInt(query.limit, 10) || 12;
+        const skip = (page - 1) * limit;
+
+        const keyword = query.search?.trim();
+
+        const productFilter = {
+            productStatus: productStatus.ACTIVE,
+        };
+
+        const shopFilter = {
+            ShopStatus: ShopStatus.ACTIVE_STATUS,
+        };
+
+        if (keyword) {
+            productFilter.name = {
+                $regex: keyword,
+                $options: "i",
+            };
+
+            shopFilter.shopName = {
+                $regex: keyword,
+                $options: "i",
+            };
+        }
+
+        const [products, shops, totalProducts, totalShops] = await Promise.all([
+            ProductModel.find(productFilter)
+                .populate("shopId", "shopName slugs logo")
+                .populate("categoryId", "name slug")
+                .skip(skip)
+                .limit(limit),
+
+            ShopModel.find(shopFilter)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+
+            ProductModel.countDocuments(productFilter),
+            ShopModel.countDocuments(shopFilter),
+        ]);
+
+        return {
+            metadata: {
+                currentPage: page,
+                limit,
+
+                totalProducts,
+                totalProductPages: Math.ceil(totalProducts / limit),
+                hasNextProductPage: page < Math.ceil(totalProducts / limit),
+                hasPrevProductPage: page > 1,
+
+                totalShops,
+                totalShopPages: Math.ceil(totalShops / limit),
+                hasNextShopPage: page < Math.ceil(totalShops / limit),
+                hasPrevShopPage: page > 1,
+            },
+
+            products,
+            shops,
+        };
+    }
+
+
+
     // get product by shop id
-    async getProductByShop(shopId) {
-        const products = await ProductModel.find({ shopId }, { vendorId: 0 }).sort({ createdAt: -1 }).lean();
-        return products;
+    async getProductByShop(shopId, data) {
+        // const products = await ProductModel.find({ shopId }, { vendorId: 0 }).sort({ createdAt: -1 }).lean();
+
+
+        const page = parseInt(data?.page, 10) || 1;
+        const limit = parseInt(data?.limit, 10) || 10;
+        const skip = (page - 1) * limit;
+
+        const filter = { shopId };
+
+        /// search by product name
+        if (data?.name || data?.search) {
+            const searchTerm = data.name || data.search;
+            filter.name = {
+                $regex: searchTerm,
+                $options: "i",
+            };
+        }
+
+        /// multiple brands filter
+        if (data?.brand && data.brand !== "ALL") {
+            // We split string into array: "Apple,Samsung" -> ["Apple", "Samsung"]
+            const brandArray = Array.isArray(data.brand)
+                ? data.brand
+                : data.brand.split(",").filter(Boolean);
+
+            if (brandArray.length > 0) {
+                filter.brand = { $in: brandArray };
+            }
+        }
+
+        /// multiple categories filter 
+        if (data?.category && data.category !== "ALL") {
+            const categoryArray = Array.isArray(data.category)
+                ? data.category
+                : data.category.split(",").filter(Boolean);
+
+            if (categoryArray.length > 0) {
+                // First: find the Category IDs based on the names provided from frontend
+                const categoryDocs = await CategoryModel.find({
+                    name: { $in: categoryArray }
+                }).select("_id");
+
+                const categoryIds = categoryDocs.map(cat => cat._id);
+                filter.categoryId = { $in: categoryIds };
+            }
+        }
+
+        /// price range filter
+        if (data?.minPrice || data?.maxPrice) {
+            filter.discountPrice = {};
+            if (data.minPrice) filter.discountPrice.$gte = parseFloat(data.minPrice);
+            if (data.maxPrice) filter.discountPrice.$lte = parseFloat(data.maxPrice);
+        }
+
+        // /// sort order
+        // if (data?.sort) {
+        //     if (data.sort === "price_asc") sort = { discountPrice: 1 };
+        //     if (data.sort === "price_desc") sort = { discountPrice: -1 };
+        // }
+
+        let sort = {
+            createdAt: -1,
+        };
+
+        switch (data?.sort) {
+            case "NEWEST":
+                sort = { createdAt: -1 };
+                break;
+
+            case "OLDEST":
+                sort = { createdAt: 1 };
+                break;
+
+            case "PRICE_ASC":
+            case "price_asc":
+                sort = { discountPrice: 1 };
+                break;
+
+            case "PRICE_DESC":
+            case "price_desc":
+                sort = { discountPrice: -1 };
+                break;
+
+            case "STOCK_ASC":
+                sort = { stock: 1 };
+                break;
+
+            case "STOCK_DESC":
+                sort = { stock: -1 };
+                break;
+
+            case "NAME_ASC":
+                sort = { name: 1 };
+                break;
+
+            case "NAME_DESC":
+                sort = { name: -1 };
+                break;
+
+            default:
+                sort = { createdAt: -1 };
+        }
+
+
+        /// product status
+        if (data?.productStatus && data.productStatus !== "ALL") {
+            filter.productStatus = data.productStatus;
+        }
+
+
+        /// best selling products
+        if (data?.bestSale) {
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+            filter.updatedAt = {
+                $gte: oneWeekAgo,
+            };
+
+            filter.releasedStock = {
+                $gt: 0,
+            };
+
+            sort = {
+                releasedStock: -1,
+                updatedAt: -1,
+            };
+        }
+
+        const [products, totalDocuments] = await Promise.all([
+            ProductModel.find(filter)
+                .sort(sort)
+                .skip(skip)
+                .limit(limit)
+                .populate("categoryId", "name slug isActive")
+                .populate("shopId", "shopName"),
+
+            ProductModel.countDocuments(filter),
+        ]);
+
+        const totalPages = Math.ceil(totalDocuments / limit);
+
+        return {
+            success: true,
+            metadata: {
+                totalResults: totalDocuments,
+                totalPages,
+                currentPage: page,
+                limit,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
+            },
+            data: products,
+        };
     }
 
     //// update product status 

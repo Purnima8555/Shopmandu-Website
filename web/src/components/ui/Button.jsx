@@ -32,7 +32,7 @@ const Button = ({ className = "", size = "default", variant = "primary", type = 
     <button type={type}  onClick={onClick}  disabled={disabled}  className={classes}
       {...props}
     >
-      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+      <span className="absolute inset-0 w-full h-full bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
       <span className="relative z-10 flex items-center gap-2 justify-around">
         <span> {Icon && iconPosition === "left" && <Icon size={iconsize} />} </span>
         {children}

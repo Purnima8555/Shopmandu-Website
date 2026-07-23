@@ -1,4 +1,4 @@
-import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
+import { Copy, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import Button from "../../../components/ui/Button";
@@ -7,22 +7,29 @@ import StatusBadge from "../../../components/ui/StatusBadge";
 
 import CreateCouponModal from "../components/CreateCouponModal";
 
-import useCouponStore from "../../../store/couponStore";
-
 import sendApiRequest from "../../../utils/sendApiRequest";
 import { dismissToast, showSuccess } from "../../../utils/toast";
 import { COUPON_STATUS_STYLE } from "../data";
+import useCouponStore from "../../checkout/store/coupon.store";
+import AdminPagination from "../components/AdminPagination";
 
 const CouponsPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState(null);
 
-  const { coupons, loading, getAllCoupons, getCouponById, deleteCoupon } =
-    useCouponStore();
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+
+  const { coupons, loading, getAllCoupons, couponMetadata, getCouponById, deleteCoupon } = useCouponStore();
 
   useEffect(() => {
-    getAllCoupons();
-  }, []);
+    getAllCoupons({
+    page,
+    limit,
+    search,
+});
+  }, [getAllCoupons, page, limit, search]);
 
   const handleCreateCoupon = () => {
     setEditingCoupon(null);
@@ -64,6 +71,41 @@ const CouponsPage = () => {
 
       {/* Table */}
       <div className="overflow-hidden rounded-xl border border-border bg-card">
+
+        <div className="mb-6 ounded-xl border border-border bg-card p-4 shadow-sm">
+          {/* Search */}
+          <div className="relative w-full md:max-w-sm">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search coupon..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              className="w-full rounded-lg border border-border bg-background py-2.5 pl-10 pr-4 text-sm transition-colors outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+
+          {/* Pagination */}
+          <AdminPagination
+              metadata={couponMetadata}
+              page={page}
+              setPage={setPage}
+              limit={limit}
+              setLimit={setLimit}
+              refreshData={() =>
+                  getAllCoupons({
+                      page,
+                      limit,
+                      search,
+                  })
+              }
+          />
+      
+        </div>
+
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">

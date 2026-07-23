@@ -7,11 +7,11 @@ const PaymentFail = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="min-h-[calc(100vh-72px)] bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center px-6 py-12">
+    <section className="min-h-[calc(100vh-72px)] bg-linear-to-br from-red-50 via-white to-orange-50 flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-2xl">
         <div className="bg-white rounded-3xl shadow-xl border border-border overflow-hidden">
           {/* Top Failure Banner */}
-          <div className="relative bg-gradient-to-r from-red-500 to-orange-500 px-8 py-12 flex flex-col items-center text-center">
+          <div className="relative bg-linear-to-r from-red-500 to-orange-500 px-8 py-12 flex flex-col items-center text-center">
             <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center shadow-lg">
               <XCircle size={60} className="text-red-500" strokeWidth={2.5} />
             </div>

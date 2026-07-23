@@ -1,25 +1,24 @@
-
-
 import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 import Selecter from "../../../components/ui/Selecter";
 
-const AdminPagination = ({
-  data = [],
-  metadata,
-  page,
-  setPage,
-  limit,
-  setLimit,
-  refreshData,
-  pageSizeOptions = [10, 20, 50, 100],
-}) => {
-  const totalResults = metadata?.totalResults || 0;
+const AdminPagination = ({  metadata,  page,  setPage,  limit,  setLimit,  refreshData,  pageSizeOptions = [10, 20, 50, 100],}) => {
+  const totalResults = metadata?.totalResults || 0; /// how many data or documents or resultes.
 
-  const start =
-    totalResults === 0 ? 0 : (page - 1) * limit + 1;
+  const start = totalResults === 0 ? 0 : (page - 1) * limit + 1; /// page data start from
+  /**
+   * if page=1, limit=10, totalResults= 34
+   *  (1 - 1) * 10 + 1
+   *  0 * 10 + 1
+   * 0 + 1
+   * 1
+   */
 
-  const end =
-    totalResults === 0 ? 0 : Math.min(page * limit, totalResults);
+  const end = totalResults === 0 ? 0 : Math.min(page * limit, totalResults); /// page data end.
+  /**
+   * Math.min(1 * 10, 34)
+   * Math.min(10, 34)
+   * 10
+   */
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-3">
@@ -67,7 +66,7 @@ const AdminPagination = ({
           <ChevronLeft size={16} />
         </button>
 
-        <div className="min-w-[90px] text-center text-xs font-semibold text-text-secondary">
+        <div className="min-w-22.5 text-center text-xs font-semibold text-text-secondary">
           Page {metadata?.currentPage || 1} of {metadata?.totalPages || 1}
         </div>
 
@@ -82,5 +81,4 @@ const AdminPagination = ({
     </div>
   );
 };
-
 export default AdminPagination;

@@ -69,7 +69,7 @@ export async function scheduleCodOrderConfirmation(orderId) {
       orderId,
     },
     {
-      delay: 10000, // 10 seconds
+      delay: 1000 * 60 * 30, /// 30 minutes
       attempts: 3,
       backoff: {
         type: "exponential",
@@ -87,7 +87,7 @@ export async function scheduleUnpaidOrderCancellation(orderId) {
       orderId,
     },
     {
-      delay: 10 * 60 * 1000,
+      delay: 30 * 60 * 1000, /// 30 minutes
       attempts: 3,
       backoff: {
         type: "exponential",

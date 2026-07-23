@@ -3,11 +3,14 @@ import { useMemo } from "react";
 import Button from "../../../components/ui/Button";
 import { CheckboxGroup } from "./CheckBoxGroup";
 import { PriceRangePanel } from "./PriceRangePanel";
-import useProductStore from "../../../store/productStore";
+import useProductStore from "../store/product.store";
+import useCategoryStore from "../store/category.store";
+
 
 export const SidebarContent = ({ filters, setFilters, onApply, onReset }) => {
   // Pull backend categories and current product list from store
-  const { categories, productPageProducts } = useProductStore();
+  const { productPageProducts } = useProductStore();
+  const {categories} = useCategoryStore()
 
   /// Map categories from backend object names
   const dynamicCategories = useMemo(() => {

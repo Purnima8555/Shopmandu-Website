@@ -89,11 +89,9 @@ const getProductBySlug = async (req, res, next) => {
 const getProductByShop = async (req, res, next) => {
   try {
     const shopId = req.params.id;
-    const products = await productService.getProductByShop(shopId);
-    res.status(200).json({
-      success: true,
-      data: products,
-    });
+    const data = req.body;
+    const products = await productService.getProductByShop(shopId, data);
+    res.status(200).json(products);
   } catch (error) {
     next(error);
   }
@@ -399,6 +397,22 @@ const generateProductDescription = async (req, res, next) => {
   }
 };
 
+/// search product and shop 
+
+const searchProductAndShop = async (req, res, next) => {
+  try {
+    const results = await productService.searchProductAndShop(req.query);
+    return res.status(200).json({
+      success: true,
+      message: "Search results fetched successfully.",
+      data: results,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 
 export {
   createProduct,
@@ -423,4 +437,5 @@ export {
   getTopProductsVendor,
   getMyProductSummary,
   generateProductDescription,
+  searchProductAndShop,
 };

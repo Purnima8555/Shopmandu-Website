@@ -5,17 +5,26 @@ export const CartItemRow = ({ item, onIncrease, onDecrease, onRemove }) => (
   <div className="py-5 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr] gap-4 items-center">
     {/* Product */}
     <div className="flex items-center gap-4">
-      <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-card border border-border flex-shrink-0">
-        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-        <button
-          type="button"
-          onClick={() => onRemove(item.productId, item.color, item.size)}
-          aria-label={`Remove ${item.name}`}
-          className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-foreground text-background flex items-center justify-center cursor-pointer"
-        >
-          <FiX size={12} />
-        </button>
-      </div>
+      <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0">
+          {/* Image container */}
+          <div className="w-full h-full rounded-xl overflow-hidden bg-card border border-border">
+            <img
+              src={item.image}
+              alt={item.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+
+          {/* Remove button */}
+          <button
+            type="button"
+            onClick={() => onRemove(item.productId, item.color, item.size)}
+            aria-label={`Remove ${item.name}`}
+            className="absolute -top-2 -right-2 z-10 w-5 h-5 rounded-full bg-gray-600 hover:bg-gray-700 text-white flex items-center justify-center shadow-md cursor-pointer hover:scale-105 transition"
+          >
+            <FiX size={14} />
+          </button>
+        </div>
       <div>
         <p className="font-medium text-foreground">{item.name}</p>
         {item.color && <p className="text-sm text-muted-foreground">Color: {item.color}</p>}

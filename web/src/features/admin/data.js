@@ -1,3 +1,5 @@
+import { CheckCircle2, DollarSign, Package, ShoppingCart } from "lucide-react";
+import { formatCurrency } from "./utils/adminHelper";
 
 
 export const STATUS_STYLE = {
@@ -15,7 +17,6 @@ export const COUPON_STATUS_STYLE = {
 
 
 //// orders 
-
 export const ORDER_STYLE = {
   PENDING: { tone: "warning", label: "Pending" },
   PROCESSING: { tone: "warning", label: "Processing" },
@@ -76,8 +77,74 @@ export const MONTHS = [
 
 
 
-/// payment 
 
+
+//// Admin summary card generator 
+
+export const adminSummaryCard = (salesSummary) => { 
+  
+      return [
+        {
+          title: "Gross Sales",
+          value: formatCurrency(salesSummary.grossSales),
+          subtitle: salesSummary.period,
+          icon: DollarSign,
+        },
+        {
+          title: "Total Orders",
+          value: salesSummary.totalOrders,
+          subtitle: "Orders received",
+          icon: ShoppingCart,
+        },
+        {
+          title: "Delivered Orders",
+          value: salesSummary.deliveredOrders,
+          subtitle: "Successfully delivered",
+          icon: CheckCircle2,
+        },
+        {
+          title: "Average Order Value",
+          value: formatCurrency(salesSummary.averageOrderValue),
+          subtitle: "Per delivered order",
+          icon: Package,
+        },
+      ];
+ }
+
+ //// order status generate 
+
+ export const orderStatusProgress = (salesSummary) => { 
+      return [
+      {
+        label: "Pending",
+        value: salesSummary.pendingOrders,
+      },
+      {
+        label: "Confirmed",
+        value: salesSummary.confirmedOrders,
+      },
+      {
+        label: "Processing",
+        value: salesSummary.processingOrders,
+      },
+      {
+        label: "Out For Delivery",
+        value: salesSummary.outForDeliveryOrders,
+      },
+      {
+        label: "Delivered",
+        value: salesSummary.deliveredOrders,
+      },
+      {
+        label: "Cancelled",
+        value: salesSummary.cancelledOrders,
+      },
+    ];
+  }
+
+
+
+/// payment 
 export const PAYMENT_STATUS_STYLE = {
   PAID: { tone: "success", label: "Paid" },
   PENDING: { tone: "warning", label: "Pending" },
@@ -138,4 +205,27 @@ export const KYC_STYLE = {
   pending: { tone: "warning", label: "Pending" },
   reject: { tone: "danger", label: "Rejected" },
   rejected: { tone: "danger", label: "Rejected" },
+};
+
+
+export const ADMIN_EDITABLE_STATUSES = [
+  "PROCESSING",
+  "OUT_FOR_DELIVERY",
+  "DELIVERED",
+];
+
+export const ADMIN_STATUS_TRANSITIONS = {
+  PENDING: [],
+
+  CONFIRMED: ["PROCESSING"],
+
+  PROCESSING: ["OUT_FOR_DELIVERY", "DELIVERED"],
+
+  OUT_FOR_DELIVERY: ["DELIVERED"],
+
+  DELIVERED: [],
+
+  CANCELLED: [],
+
+  RETURNED: [],
 };

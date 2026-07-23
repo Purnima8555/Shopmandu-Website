@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, Info, RefreshCw, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import useProductStore from "../../../store/productStore";
+
 
 import ButtonRounded from "../../../components/ui/ButtonRounded";
 import StatusBadge from "../../../components/ui/StatusBadge";
@@ -12,6 +12,8 @@ import Selecter from "../../../components/ui/Selecter";
 import SearchInput from "../../../components/ui/SearchInput";
 import { filterOptions } from "../../vendor/data";
 import { PRODUCT_STATUS_STYLE } from "../data";
+import useProductStore from "../../product/store/product.store";
+import useCategoryStore from "../../product/store/category.store";
 
 
 
@@ -26,7 +28,7 @@ const ProductsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const { categories } = useProductStore();
+  const { categories } = useCategoryStore();
 
   const {
     products,
@@ -64,7 +66,7 @@ const ProductsPage = () => {
 
   useEffect(() => {
     getTopProducts({ limit: 4 });
-  }, []);
+  }, [getTopProducts]);
 
   return (
     <div className="space-y-8 ">

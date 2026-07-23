@@ -3,7 +3,7 @@ import { FcGoogle } from "react-icons/fc";
 import Input from "../../../components/ui/Input";
 import Button from "../../../components/ui/Button";
 import PasswordInput from "../components/PasswordInput";
-import useAuthStore from "../../../store/authStore";
+
 import { useForm } from "react-hook-form";
 import { generateGoogleOauthUrl } from "../../../api/auth.api";
 // import Loader from "../../../components/common/Loader";
@@ -12,6 +12,7 @@ import { loginSchema } from "../../../schemas/auth.validation";
 import { dismissToast, showSuccess } from "../../../utils/toast";
 import sendApiRequest from "../../../utils/sendApiRequest";
 import { useEffect } from "react";
+import useAuthStore from "../store/auth.store";
 
 const LoginPage = () => {
 useEffect(() => {
@@ -48,6 +49,7 @@ const loginHandelSubmit = async (data) => {
     })
   );
   if (!res) return;
+  // console.log(user)
   reset();
   dismissToast();
   showSuccess("Login successful");
@@ -55,7 +57,7 @@ const loginHandelSubmit = async (data) => {
 
 
 
-  const continueWithGoogle = async () => {
+  const continueWithGoogle = async () => { 
     const url = await generateGoogleOauthUrl();
     window.location.href = url;
   };

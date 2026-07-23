@@ -14,9 +14,8 @@ function HomePage() {
   /// simply get flash sale products and display in console
   const flashSaleProducts = async () => {
     try {
-      const data = await getFlashSaleProductsApi({});
-  
-      console.log("Flash Sale Products:", data);
+      await getFlashSaleProductsApi({});
+      // console.log("Flash Sale Products:", data);
     } catch (error) {
       console.error("Error fetching flash sale products:", error);
     }
@@ -27,7 +26,7 @@ function HomePage() {
 
   return (
     <section className="bg-background">
-      <div className="container mx-auto px-6 py-16 lg:py-24">
+      <div className="container mx-auto px-6 py-16 lg:py-24 ">
         <div className="grid lg:grid-cols-2 gap-14 items-center">
           {/* Left Content */}
           <div>

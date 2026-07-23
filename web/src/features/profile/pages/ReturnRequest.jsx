@@ -8,60 +8,11 @@ import {
     AlertTriangle,
 } from "lucide-react";
 
-import useReturnStore from "../../../store/returnStore";
 import StatusBadge from "../../../components/ui/StatusBadge";
+import useReturnStore from "../store/return.store";
+import { filters, STATUS_CONFIG_RETURN, TIMELINE_STEPS } from "../data";
+import { formatDate, prettyReason, prettyStatus, timelineIndex } from "../utils/profileHelpar";
 
-const filters = [
-    { label: "All", value: "" },
-    { label: "Pending", value: "PENDING" },
-    { label: "Approved", value: "APPROVED" },
-    { label: "Rejected", value: "REJECTED" },
-    { label: "Refunded", value: "REFUNDED" },
-];
-
-const STATUS_CONFIG = {
-    PENDING: { label: "Pending", tone: "warning" },
-    APPROVED: { label: "Approved", tone: "success" },
-    REJECTED: { label: "Rejected", tone: "danger" },
-    REFUNDED: { label: "Refunded", tone: "info" },
-};
-
-// Progress flow for the timeline. REJECTED is a terminal branch handled
-// separately rather than as a step, since it doesn't lead to "Refunded".
-const TIMELINE_STEPS = [
-    { key: "SUBMITTED", label: "Request submitted" },
-    { key: "PENDING", label: "Under review" },
-    { key: "APPROVED", label: "Approved" },
-    { key: "REFUNDED", label: "Refund completed" },
-];
-
-function timelineIndex(status) {
-    if (status === "REJECTED") return 1; // got as far as review, then rejected
-    const i = TIMELINE_STEPS.findIndex((s) => s.key === status);
-    return i === -1 ? 0 : i;
-}
-
-function prettyStatus(status) {
-    return status
-        .toLowerCase()
-        .replace("_", " ")
-        .replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-function prettyReason(reason) {
-    return reason
-        .toLowerCase()
-        .replaceAll("_", " ")
-        .replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-function formatDate(date) {
-    return new Date(date).toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-    });
-}
 
 function DetailField({ label, children }) {
     return (
@@ -161,7 +112,7 @@ export default function ReturnRequest() {
             selectedStatus
                 ? { status: selectedStatus } : {}
         );
-    }, [selectedStatus]);
+    }, [selectedStatus, getCustomerReturnRequests]); /// getCustomerReturnRequests
 
     const toggleCard = (id) => {
         setExpandedId((prev) =>
@@ -235,7 +186,7 @@ export default function ReturnRequest() {
                         const expanded =
                             expandedId === request._id;
 
-                        const status = STATUS_CONFIG[request.status] || {
+                        const status = STATUS_CONFIG_RETURN[request.status] || {
                             label: prettyStatus(request.status),
                             tone: "neutral",
                         };

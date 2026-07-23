@@ -38,20 +38,59 @@ export const createCouponService = async (adminId, body) => {
     return coupon;
 };
 
-// ─── Get all coupons (admin only) ─────────────────────────────────────────────
-export const getAllCouponsService = async () => {
-    const coupons = await CouponModel.find().sort({ createdAt: -1 });
-    return coupons;
+
+/// Get all coupons with filtering & pagination
+export const getAllCouponsService = async (data) => {
+    const page = parseInt(data.page, 10) || 1;
+    const limit = parseInt(data.limit, 10) || 10;
+    const skip = (page - 1) * limit;
+
+    const filter = {};
+
+    // Search by coupon code
+    if (data.search) {
+        filter.code = {
+            $regex: data.search,
+            $options: "i",
+        };
+    }
+    if (data.status && data.status !== "ALL") {
+        filter.status = data.status;
+    }
+
+    const [coupons, totalResults] = await Promise.all([
+        CouponModel.find(filter)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit),
+
+        CouponModel.countDocuments(filter),
+    ]);
+
+    const totalPages = Math.ceil(totalResults / limit);
+
+    return {
+        success: true,
+        metadata: {
+            totalResults,
+            totalPages,
+            currentPage: page,
+            limit,
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1,
+        },
+        data: coupons,
+    };
 };
 
-// ─── Get single coupon by ID (admin only) ─────────────────────────────────────
+/// Get single coupon by ID/admin only
 export const getCouponByIdService = async (couponId) => {
     const coupon = await CouponModel.findById(couponId);
     if (!coupon) throw new NotFoundError("Coupon not found.");
     return coupon;
 };
 
-// ─── Update a coupon (admin only) ─────────────────────────────────────────────
+//  Update a coupon admin only 
 export const updateCouponService = async (couponId, body) => {
     const code = body.code?.trim().toUpperCase()
     // Prevent changing the code to one that already exists
@@ -64,7 +103,7 @@ export const updateCouponService = async (couponId, body) => {
         body.code = code
     }
 
-    const coupon = await CouponModel.findByIdAndUpdate(couponId,body,
+    const coupon = await CouponModel.findByIdAndUpdate(couponId, body,
         {
             // new: true,
             returnDocument: "after",
@@ -75,14 +114,13 @@ export const updateCouponService = async (couponId, body) => {
     return coupon;
 };
 
-// ─── Delete a coupon (admin only) ─────────────────────────────────────────────
+//// Delete a coupon /admin only
 export const deleteCouponService = async (couponId) => {
     const coupon = await CouponModel.findByIdAndDelete(couponId);
     if (!coupon) throw new NotFoundError("Coupon not found.");
     return { message: "Coupon deleted successfully." };
 };
 
-// ─── Validate & apply a coupon (from order service) ────────────────────
 // Returns the final discount amount to subtract from the cart total.
 export const applyCouponService = async (userId, code, cartTotal) => {
     const coupon = await CouponModel.findOne({ code: code.toUpperCase() });
@@ -116,7 +154,7 @@ export const applyCouponService = async (userId, code, cartTotal) => {
         throw new BadRequestError("You have already used this coupon the maximum number of times.");
     }
 
-    // ── Calculate the discount amount ──────────────────────────────────────────
+    //// Calculate the discount amount 
     let discountAmount = 0;
 
     if (coupon.discountType === couponType.PERCENTAGE) {
@@ -140,7 +178,7 @@ export const applyCouponService = async (userId, code, cartTotal) => {
     };
 };
 
-// ─── Mark coupon as used after order is confirmed ─────────────────────────────
+//// Mark coupon as used after order is confirmed 
 // Call this inside your order service after the order is created successfully.
 export const markCouponAsUsedService = async (couponId, userId) => {
     const coupon = await CouponModel.findById(couponId);

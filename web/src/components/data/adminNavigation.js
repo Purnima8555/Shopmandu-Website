@@ -8,6 +8,7 @@ import {
     ShoppingBag,
     Wallet,
     Ticket,
+    Settings,
 } from "lucide-react";
 
 export const ADMIN_NAV = [
@@ -81,4 +82,16 @@ export const ADMIN_NAV = [
         },
         ],
     },
+
+        {
+        title: "Account",
+        items: [
+        {
+            label: "Settings",
+            icon: Settings,
+            path: "/admin/settings",
+        },
+        ],
+    },
+
 ];

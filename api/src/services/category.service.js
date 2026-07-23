@@ -29,27 +29,44 @@ class CategoryService {
     };
 
 
-    /// get all category with filter/ pagination 
-    getAllCategories = async ({ page = 1, limit = 10, search }) => {
-        const filter = {isActive: true};
-
-        /// category search by name.
-        if (search) {
-            filter.name = { $regex: search, $options: "i" };
-        }
-
+    /// Get all categories with filtering & pagination
+    getAllCategories = async (data) => {
+        const page = parseInt(data.page, 10) || 1;
+        const limit = parseInt(data.limit, 10) || 10;
         const skip = (page - 1) * limit;
 
-        const [categories, total] = await Promise.all([
-            CategoryModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
-            CategoryModel.countDocuments(filter)
+        const filter = { };
+
+        // Category search by name
+        if (data.search) {
+            filter.name = {
+                $regex: data.search,
+                $options: "i",
+            };
+        }
+
+        const [categories, totalResults] = await Promise.all([
+            CategoryModel.find(filter)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+
+            CategoryModel.countDocuments(filter),
         ]);
+
+        const totalPages = Math.ceil(totalResults / limit);
+
         return {
             success: true,
-            categories,
-            total,
-            page,
-            totalPages: Math.ceil(total / limit)
+            metadata: {
+                totalResults,
+                totalPages,
+                currentPage: page,
+                limit,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
+            },
+            data: categories,
         };
     };
 

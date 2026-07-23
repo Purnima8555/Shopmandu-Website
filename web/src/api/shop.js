@@ -102,3 +102,18 @@ export const updateShopStatusApi = async (shopId, data) => {
 
         return res.data;
 };
+
+/// get shop by slug (public shop details page)
+export const getShopBySlugApi = async (slug) => {
+        const res = await api.get(`/api/shop/${slug}`);
+        return res.data;
+};
+
+/// get products belonging to a shop (public shop details page)
+export const getProductsByShopApi = async (shopId, params = {}) => {
+        // console.log(params)
+        const res = await api.get(`/api/shop/products/${shopId}`, {
+                params,
+        });
+        return res.data;
+};

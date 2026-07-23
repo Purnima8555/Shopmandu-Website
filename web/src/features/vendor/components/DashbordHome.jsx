@@ -1,29 +1,14 @@
-import {
-    CheckCircle2,
-    DollarSign,
-    Package,
-    ShoppingCart,
-} from "lucide-react";
-
+import {CheckCircle2,DollarSign,Package, ShoppingCart,} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import {Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,} from "recharts";
 
-import {
-    Area,
-    AreaChart,
-    CartesianGrid,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
-} from "recharts";
-
-import DashbordHomeHead from "../ui/DashbordHomeHead";
-import useOrderStore from "../../../store/orderStore";
 import { MONTHS } from "../data";
+import useOrderStore from "../../order/store/order.store";
+import DashbordHomeHead from "../ui/dashboard/DashbordHomeHead";
 
 /*  Helpers  */
-
 const CURRENT_YEAR = new Date().getFullYear();
+const CURRENT_MONTH = new Date().getMonth() + 1;
 
 const YEARS = Array.from(
     { length: CURRENT_YEAR - 2020 + 1 },
@@ -76,7 +61,7 @@ const DashboardHome = () => {
 
         getVendorSalesSummary(params);
         getVendorSalesTrend(params);
-    }, [month, year]);
+    }, [month, year, getVendorSalesSummary, getVendorSalesTrend]);
 
     /* KPI Cards */
 
@@ -221,7 +206,11 @@ const DashboardHome = () => {
                                 className="rounded-xl border border-border bg-card px-4 py-2 outline-none"
                             >
                                 {MONTHS.map((m) => (
-                                    <option key={m.value} value={m.value}>
+                                    <option
+                                        key={m.value}
+                                        value={m.value}
+                                        disabled={year === CURRENT_YEAR && m.value > CURRENT_MONTH}
+                                        >
                                         {m.label}
                                     </option>
                                 ))}

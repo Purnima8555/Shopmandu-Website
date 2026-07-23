@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from "react-router-dom";
-import useAuthStore from "../../store/authStore";
+import useAuthStore from "../../features/auth/store/auth.store";
+
 
 export default function RoleProtectedRoute({ roles }) {
   const user = useAuthStore((state) => state.user);

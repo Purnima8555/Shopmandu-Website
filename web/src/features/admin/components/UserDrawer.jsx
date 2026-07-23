@@ -22,7 +22,7 @@ const UserDrawer = ({ user, onClose }) => {
         maxWidth="max-w-lg"
         >
         <div className="space-y-6">
-            {/* ================= PROFILE ================= */}
+            {/*  PROFILE  */}
             <section className="flex flex-col items-center border-b border-border pb-6">
             {user.avatar ? (
                 <img
@@ -39,7 +39,7 @@ const UserDrawer = ({ user, onClose }) => {
             <h2 className="mt-3 text-l font-semibold">{user.userName}</h2>
             </section>
 
-            {/* ================= USER INFORMATION ================= */}
+            {/*  USER INFORMATION  */}
             <section>
             <h3 className="mb-2 text-sm font-semibold">User Information</h3>
 
@@ -64,7 +64,7 @@ const UserDrawer = ({ user, onClose }) => {
             </div>
             </section>
 
-            {/* ================= ACCOUNT STATUS ================= */}
+            {/*  ACCOUNT STATUS  */}
             <section>
             <h3 className="mb-2 text-sm font-semibold">Account Status</h3>
 
@@ -81,7 +81,7 @@ const UserDrawer = ({ user, onClose }) => {
             </div>
             </section>
 
-            {/* ================= METADATA ================= */}
+            {/*  METADATA  */}
             <section>
             <h3 className="mb-2 text-sm font-semibold">Metadata</h3>
 
@@ -108,7 +108,7 @@ const UserDrawer = ({ user, onClose }) => {
             </div>
             </section>
 
-            {/* ================= SYSTEM INFORMATION ================= */}
+            {/*  SYSTEM INFORMATION  */}
             <section className="border-t border-border pt-4">
             <h3 className="mb-3 text-sm font-semibold">System Information</h3>
 

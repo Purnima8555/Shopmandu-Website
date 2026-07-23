@@ -2,16 +2,17 @@ import { useState } from 'react';
 import { Plus, User, LogOut, Settings as SettingsIcon } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import SearchInput from '../../../components/ui/SearchInput';
-import ProfileMenuButton from '../ui/ProfileMenuButton';
-import useShopStore from '../../../store/shop';
-import useAuthStore from '../../../store/authStore';
+import ProfileMenuButton from '../ui/dashboard/ProfileMenuButton';
+
+import useAuthStore from '../../auth/store/auth.store';
+import useShopStore from '../../shop/store/shop.store';
+
 
 
 export default function Header({ onAddProductClick, searchQuery,setSearchQuery,onNavigateToTab}) {
 
   
-    const {loading} = useShopStore()
-    const {shop} = useShopStore()
+    const {loading, shop} = useShopStore()
     const {user, logout} = useAuthStore()
     // console.log("My shop is : ",user)
     // console.log(loading)
@@ -37,7 +38,7 @@ export default function Header({ onAddProductClick, searchQuery,setSearchQuery,o
 
     
         {/* Vertical Separator */}
-        <div className="h-6 w-[1px] bg-border"></div>
+        <div className="h-6 w-px bg-border"></div>
 
         {/* User Profile */}
         <div className="relative">

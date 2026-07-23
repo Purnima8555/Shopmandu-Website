@@ -10,11 +10,16 @@ import { FiRotateCcw, FiPlay, FiSearch } from "react-icons/fi"; // Added FiSearc
 import { FaStar, FaRegStar, FaLongArrowAltRight } from "react-icons/fa";
 import Button from "../../../components/ui/Button";
 import ButtonRounded from "../../../components/ui/ButtonRounded";
-import { useNavigate, useParams } from "react-router-dom";
-import useProductStore from "../../../store/productStore";
-import useWishlistStore from "../../../store/wishlistStore";
-import useAuthStore from "../../../store/authStore";
+import { Link, useNavigate, useParams } from "react-router-dom";
+
 import { useUserOrderStore } from "../../order/store/userOrderStore";
+import useWishlistStore from "../../wishlist/store/wishlist.store";
+import useProductStore from "../store/product.store";
+import useAuthStore from "../../auth/store/auth.store";
+import { ArrowRight, Store } from "lucide-react";
+import Loader from "../../../components/common/Loader";
+import { dismissToast, showSuccess } from "../../../utils/toast";
+import Roles from "../../../constants/rolebase";
 
 export const ProductDetail = () => {
   const { slug } = useParams();
@@ -51,8 +56,7 @@ export const ProductDetail = () => {
     }
 
     // Vendors and admins cannot use wishlist
-    const isDashboardUser =
-      user?.roles?.includes("VENDOR") || user?.roles?.includes("ADMIN");
+    const isDashboardUser = user?.roles?.includes(Roles.VENDOR_ROLE) || user?.roles?.includes(Roles.ADMIN_ROLE);
 
     if (isDashboardUser) {
       return;
@@ -63,8 +67,12 @@ export const ProductDetail = () => {
 
       if (isInWishlist(productId)) {
         await removeFromWishlist(productId);
+        // dismissToast();
+        // showSuccess("Product removed from your wishlist.");
       } else {
         await addToWishlist(productId);
+        dismissToast();
+        showSuccess("Product added to your wishlist.");
       }
     } catch (error) {
       console.error("Wishlist Error:", error);
@@ -115,7 +123,7 @@ export const ProductDetail = () => {
     });
   }, [slug]);
 
-  // 2. Initialize Selection States when productDetail is loaded
+  /////
   useEffect(() => {
     if (productDetail) {
       if (productDetail.sizes?.length > 0)
@@ -126,17 +134,13 @@ export const ProductDetail = () => {
     }
   }, [productDetail]);
 
-  // --- START LOADING AND MISSING DATA LOGIC ---
+  //
 
-  // console.log(productDetail)
+  // console.log(productDetail);
 
   // Show Spinner while loading
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary"></div>
-      </div>
-    );
+    return <Loader className="min-h-screen" />;
   }
 
   // Beautiful empty message when productDetail is not found
@@ -156,12 +160,12 @@ export const ProductDetail = () => {
             Sorry, we couldn't find the product details you're looking for. It
             might have been moved or is currently unavailable.
           </p>
-          <a
-            href="/"
+          <Link
+            to="/"
             className="inline-block px-8 py-3 bg-primary text-white font-medium rounded-sm hover:bg-opacity-90 transition-all"
           >
             Return to Homepage
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -196,8 +200,7 @@ export const ProductDetail = () => {
   };
 
   const isAvailable =
-  productDetail.productStatus === "ACTIVE" &&
-  productDetail.stock > 0;
+    productDetail.productStatus === "ACTIVE" && productDetail.stock > 0;
 
   return (
     <section className="bg-white min-h-screen py-10 px-4 md:px-10 lg:px-20 text-gray-900">
@@ -212,7 +215,7 @@ export const ProductDetail = () => {
                 <button
                   key={i}
                   onMouseEnter={() => setCurrentImgIndex(i)}
-                  className={`min-w-[80px] w-20 h-20 bg-surface rounded-sm flex items-center justify-center p-2 border transition-all ${
+                  className={`min-w-20 w-20 h-20 bg-surface rounded-sm flex items-center justify-center p-2 border transition-all ${
                     currentImgIndex === i
                       ? "border-primary"
                       : "border-transparent"
@@ -321,7 +324,7 @@ export const ProductDetail = () => {
                       <button
                         key={s}
                         onClick={() => setSelectedSize(s)}
-                        className={`min-w-[40px] px-2 h-8 rounded-sm border text-xs font-medium transition-all ${
+                        className={`min-w-20 px-2 h-8 rounded-sm border text-xs font-medium transition-all ${
                           selectedSize === s
                             ? "bg-primary text-white border-primary/20"
                             : "border-gray-400"
@@ -391,6 +394,7 @@ export const ProductDetail = () => {
                     </p>
                   </div>
                 </div>
+
                 <div className="flex items-center p-4 gap-4">
                   <FiRotateCcw className="text-2xl ml-1" />
                   <div>
@@ -400,6 +404,31 @@ export const ProductDetail = () => {
                       <span className="underline cursor-pointer">Details</span>
                     </p>
                   </div>
+                </div>
+
+                <div className="flex items-center justify-between p-4 gap-4">
+                  <div className="flex items-center gap-4">
+                    <Store className="text-2xl ml-1" />
+
+                    <div>
+                      <p className="text-sm font-bold">Visit Shop</p>
+                      <p className="text-[11px]">
+                        Explore more products from this seller.
+                      </p>
+                    </div>
+                  </div>
+
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    icon={ArrowRight}
+                    iconPosition="right"
+                    onClick={() =>
+                      navigate(`/shop/${productDetail.shopId.slugs}`)
+                    }
+                  >
+                    Visit shop
+                  </Button>
                 </div>
               </div>
             </div>
@@ -415,7 +444,7 @@ export const ProductDetail = () => {
                 onClick={() => setActiveTab(t.toLowerCase())}
                 className={`pb-4 text-xl font-medium relative transition-all ${
                   activeTab === t.toLowerCase()
-                    ? "text-black underline underline-offset-[16px] decoration-2"
+                    ? "text-black underline underline-offset-16 decoration-2"
                     : "text-gray-400 hover:text-black"
                 }`}
               >

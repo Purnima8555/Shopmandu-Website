@@ -1,9 +1,10 @@
 import Drawer from "../../../components/ui/Drawer";
 import StatusBadge from "../../../components/ui/StatusBadge";
 
-import useOrderStore from "../../../store/orderStore";
+
 import sendApiRequest from "../../../utils/sendApiRequest";
 import { dismissToast, showSuccess } from "../../../utils/toast";
+import useOrderStore from "../../order/store/order.store";
 
 import { ORDER_STYLE, STATUS_STYLES, VENDOR_STATUS_TRANSITIONS } from "../data";
 

@@ -1,8 +1,9 @@
 
 
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import useAuthStore from "../../store/authStore";
+
 import Loader from "../../components/common/Loader";
+import useAuthStore from "../../features/auth/store/auth.store";
 
 export default function AuthenticatedRoute() {
   
